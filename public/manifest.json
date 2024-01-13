@@ -11,7 +11,7 @@
       "96": "logo96.png"
     }
   },
-  "permissions": ["webRequest", "webRequestBlocking", "<all_urls>", "storage"],
+  "permissions": ["webRequest", "<all_urls>", "storage"],
   "icons": {
     "48": "logo48.png",
     "96": "logo96.png"
