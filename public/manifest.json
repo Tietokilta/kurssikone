@@ -11,6 +11,7 @@
       "96": "logo96.png"
     }
   },
+  "permissions": ["webRequest", "webRequestBlocking", "<all_urls>", "storage"],
   "icons": {
     "48": "logo48.png",
     "96": "logo96.png"
@@ -20,5 +21,14 @@
       "matches": ["https://sisu.aalto.fi/*"],
       "js": ["/static/js/main.js"]
     }
-  ]
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{8e5de4e6-d470-4f89-b4d4-1d9b129028af}"
+    }
+  }
 }

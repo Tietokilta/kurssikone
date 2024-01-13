@@ -9,6 +9,7 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@types/firefox-webext-browser": "^111.0.1",
     "@types/jest": "^27.5.2",
     "@types/node": "^16.18.40",
     "@types/react": "^18.2.20",
@@ -67,7 +68,8 @@
     "start": "node scripts/start.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
-    "dev": "NODE_ENV=development INDEX_TS_FILE='src/dev' APP_PUBLIC='dev' npm run start"
+    "dev": "NODE_ENV=development INDEX_TS_FILE='src/dev' APP_PUBLIC='dev' npm run start",
+    "build-automatically": "NODE_ENV=development nodemon --exec \"npm run build\" --ignore build"
   },
   "eslintConfig": {
     "extends": [

@@ -2,6 +2,16 @@ import ReactDOM from 'react-dom/client'
 import './index.css'
 import App from './App'
 
+const addCourseCodeToLocalStorage = () => {
+  const courseCodeString = document.querySelector('.course-unit-code')?.textContent
+  if (courseCodeString) {
+    const currentCourseCode = courseCodeString.split('|')[0].trim()
+    if (currentCourseCode && currentCourseCode.length > 0) {
+      browser.storage.local.set({ currentCourseCode })
+    }
+  }
+}
+
 let observer = new MutationObserver((mutations) => {
   let once = true
   mutations.forEach((mutation) => {
@@ -21,6 +31,8 @@ let observer = new MutationObserver((mutations) => {
         reactRoot.style.display = 'none'
         const root = ReactDOM.createRoot(reactRoot)
         root.render(<App />)
+
+        addCourseCodeToLocalStorage()
 
         const listElement = document.createElement('li')
 

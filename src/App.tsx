@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 const reviews = [
   {
     id: 1,
@@ -34,7 +36,21 @@ const reviews = [
   },
 ]
 
+// https://sisu.aalto.fi/kori/api/course-units?groupId=aalto-OPINKOHD-1125585231&includeExpired=true
+
 const App = () => {
+  const [userId, setUserId] = useState<string | null>(null)
+  const [courseCode, setCourseCode] = useState<string | null>(null)
+  useEffect(() => {
+    const inner = async () => {
+      const newUserId = (await browser.storage.local.get('userId')).userId
+      const newCourseCode = (await browser.storage.local.get('currentCourseCode')).currentCourseCode
+      setUserId(newUserId)
+      setCourseCode(newCourseCode)
+    }
+    inner()
+  }, [])
+  console.log(userId, courseCode)
   return (
     <>
       <h2 className="mt-0">Reviews</h2>
