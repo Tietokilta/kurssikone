@@ -5,6 +5,7 @@
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
+    "@ramonak/react-progress-bar": "^5.2.0",
     "@svgr/webpack": "^5.5.0",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -69,6 +70,7 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
     "dev": "NODE_ENV=development INDEX_TS_FILE='src/dev' APP_PUBLIC='dev' npm run start",
+    "extension-dev": "nodemon scripts/build.js",
     "build-automatically": "NODE_ENV=development nodemon --exec \"npm run build\" --ignore build"
   },
   "eslintConfig": {

@@ -1,42 +1,44 @@
 import { useEffect, useState } from 'react'
+import { Style } from './Style'
+import RoundMeter from './RoundMeter'
+
+const reviewCount = 3
 
 const reviews = [
   {
     id: 1,
-    user: {
-      name: 'Jorma Jormakka',
-      major: 'Computer Science',
-      year: '2022',
-    },
-    reviewDate: '2021-04-01',
-    reviewTitle: 'Pretty good course',
-    reviewContent: 'I learned a lot from this course. Great course for learning about coding.',
+    title: 'Ihan sika vaikee',
+    content:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla euismod, nisl eget ultricies ultrices, nunc nunc aliquam nunc, vitae aliquam nun',
+    date: '2021-04-04',
+    workloadScore: 5,
+    qualityScore: 3,
+    difficultyScore: 4,
+    courseCode: 'CS-A1110',
   },
   {
     id: 2,
-    user: {
-      name: 'Jorma Jormakka',
-      major: 'Computer Science',
-      year: '2022',
-    },
-    reviewDate: '2021-04-01',
-    reviewTitle: 'Pretty good course',
-    reviewContent: 'I learned a lot from this course. Great course for learning about coding.',
+    title: 'Ihan sika vaikee',
+    content:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla euismod, nisl eget ultricies ultrices, nunc nunc aliquam nunc, vitae aliquam nun',
+    date: '2021-04-04',
+    workloadScore: 5,
+    qualityScore: 5,
+    difficultyScore: 5,
+    courseCode: 'CS-A1110',
   },
   {
     id: 3,
-    user: {
-      name: 'Jorma Jormakka',
-      major: 'Computer Science',
-      year: '2022',
-    },
-    reviewDate: '2021-04-01',
-    reviewTitle: 'Pretty good course',
-    reviewContent: 'I learned a lot from this course. Great course for learning about coding.',
+    title: 'Ihan sika vaikee',
+    content:
+      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla euismod, nisl eget ultricies ultrices, nunc nunc aliquam nunc, vitae aliquam nun',
+    date: '2021-04-04',
+    workloadScore: 1,
+    qualityScore: 2,
+    difficultyScore: 3,
+    courseCode: 'CS-A1110',
   },
 ]
-
-// https://sisu.aalto.fi/kori/api/course-units?groupId=aalto-OPINKOHD-1125585231&includeExpired=true
 
 const App = () => {
   const [userId, setUserId] = useState<string | null>(null)
@@ -50,17 +52,68 @@ const App = () => {
     }
     inner()
   }, [])
-  console.log(userId, courseCode)
+
+  const scoreTypes = [
+    { name: 'Quality', field: 'qualityScore', value: 0 },
+    { name: 'Workload', field: 'workloadScore', value: 0 },
+    { name: 'Difficulty', field: 'difficultyScore', value: 0 },
+  ]
+  scoreTypes.forEach((scoreType) => {
+    scoreType.value =
+      //@ts-ignore
+      reviews.reduce((acc, review) => acc + review[scoreType.field], 0) / reviews.length
+  })
   return (
     <>
-      <h2 className="mt-0">Reviews</h2>
-      <dl className="fill-by-column">
-        {reviews.map((review) => (
-          <div className="form-group-mimic">
-            <dt className="label">{review.reviewTitle}</dt>
-            <dd>{review.reviewContent}</dd>
-          </div>
+      <Style />
+      <h2 className="mt-0">Reviews ({reviewCount})</h2>
+      <span className="scoreContainer" style={{ fontSize: 16 }}>
+        {scoreTypes.map((scoreType) => (
+          <>
+            <span className="mainScore">{scoreType.name}</span>
+            <meter max="5" min="0" value={scoreType.value}></meter>
+            <span>{scoreType.value.toFixed(1)}</span>
+          </>
         ))}
+      </span>
+
+      <div style={{ display: 'flex', gap: 40 }}>
+        {scoreTypes.map((scoreType) => (
+          <RoundMeter value={scoreType.value} title={scoreType.name} />
+        ))}
+      </div>
+      <div className="divider" />
+      <dl className="fill-by-column">
+        {reviews.map((review) => {
+          const scores = scoreTypes.map(({ name, field }) => {
+            return {
+              name,
+              //@ts-ignore
+              value: review[field],
+            }
+          })
+          return (
+            <>
+              <div className="form-group-mimic">
+                <dt className="label">
+                  <h3>{review.title}</h3>
+                </dt>
+                <dd>
+                  <span className="scoreList" style={{ fontSize: 14 }}>
+                    {scores.map((score) => (
+                      <span className="scoreListItem">
+                        <dt className="smallScore">{score.name}:</dt>
+                        <dd>{score.value}</dd>
+                      </span>
+                    ))}
+                  </span>
+                  {review.content}
+                </dd>
+              </div>
+              <div className="divider" />
+            </>
+          )
+        })}
       </dl>
     </>
   )
