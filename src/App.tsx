@@ -1,87 +1,68 @@
 import { useEffect, useState } from 'react'
 import { Style } from './Style'
 import RoundMeter from './RoundMeter'
+import { getReviewsForCouse } from './requestHandlers'
 
-const reviewCount = 3
+type Review = {
+  id: number
+  title: string
+  content: string
+  date: string
+  workloadScore: number
+  qualityScore: number
+  difficultyScore: number
+  courseCode: string
+}
 
-const reviews = [
-  {
-    id: 1,
-    title: 'Ihan sika vaikee',
-    content:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla euismod, nisl eget ultricies ultrices, nunc nunc aliquam nunc, vitae aliquam nun',
-    date: '2021-04-04',
-    workloadScore: 5,
-    qualityScore: 3,
-    difficultyScore: 4,
-    courseCode: 'CS-A1110',
-  },
-  {
-    id: 2,
-    title: 'Ihan sika vaikee',
-    content:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla euismod, nisl eget ultricies ultrices, nunc nunc aliquam nunc, vitae aliquam nun',
-    date: '2021-04-04',
-    workloadScore: 5,
-    qualityScore: 5,
-    difficultyScore: 5,
-    courseCode: 'CS-A1110',
-  },
-  {
-    id: 3,
-    title: 'Ihan sika vaikee',
-    content:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla euismod, nisl eget ultricies ultrices, nunc nunc aliquam nunc, vitae aliquam nun',
-    date: '2021-04-04',
-    workloadScore: 1,
-    qualityScore: 2,
-    difficultyScore: 3,
-    courseCode: 'CS-A1110',
-  },
-]
+type ReviewResponse = {
+  rows: Review[]
+  count: number
+  averages: {
+    workloadAverage: number
+    qualityAverage: number
+    difficultyAverage: number
+  }
+}
 
 const App = () => {
   const [userId, setUserId] = useState<string | null>(null)
-  const [courseCode, setCourseCode] = useState<string | null>(null)
+  const [reviewResponse, setReviewResponse] = useState<ReviewResponse | null>(null)
   useEffect(() => {
     const inner = async () => {
       const newUserId = (await browser.storage.local.get('userId')).userId
       const newCourseCode = (await browser.storage.local.get('currentCourseCode')).currentCourseCode
+      const newReviewResponse = await getReviewsForCouse(newCourseCode)
+      setReviewResponse(newReviewResponse)
       setUserId(newUserId)
-      setCourseCode(newCourseCode)
     }
     inner()
   }, [])
 
+  if (!reviewResponse || !userId) {
+    return <div>Loading...</div>
+  }
+
+  const { rows: reviews, averages, count: reviewCount } = reviewResponse
+
   const scoreTypes = [
-    { name: 'Quality', field: 'qualityScore', value: 0 },
-    { name: 'Workload', field: 'workloadScore', value: 0 },
-    { name: 'Difficulty', field: 'difficultyScore', value: 0 },
+    { name: 'Quality', field: 'qualityScore', value: averages.qualityAverage },
+    { name: 'Workload', field: 'workloadScore', value: averages.workloadAverage },
+    {
+      name: 'Difficulty',
+      field: 'difficultyScore',
+      value: averages.difficultyAverage,
+    },
   ]
-  scoreTypes.forEach((scoreType) => {
-    scoreType.value =
-      //@ts-ignore
-      reviews.reduce((acc, review) => acc + review[scoreType.field], 0) / reviews.length
-  })
+
   return (
     <>
       <Style />
-      <h2 className="mt-0">Reviews ({reviewCount})</h2>
-      <span className="scoreContainer" style={{ fontSize: 16 }}>
-        {scoreTypes.map((scoreType) => (
-          <>
-            <span className="mainScore">{scoreType.name}</span>
-            <meter max="5" min="0" value={scoreType.value}></meter>
-            <span>{scoreType.value.toFixed(1)}</span>
-          </>
-        ))}
-      </span>
-
       <div style={{ display: 'flex', gap: 40 }}>
         {scoreTypes.map((scoreType) => (
           <RoundMeter value={scoreType.value} title={scoreType.name} />
         ))}
       </div>
+      <h2 style={{ marginBottom: 28, marginTop: 28, fontSize: 24 }}>{reviewCount} Reviews</h2>
       <div className="divider" />
       <dl className="fill-by-column">
         {reviews.map((review) => {

@@ -1,4 +1,4 @@
 {
-  "ext": "js,json,hbs,html,tsx,css",
+  "ext": "js,json,hbs,html,tsx,css,ts",
   "ignore": ["build/*"]
 }
