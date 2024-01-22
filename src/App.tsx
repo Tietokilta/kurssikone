@@ -4,18 +4,23 @@ import RoundMeter from './RoundMeter'
 import { getReviewsForCouse } from './requestHandlers'
 import { ReviewResponse } from './types'
 import ReviewList from './ReviewList'
+import ReviewMakeForm from './ReviewMakeForm'
 
 const App = () => {
-  const [userId, setUserId] = useState<string | null>(null)
+  const [userId, setUserId] = useState<number | null>(null)
+  const [courseCode, setCourseCode] = useState<string | null>(null)
   const [reviewResponse, setReviewResponse] = useState<ReviewResponse | null>(null)
+  const [isMakingNewReview, setIsMakingNewReview] = useState(false)
 
   useEffect(() => {
     const inner = async () => {
-      const newUserId = (await browser.storage?.local.get('userId')).userId
-      const newCourseCode = (await browser.storage.local.get('currentCourseCode')).currentCourseCode
+      const newUserId = Number((await browser.storage?.local.get('userId')).userId)
+      const newCourseCode = (await browser.storage.local.get('currentCourseCode'))
+        .currentCourseCode as string
       const newReviewResponse = await getReviewsForCouse(newCourseCode)
       setReviewResponse(newReviewResponse)
       setUserId(newUserId)
+      setCourseCode(newCourseCode)
     }
     inner()
   }, [])
@@ -46,10 +51,19 @@ const App = () => {
       </div>
       <span style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
         <h2 style={{ marginBottom: 28, marginTop: 28, fontSize: 24 }}>{reviewCount} Reviews</h2>
-        <button className="btn btn-secondary btn-hollow btn-sm">Make new review</button>
+        <button
+          className="btn btn-secondary btn-hollow btn-sm"
+          onClick={() => setIsMakingNewReview((oldVal) => !oldVal)}
+        >
+          {isMakingNewReview ? '- Cancel' : '+ Write a Review'}
+        </button>
       </span>
       <div className="divider" />
-      <ReviewList reviews={reviews} scoreTypes={scoreTypes} />
+      {isMakingNewReview ? (
+        <ReviewMakeForm userId={userId} courseCode={courseCode} />
+      ) : (
+        <ReviewList reviews={reviews} scoreTypes={scoreTypes} />
+      )}
     </>
   )
 }

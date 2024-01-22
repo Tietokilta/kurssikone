@@ -11,8 +11,6 @@ type Props = {
 const RoundMeter = ({ title, value }: Props) => {
   const canvasRef = useRef(null)
 
-  console.log(title, value)
-
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
