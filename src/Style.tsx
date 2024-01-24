@@ -4,77 +4,75 @@ export const Style = () => {
   return (
     <style>
       {`
-:root {
-  --sisu-blue: #1076db;
-}
+#review-root {
+  meter::-webkit-meter-optimum-value,
+  meter::-moz-meter-bar {
+    background: #1076db;
+  }
 
-meter::-webkit-meter-optimum-value,
-meter::-moz-meter-bar {
-  background: var(--sisu-blue);
-}
+  meter {
+    border-radius: 10px;
+    height: 14px;
+  }
 
-meter {
-  border-radius: 10px;
-  height: 14px;
-}
+  .scoreContainer {
+    display: grid;
+    grid-template-columns: auto 70px 1fr;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 20px;
+    margin-top: 15px;
+  }
 
-.scoreContainer {
-  display: grid;
-  grid-template-columns: auto 70px 1fr;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 20px;
-  margin-top: 15px;
-}
+  .singleScoreContainer {
+    display: flex;
+    gap: 2px;
+  }
 
-.singleScoreContainer {
-  display: flex;
-  gap: 2px;
-}
+  .scoreList {
+    display: flex;
+    gap: 10px;
+  }
 
-.scoreList {
-  display: flex;
-  gap: 10px;
-}
+  .scoreListItem {
+    display: flex;
+    gap: 2px;
+  }
 
-.scoreListItem {
-  display: flex;
-  gap: 2px;
-}
+  .mainScore {
+    font-weight: bold;
+  }
 
-.mainScore {
-  font-weight: bold;
-}
+  .smallScore {
+    font-weight: bold;
+  }
 
-.smallScore {
-  font-weight: bold;
-}
-
-.divider {
- height: 1px;
- width: 100%;
- border-bottom: 1px solid hsl(0,0%,28%)
-}
-
-.points-title {
-  text-align: center;
-  font-size: 1.3rem;
-  display: block;
-  position: absolute;
+  .divider {
+  height: 1px;
   width: 100%;
-  height: 20px;
-  bottom: 113px;
-  color: #FFFFFF;
-}
+  border-bottom: 1px solid hsl(0,0%,28%)
+  }
 
-.points-value {
-  position: absolute;
-  text-align: center;
-  width: 100%;
-  bottom: 70px;
-  font-size: 55px;
-  font-weight: 300;
-  color: #FFFFFF;
+  .points-title {
+    text-align: center;
+    font-size: 1.3rem;
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 20px;
+    bottom: 113px;
+    color: #FFFFFF;
+  }
+
+  .points-value {
+    position: absolute;
+    text-align: center;
+    width: 100%;
+    bottom: 70px;
+    font-size: 55px;
+    font-weight: 300;
+    color: #FFFFFF;
+  }
 }
 `}
     </style>

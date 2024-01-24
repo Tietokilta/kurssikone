@@ -17,16 +17,18 @@ let observer = new MutationObserver((mutations) => {
     if (!mutation.addedNodes) return
     for (let i = 0; i < mutation.addedNodes.length; i++) {
       const node = mutation.addedNodes[i]
-      // @ts-ignore
-      if (node.classList && node.classList.contains('course-unit-info-modal') && once) {
+      const isModal = node.nodeName === 'APP-COURSE-UNIT-INFO-MODAL-HEADER-TABS'
+      const isAppCourseUnitInfo = node.nodeName === 'APP-COURSE-UNIT-INFO'
+      if ((isModal || isAppCourseUnitInfo) && once) {
         once = false
-        const modalBody = document.querySelector('.modal-body') as HTMLElement
+        const mainBodyString = isModal ? '.modal-body' : '.course-unit-info-page-body'
+        const pageMainBody = document.querySelector(mainBodyString) as HTMLElement
         const reactRoot = document.createElement('div')
         reactRoot.setAttribute('id', 'review-root')
         reactRoot.setAttribute('class', 'review-root')
         reactRoot.setAttribute('role', 'tabpanel')
 
-        modalBody.append(reactRoot)
+        pageMainBody.append(reactRoot)
         reactRoot.style.display = 'none'
         const root = ReactDOM.createRoot(reactRoot)
         root.render(<App />)
@@ -47,11 +49,11 @@ let observer = new MutationObserver((mutations) => {
 
         listElement.append(button)
 
-        const tabs = document.querySelector('sis-tab-content-switch > .nav-tabs')
+        const tabElementName = isModal ? 'sis-tab-content-switch' : 'sis-tab-navigation'
 
-        const otherListElements = document.querySelectorAll(
-          'sis-tab-content-switch > .nav-tabs > li'
-        )
+        const tabs = document.querySelector(`${tabElementName} > .nav-tabs`)
+
+        const otherListElements = document.querySelectorAll(`${tabElementName} > .nav-tabs > li`)
 
         const getReviewListElement = () => {
           return document.querySelector('.review-list-element') as HTMLElement
@@ -59,7 +61,7 @@ let observer = new MutationObserver((mutations) => {
 
         const getOldModalContents = () => {
           return document.querySelectorAll(
-            '.modal-body > div:not(#review-root)'
+            `${mainBodyString} > div:not(#review-root)`
           ) as unknown as HTMLElement[]
         }
 
