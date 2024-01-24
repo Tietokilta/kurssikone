@@ -6,3 +6,14 @@ export const getReviewsForCouse = async (courseCode: string) => {
   })
   return json
 }
+
+export const getUserReviewForCourse = async (courseCode: string, userId: number) => {
+  const response = await fetch(
+    `http://localhost:3001/api/reviews/course/${courseCode}/user/${userId}`
+  )
+  if (response.status === 404) {
+    return null
+  }
+  const json = await response.json()
+  return json
+}

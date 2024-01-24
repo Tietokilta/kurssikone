@@ -1,12 +1,24 @@
 import React from 'react'
 import ScorePicker from './ScorePicker'
+import { Review } from './types'
 
 type Props = {
   userId: number
   courseCode: string | null
+  currentUserReview: Review | null
+  refetchUserReview: (courseCode: string, userId: number) => Promise<void>
+  setIsMakingNewReview: (isMakingNewReview: boolean) => void
 }
 
-const ReviewMakeForm = ({ userId, courseCode }: Props) => {
+const ReviewMakeForm = ({
+  userId,
+  courseCode,
+  currentUserReview,
+  refetchUserReview,
+  setIsMakingNewReview,
+}: Props) => {
+  const isEditingOldReview = currentUserReview !== null
+
   const makeReview = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     const target = e.target as typeof e.target & {
@@ -21,6 +33,7 @@ const ReviewMakeForm = ({ userId, courseCode }: Props) => {
     const qualityScore = Number(target.qualityScore.value)
     const workloadScore = Number(target.workloadScore.value)
     const difficultyScore = Number(target.difficultyScore.value)
+    const id = currentUserReview ? currentUserReview.id : null
     if (!courseCode) return
     const userRes = await fetch(`http://localhost:3001/api/users/${userId}`)
     if (userRes.status === 404) {
@@ -38,6 +51,7 @@ const ReviewMakeForm = ({ userId, courseCode }: Props) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        id,
         userId,
         title,
         content,
@@ -48,6 +62,8 @@ const ReviewMakeForm = ({ userId, courseCode }: Props) => {
         timestampCreated: new Date().getTime(),
       }),
     })
+    await refetchUserReview(courseCode, userId)
+    setIsMakingNewReview(false)
   }
 
   return (
@@ -63,21 +79,37 @@ const ReviewMakeForm = ({ userId, courseCode }: Props) => {
       >
         <label style={{ display: 'flex', flexDirection: 'column' }}>
           Title
-          <input name="reviewTitle" style={{ width: '90%' }} />
+          <input
+            name="reviewTitle"
+            style={{ width: '90%' }}
+            defaultValue={currentUserReview?.title ?? ''}
+          />
         </label>
         <label>
           Content
-          <textarea name="content" rows={5} />
+          <textarea name="content" rows={5} defaultValue={currentUserReview?.content ?? ''} />
         </label>
-        <ScorePicker name="qualityScore" label="Quality" />
-        <ScorePicker name="workloadScore" label="Workload" />
-        <ScorePicker name="difficultyScore" label="Difficulty" />
+        <ScorePicker
+          name="qualityScore"
+          label="Quality"
+          defaultValue={currentUserReview?.qualityScore}
+        />
+        <ScorePicker
+          name="workloadScore"
+          label="Workload"
+          defaultValue={currentUserReview?.workloadScore}
+        />
+        <ScorePicker
+          name="difficultyScore"
+          label="Difficulty"
+          defaultValue={currentUserReview?.difficultyScore}
+        />
         <button
           type="submit"
           className="btn btn-secondary btn-hollow btn-sm"
           style={{ width: 'fit-content' }}
         >
-          Publish review
+          {isEditingOldReview ? 'Publish edit' : 'Publish review'}
         </button>
       </form>
     </div>

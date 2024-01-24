@@ -3,10 +3,11 @@ import { useState } from 'react'
 type Props = {
   name: string
   label: string
+  defaultValue?: number
 }
 
-const ScorePicker = ({ name, label }: Props) => {
-  const [score, setScore] = useState(3)
+const ScorePicker = ({ name, label, defaultValue }: Props) => {
+  const [score, setScore] = useState(defaultValue ?? 3)
 
   return (
     <label style={{ display: 'grid', gridTemplateColumns: '100px 150px' }}>

@@ -1,16 +1,22 @@
 import { useEffect, useState } from 'react'
 import { Style } from './Style'
 import RoundMeter from './RoundMeter'
-import { getReviewsForCouse } from './requestHandlers'
-import { ReviewResponse } from './types'
-import ReviewList from './ReviewList'
+import { getReviewsForCouse, getUserReviewForCourse } from './requestHandlers'
+import { Review, ReviewResponse } from './types'
 import ReviewMakeForm from './ReviewMakeForm'
+import ReviewItem from './ReviewItem'
 
 const App = () => {
   const [userId, setUserId] = useState<number | null>(null)
   const [courseCode, setCourseCode] = useState<string | null>(null)
   const [reviewResponse, setReviewResponse] = useState<ReviewResponse | null>(null)
   const [isMakingNewReview, setIsMakingNewReview] = useState(false)
+  const [userReview, setUserReview] = useState<Review | null>(null)
+
+  const fetchAndSetUserReview = async (courseCode: string, userId: number) => {
+    const newUserReview = await getUserReviewForCourse(courseCode, userId)
+    setUserReview(newUserReview)
+  }
 
   useEffect(() => {
     const inner = async () => {
@@ -18,6 +24,7 @@ const App = () => {
       const newCourseCode = (await browser.storage.local.get('currentCourseCode'))
         .currentCourseCode as string
       const newReviewResponse = await getReviewsForCouse(newCourseCode)
+      await fetchAndSetUserReview(newCourseCode, newUserId)
       setReviewResponse(newReviewResponse)
       setUserId(newUserId)
       setCourseCode(newCourseCode)
@@ -29,7 +36,9 @@ const App = () => {
     return <div>Loading...</div>
   }
 
-  const { rows: reviews, averages, count: reviewCount } = reviewResponse
+  const { rows, averages, count: reviewCount } = reviewResponse
+
+  const reviews = rows.filter((row) => row.id !== userReview?.id)
 
   const scoreTypes = [
     { name: 'Quality', field: 'qualityScore', value: averages.qualityAverage },
@@ -55,14 +64,29 @@ const App = () => {
           className="btn btn-secondary btn-hollow btn-sm"
           onClick={() => setIsMakingNewReview((oldVal) => !oldVal)}
         >
-          {isMakingNewReview ? '- Cancel' : '+ Write a Review'}
+          {isMakingNewReview ? '- Cancel' : userReview ? '+ Edit your review' : '+ Write a Review'}
         </button>
       </span>
       <div className="divider" />
       {isMakingNewReview ? (
-        <ReviewMakeForm userId={userId} courseCode={courseCode} />
+        <ReviewMakeForm
+          userId={userId}
+          courseCode={courseCode}
+          currentUserReview={userReview}
+          refetchUserReview={fetchAndSetUserReview}
+          setIsMakingNewReview={setIsMakingNewReview}
+        />
       ) : (
-        <ReviewList reviews={reviews} scoreTypes={scoreTypes} />
+        <dl className="fill-by-column">
+          {userReview && (
+            <>
+              <ReviewItem review={userReview} scoreTypes={scoreTypes} isUserReview />
+            </>
+          )}
+          {reviews.map((review) => (
+            <ReviewItem review={review} scoreTypes={scoreTypes} />
+          ))}
+        </dl>
       )}
     </>
   )
