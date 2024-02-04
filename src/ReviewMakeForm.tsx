@@ -93,16 +93,22 @@ const ReviewMakeForm = ({
           name="qualityScore"
           label="Quality"
           defaultValue={currentUserReview?.qualityScore}
+          minText="Bad"
+          maxText="Amazing"
         />
         <ScorePicker
           name="workloadScore"
           label="Workload"
           defaultValue={currentUserReview?.workloadScore}
+          minText="Negligible"
+          maxText="Massive"
         />
         <ScorePicker
           name="difficultyScore"
           label="Difficulty"
           defaultValue={currentUserReview?.difficultyScore}
+          minText="Very easy"
+          maxText="Very hard"
         />
         <button
           type="submit"
