@@ -1,4 +1,5 @@
 import { NewReview } from './types'
+import hashIt from 'hash-it'
 
 export const getReviewsForCourseExcludingUserReview = async (
   courseCode: string,
@@ -36,22 +37,24 @@ export const getUser = async (userId: number) => {
 }
 
 export const makeUser = async (userId: number) => {
+  const hash = hashIt({ userId })
   await fetch('http://localhost:3001/api/users', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ id: userId }),
+    body: JSON.stringify({ id: userId, hash }),
   })
 }
 
 export const makeOrEditReview = async (newReview: NewReview) => {
-  const res = await fetch('http://localhost:3001/api/reviews', {
+  const { userId, courseCode } = newReview
+  const hash = hashIt({ userId, courseCode })
+  await fetch('http://localhost:3001/api/reviews', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(newReview),
+    body: JSON.stringify({ ...newReview, hash }),
   })
-  console.log(res)
 }
