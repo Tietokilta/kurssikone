@@ -1,15 +1,20 @@
 import { useEffect, useState } from 'react'
 import { Style } from './Style'
 import RoundMeter from './RoundMeter'
-import { getReviewsForCouse, getUserReviewForCourse } from './requestHandlers'
-import { Review, ReviewResponse } from './types'
+import {
+  getAveragesForCourse,
+  getReviewsForCourseExcludingUserReview,
+  getUserReviewForCourse,
+} from './requestHandlers'
+import { Review, ReviewAverages, ReviewsAndCount } from './types'
 import ReviewMakeForm from './ReviewMakeForm'
 import ReviewItem from './ReviewItem'
 
 const App = () => {
   const [userId, setUserId] = useState<number | null>(null)
   const [courseCode, setCourseCode] = useState<string | null>(null)
-  const [reviewResponse, setReviewResponse] = useState<ReviewResponse | null>(null)
+  const [otherReviewsAndCount, setOtherReviewsAndCount] = useState<ReviewsAndCount | null>(null)
+  const [averages, setAverages] = useState<ReviewAverages | null>(null)
   const [isMakingNewReview, setIsMakingNewReview] = useState(false)
   const [userReview, setUserReview] = useState<Review | null>(null)
 
@@ -18,27 +23,35 @@ const App = () => {
     setUserReview(newUserReview)
   }
 
+  const fetchAndSetOtherReviews = async (courseCode: string, userId: number) => {
+    const reviewsAndCount = await getReviewsForCourseExcludingUserReview(courseCode, userId)
+    setOtherReviewsAndCount(reviewsAndCount)
+  }
+
+  const fetchAndSetAverages = async (courseCode: string) => {
+    const newAverages = await getAveragesForCourse(courseCode)
+    setAverages(newAverages)
+  }
+
   useEffect(() => {
     const inner = async () => {
       const newUserId = Number((await browser.storage?.local.get('userId')).userId)
       const newCourseCode = (await browser.storage.local.get('currentCourseCode'))
         .currentCourseCode as string
-      const newReviewResponse = await getReviewsForCouse(newCourseCode)
       await fetchAndSetUserReview(newCourseCode, newUserId)
-      setReviewResponse(newReviewResponse)
+      await fetchAndSetOtherReviews(newCourseCode, newUserId)
+      await fetchAndSetAverages(newCourseCode)
       setUserId(newUserId)
       setCourseCode(newCourseCode)
     }
     inner()
   }, [])
 
-  if (!reviewResponse || !userId) {
+  if (!otherReviewsAndCount || !userId || !averages) {
     return <div>Loading...</div>
   }
 
-  const { rows, averages, count: reviewCount } = reviewResponse
-
-  const reviews = rows.filter((row) => row.id !== userReview?.id)
+  const { reviews, count: reviewCount } = otherReviewsAndCount
 
   const scoreTypes = [
     { name: 'Quality', field: 'qualityScore', value: averages.qualityAverage },
@@ -74,6 +87,7 @@ const App = () => {
           courseCode={courseCode}
           currentUserReview={userReview}
           refetchUserReview={fetchAndSetUserReview}
+          refetchAverages={fetchAndSetAverages}
           setIsMakingNewReview={setIsMakingNewReview}
         />
       ) : (

@@ -1,12 +1,14 @@
 import React from 'react'
 import ScorePicker from './ScorePicker'
-import { Review } from './types'
+import { NewReview, Review } from './types'
+import { getUser, makeOrEditReview, makeUser } from './requestHandlers'
 
 type Props = {
   userId: number
   courseCode: string | null
   currentUserReview: Review | null
   refetchUserReview: (courseCode: string, userId: number) => Promise<void>
+  refetchAverages: (courseCode: string) => Promise<void>
   setIsMakingNewReview: (isMakingNewReview: boolean) => void
 }
 
@@ -16,6 +18,7 @@ const ReviewMakeForm = ({
   currentUserReview,
   refetchUserReview,
   setIsMakingNewReview,
+  refetchAverages,
 }: Props) => {
   const isEditingOldReview = currentUserReview !== null
 
@@ -35,34 +38,28 @@ const ReviewMakeForm = ({
     const difficultyScore = Number(target.difficultyScore.value)
     const id = currentUserReview ? currentUserReview.id : null
     if (!courseCode) return
-    const userRes = await fetch(`http://localhost:3001/api/users/${userId}`)
+    const userRes = await getUser(userId)
     if (userRes.status === 404) {
-      await fetch('http://localhost:3001/api/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: userId }),
-      })
+      await makeUser(userId)
     }
-    await fetch('http://localhost:3001/api/reviews', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        id,
-        userId,
-        title,
-        content,
-        qualityScore,
-        workloadScore,
-        difficultyScore,
-        courseCode,
-        timestampCreated: new Date().getTime(),
-      }),
-    })
+    const timeStamp = new Date().getTime()
+    const newReview: NewReview = {
+      id,
+      userId,
+      title,
+      content,
+      qualityScore,
+      workloadScore,
+      difficultyScore,
+      courseCode,
+      timestampCreated: currentUserReview?.timestampCreated || timeStamp,
+    }
+    if (isEditingOldReview) {
+      newReview.timestampLastEdit = timeStamp
+    }
+    await makeOrEditReview(newReview)
     await refetchUserReview(courseCode, userId)
+    await refetchAverages(courseCode)
     setIsMakingNewReview(false)
   }
 

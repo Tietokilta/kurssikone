@@ -1,4 +1,5 @@
 import { Review } from './types'
+import dayjs from 'dayjs'
 
 type Props = {
   review: Review
@@ -14,6 +15,11 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
       value: review[field],
     }
   })
+  const timeFormat = 'DD/MM/YYYY'
+  const publishDate = dayjs(review.timestampCreated).format(timeFormat)
+  const editDate = review.timestampLastEdit
+    ? dayjs(review.timestampLastEdit).format(timeFormat)
+    : null
   return (
     <>
       <div className="form-group-mimic" style={{ marginLeft: 16, maxWidth: '75%' }}>
@@ -26,6 +32,10 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
               </>
             )}
             {review.title}
+            <i style={{ fontSize: 14, marginLeft: 16, fontWeight: 'normal' }}>
+              Published {publishDate}{' '}
+              {editDate && editDate !== publishDate && ` (Edited ${editDate})`}
+            </i>
           </h3>
         </header>
         <div style={{ display: 'flex', flexDirection: 'column', rowGap: 24 }}>
