@@ -4,7 +4,7 @@ export const Style = () => {
   return (
     <style>
       {`
-#review-root {
+.review-root {
   meter::-webkit-meter-optimum-value,
   meter::-moz-meter-bar {
     background: #1076db;

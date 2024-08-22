@@ -22,7 +22,7 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
     : null
   return (
     <>
-      <div className="form-group-mimic" style={{ marginLeft: 16, maxWidth: '75%' }}>
+      <div className="form-group-mimic" style={{ marginLeft: 16, maxWidth: '75%', marginTop: 24 }}>
         <header className="label">
           <h3>
             {isUserReview && (

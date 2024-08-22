@@ -10,7 +10,7 @@ import { Review, ReviewAverages, ReviewsAndCount } from './types'
 import ReviewMakeForm from './ReviewMakeForm'
 import ReviewItem from './ReviewItem'
 
-const App = () => {
+const CoursePage = () => {
   const [userId, setUserId] = useState<number | null>(null)
   const [courseCode, setCourseCode] = useState<string | null>(null)
   const [otherReviewsAndCount, setOtherReviewsAndCount] = useState<ReviewsAndCount | null>(null)
@@ -105,4 +105,4 @@ const App = () => {
     </>
   )
 }
-export default App
+export default CoursePage
