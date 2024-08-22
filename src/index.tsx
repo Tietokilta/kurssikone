@@ -42,14 +42,13 @@ const handleSearchResult = (node: Node) => {
 }
 
 const handleCoursePage = (isModal: boolean) => {
-  const mainBodyString = isModal ? '.modal-body' : '.course-unit-info-page-body'
-  const pageMainBody = document.querySelector(mainBodyString) as HTMLElement
+  const pageMainBody = document.querySelector('[role="tabpanel"]')?.parentElement
   const reactRoot = document.createElement('div')
   reactRoot.setAttribute('id', 'review-root')
   reactRoot.setAttribute('class', 'review-root')
   reactRoot.setAttribute('role', 'tabpanel')
 
-  pageMainBody.append(reactRoot)
+  pageMainBody?.append(reactRoot)
   reactRoot.style.display = 'none'
   const root = ReactDOM.createRoot(reactRoot)
   root.render(<CoursePage />)
@@ -81,19 +80,18 @@ const handleCoursePage = (isModal: boolean) => {
   }
 
   const getOldModalContents = () => {
-    return document.querySelectorAll(
-      `${mainBodyString} > div:not(#review-root)`
-    ) as unknown as HTMLElement[]
+    return document.querySelectorAll(`[role="tabpanel"]`) as unknown as HTMLElement[]
   }
 
   otherListElements.forEach((element) => {
     element.classList.add('other-list-element')
     element.addEventListener('click', function () {
-      reactRoot.style.display = 'none'
       getOldModalContents().forEach((element) => {
         element.style.display = 'block'
       })
+      reactRoot.style.display = 'none'
 
+      element.classList.add('active')
       getReviewListElement().classList.remove('active')
     })
   })
