@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
-import { getAveragesForCourse } from './requestHandlers'
-import { ReviewAverages } from './types'
-import { Style } from './Style'
+import { getAveragesForCourse } from '../requestHandlers'
+import { ReviewAverages } from '../types'
+import { Style } from '../Style'
 
 type Props = {
   courseCode: string
 }
 
-const SearchResult = ({ courseCode }: Props) => {
+const SearchResultPage = ({ courseCode }: Props) => {
   const [averages, setAverages] = useState<ReviewAverages | null>(null)
 
   const fetchAndSetAverages = async (courseCode: string) => {
@@ -58,4 +58,4 @@ const SearchResult = ({ courseCode }: Props) => {
     </div>
   )
 }
-export default SearchResult
+export default SearchResultPage

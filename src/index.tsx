@@ -1,6 +1,6 @@
 import ReactDOM from 'react-dom/client'
-import CoursePage from './CoursePage'
-import SearchResult from './SearchResult'
+import CoursePage from './pages/CoursePage'
+import SearchResultPage from './pages/SearchResultPage'
 
 let observer = new MutationObserver((mutations) => {
   let once = true
@@ -38,7 +38,7 @@ const handleSearchResult = (node: Node) => {
   }
   const courseCode = searchResultBody.querySelector('.courseunit-code')?.textContent || ''
   const root = ReactDOM.createRoot(reactRoot)
-  root.render(<SearchResult courseCode={courseCode} />)
+  root.render(<SearchResultPage courseCode={courseCode} />)
 }
 
 const handleCoursePage = (isModal: boolean) => {

@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
-import { Style } from './Style'
-import RoundMeter from './RoundMeter'
+import { Style } from '../Style'
+import RoundMeter from '../components/RoundMeter'
 import {
   getAveragesForCourse,
   getReviewsForCourseExcludingUserReview,
   getUserReviewForCourse,
-} from './requestHandlers'
-import { Review, ReviewAverages, ReviewsAndCount } from './types'
-import ReviewMakeForm from './ReviewMakeForm'
-import ReviewItem from './ReviewItem'
+} from '../requestHandlers'
+import { Review, ReviewAverages, ReviewsAndCount } from '../types'
+import ReviewMakeForm from '../components/ReviewMakeForm'
+import ReviewItem from '../components/ReviewItem'
 
 const CoursePage = () => {
   const [userId, setUserId] = useState<number | null>(null)

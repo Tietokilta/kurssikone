@@ -1,7 +1,7 @@
 import React from 'react'
 import ScorePicker from './ScorePicker'
-import { NewReview, Review } from './types'
-import { getUser, makeOrEditReview, makeUser } from './requestHandlers'
+import { NewReview, Review } from '../types'
+import { getUser, makeOrEditReview, makeUser } from '../requestHandlers'
 
 type Props = {
   userId: number
