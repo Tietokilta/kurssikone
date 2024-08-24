@@ -71,7 +71,6 @@
     "build": "node scripts/build.js",
     "test": "node scripts/test.js",
     "dev": "nodemon scripts/build.js",
-    "build-automatically": "NODE_ENV=development nodemon --exec \"npm run build\" --ignore build",
     "lint": "eslint src && tsc --noEmit"
   },
   "eslintConfig": {

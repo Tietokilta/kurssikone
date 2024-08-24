@@ -51,7 +51,9 @@ const CoursePage = () => {
     return <div>Loading...</div>
   }
 
-  const { reviews, count: reviewCount } = otherReviewsAndCount
+  const { reviews, count: otherReviewCount } = otherReviewsAndCount
+
+  const reviewCount = otherReviewCount + (userReview ? 1 : 0)
 
   const scoreTypes = [
     { name: 'Quality', field: 'qualityScore', value: averages.qualityAverage },
