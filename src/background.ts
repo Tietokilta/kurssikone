@@ -1,4 +1,4 @@
-const handleOpenCourse = (details) => {
+const handleOpenCourse = (details: browser.webRequest._OnBeforeRequestDetails) => {
   const startOfUrl = 'https://sisu.aalto.fi/osuva/api/notifications/student/aalto-HLO-'
   const url = details.url
   if (details.url.startsWith(startOfUrl)) {
