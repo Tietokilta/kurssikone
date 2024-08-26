@@ -1,54 +1,43 @@
-import { NewReview } from './types'
+import { NewReview, Review, ReviewAverages, ReviewsAndCount } from './types'
 import hashIt from 'hash-it'
-
-const isProduction = false
-
-const host = isProduction
-  ? 'https://sisu-course-reviewer-api.otju.dev/api'
-  : 'http://localhost:3001/api'
 
 const get = async (
   pathParts: string[],
   query: { [key: string]: string | undefined | null } = {}
 ) => {
-  let url = `${host}/${pathParts.join('/')}`
+  const res = await browser.runtime.sendMessage({ type: 'get', pathParts, query })
+  return res as { [key: string]: any } | null
+}
 
-  for (let param in { ...query }) {
-    if (query[param] === undefined || query[param] === null || query[param] === '') {
-      delete query[param]
-    }
-  }
-
-  const queryString = new URLSearchParams(query as { [key: string]: string }).toString()
-
-  url += queryString ? `?${queryString}` : ''
-
-  const response = await fetch(url)
-
-  if (response.status === 404) {
-    return null
-  }
-
-  return await response.json()
+const post = async (pathParts: string[], body: { [key: string]: any }) => {
+  await browser.runtime.sendMessage({ type: 'post', pathParts, body })
 }
 
 export const getReviewsForCourseExcludingUserReview = async (
   courseCode: string,
   userId?: string
 ) => {
-  return await get(['reviews', 'course', courseCode], { userIdToExclude: userId })
+  return (await get(['reviews', 'course', courseCode], {
+    userIdToExclude: userId,
+  })) as ReviewsAndCount | null
 }
 
 export const getAveragesForCourse = async (courseCode: string) => {
   const json = await get(['reviews', 'course', courseCode, 'averages'])
+
+  if (!json) {
+    return null
+  }
+
   Object.entries(json).forEach(([key, value]) => {
     json[key] = Number(value)
   })
-  return json
+
+  return json as ReviewAverages
 }
 
 export const getUserReviewForCourse = async (courseCode: string, userId: string) => {
-  return await get(['reviews', 'course', courseCode, 'user', userId])
+  return (await get(['reviews', 'course', courseCode, 'user', userId])) as Review | null
 }
 
 export const getUser = async (userId: string) => {
@@ -57,23 +46,11 @@ export const getUser = async (userId: string) => {
 
 export const makeUser = async (userId: string) => {
   const hash = hashIt({ userId })
-  await fetch(`${host}/users`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ id: userId, hash }),
-  })
+  await post(['users'], { userId, hash })
 }
 
 export const makeOrEditReview = async (newReview: NewReview) => {
   const { userId, courseCode } = newReview
   const hash = hashIt({ userId, courseCode })
-  await fetch(`${host}/reviews`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ ...newReview, hash }),
-  })
+  await post(['reviews'], { ...newReview, hash })
 }

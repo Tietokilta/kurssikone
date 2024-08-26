@@ -2,8 +2,8 @@
   "name": "Sisu Course Reviewer",
   "description": "Sisu Course Reviewer",
   "version": "1.0.0",
-  "manifest_version": 2,
-  "browser_action": {
+  "manifest_version": 3,
+  "action": {
     "default_popup": "index.html",
     "default_title": "Sisu Course Reviewer",
     "default_icon": {
@@ -11,26 +11,27 @@
       "96": "logo96.png"
     }
   },
-  "permissions": [
-    "webRequest",
+  "permissions": ["webRequest", "storage"],
+  "host_permissions": [
     "https://sisu.aalto.fi/*",
-    "storage",
     "http://localhost/*",
     "https://sisu-course-reviewer-api.otju.dev/*"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  },
   "icons": {
     "48": "logo48.png",
     "96": "logo96.png"
   },
   "content_scripts": [
     {
-      "matches": ["https://sisu.aalto.fi/*"],
+      "matches": ["https://sisu.aalto.fi/*", "http://localhost/*"],
       "js": ["/static/js/main.js"]
     }
   ],
   "background": {
-    "scripts": ["background.js"],
-    "persistent": false
+    "scripts": ["background.js"]
   },
   "browser_specific_settings": {
     "gecko": {
