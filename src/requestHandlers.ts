@@ -7,38 +7,55 @@ const host = isProduction
   ? 'https://sisu-course-reviewer-backend-f3dfc9f8gqb0bubz.northeurope-01.azurewebsites.net/api/'
   : 'http://localhost:3001/api'
 
+const get = async (
+  pathParts: string[],
+  query: { [key: string]: string | undefined | null } = {}
+) => {
+  let url = `${host}/${pathParts.join('/')}`
+
+  for (let param in { ...query }) {
+    if (query[param] === undefined || query[param] === null || query[param] === '') {
+      delete query[param]
+    }
+  }
+
+  const queryString = new URLSearchParams(query as { [key: string]: string }).toString()
+
+  url += queryString ? `?${queryString}` : ''
+
+  const response = await fetch(url)
+
+  if (response.status === 404) {
+    return null
+  }
+
+  return await response.json()
+}
+
 export const getReviewsForCourseExcludingUserReview = async (
   courseCode: string,
-  userId: number
+  userId?: string
 ) => {
-  const response = await fetch(`${host}/reviews/course/${courseCode}?userIdToExclude=${userId}`)
-  const json = await response.json()
-  return json
+  return await get(['reviews', 'course', courseCode], { userIdToExclude: userId })
 }
 
 export const getAveragesForCourse = async (courseCode: string) => {
-  const response = await fetch(`${host}/reviews/course/${courseCode}/averages`)
-  const json = await response.json()
+  const json = await get(['reviews', 'course', courseCode, 'averages'])
   Object.entries(json).forEach(([key, value]) => {
     json[key] = Number(value)
   })
   return json
 }
 
-export const getUserReviewForCourse = async (courseCode: string, userId: number) => {
-  const response = await fetch(`${host}/reviews/course/${courseCode}/user/${userId}`)
-  if (response.status === 404) {
-    return null
-  }
-  const json = await response.json()
-  return json
+export const getUserReviewForCourse = async (courseCode: string, userId: string) => {
+  return await get(['reviews', 'course', courseCode, 'user', userId])
 }
 
-export const getUser = async (userId: number) => {
-  return await fetch(`${host}/users/${userId}`)
+export const getUser = async (userId: string) => {
+  return await get(['users', userId])
 }
 
-export const makeUser = async (userId: number) => {
+export const makeUser = async (userId: string) => {
   const hash = hashIt({ userId })
   await fetch(`${host}/users`, {
     method: 'POST',

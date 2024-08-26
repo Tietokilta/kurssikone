@@ -12,7 +12,7 @@ export type Review = {
 
 export interface NewReview extends Omit<Review, 'id'> {
   id: number | null
-  userId: number
+  userId: string
 }
 
 export type ReviewsAndCount = {

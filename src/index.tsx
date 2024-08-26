@@ -115,10 +115,17 @@ const handleCoursePage = (isModal: boolean) => {
 }
 
 const addCourseCodeToLocalStorage = () => {
-  const courseCodeString = document.querySelector('.course-unit-code')?.textContent
-  if (courseCodeString) {
-    const currentCourseCode = courseCodeString.split('|')[0].trim()
-    if (currentCourseCode && currentCourseCode.length > 0) {
+  const courseCodeModalString = document.querySelector('.course-unit-code')?.textContent
+  const courseCodePageString = document.querySelector('.page-sub-title')?.textContent
+  if (courseCodeModalString) {
+    const currentCourseCode = courseCodeModalString.split('|')[0].trim()
+    if (currentCourseCode) {
+      browser.storage.local.set({ currentCourseCode })
+    }
+  }
+  if (courseCodePageString) {
+    const currentCourseCode = courseCodePageString.trim()
+    if (currentCourseCode) {
       browser.storage.local.set({ currentCourseCode })
     }
   }

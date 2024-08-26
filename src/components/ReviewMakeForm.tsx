@@ -4,10 +4,10 @@ import { NewReview, Review } from '../types'
 import { getUser, makeOrEditReview, makeUser } from '../requestHandlers'
 
 type Props = {
-  userId: number
+  userId: string
   courseCode: string | null
   currentUserReview: Review | null
-  refetchUserReview: (courseCode: string, userId: number) => Promise<void>
+  refetchUserReview: (courseCode: string, userId: string) => Promise<void>
   refetchAverages: (courseCode: string) => Promise<void>
   setIsMakingNewReview: (isMakingNewReview: boolean) => void
 }
@@ -38,8 +38,8 @@ const ReviewMakeForm = ({
     const difficultyScore = Number(target.difficultyScore.value)
     const id = currentUserReview ? currentUserReview.id : null
     if (!courseCode) return
-    const userRes = await getUser(userId)
-    if (userRes.status === 404) {
+    const user = await getUser(userId)
+    if (!user) {
       await makeUser(userId)
     }
     const timeStamp = new Date().getTime()

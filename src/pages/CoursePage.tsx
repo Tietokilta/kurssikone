@@ -11,19 +11,19 @@ import ReviewMakeForm from '../components/ReviewMakeForm'
 import ReviewItem from '../components/ReviewItem'
 
 const CoursePage = () => {
-  const [userId, setUserId] = useState<number | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
   const [courseCode, setCourseCode] = useState<string | null>(null)
   const [otherReviewsAndCount, setOtherReviewsAndCount] = useState<ReviewsAndCount | null>(null)
   const [averages, setAverages] = useState<ReviewAverages | null>(null)
   const [isMakingNewReview, setIsMakingNewReview] = useState(false)
   const [userReview, setUserReview] = useState<Review | null>(null)
 
-  const fetchAndSetUserReview = async (courseCode: string, userId: number) => {
+  const fetchAndSetUserReview = async (courseCode: string, userId: string) => {
     const newUserReview = await getUserReviewForCourse(courseCode, userId)
     setUserReview(newUserReview)
   }
 
-  const fetchAndSetOtherReviews = async (courseCode: string, userId: number) => {
+  const fetchAndSetOtherReviews = async (courseCode: string, userId?: string) => {
     const reviewsAndCount = await getReviewsForCourseExcludingUserReview(courseCode, userId)
     setOtherReviewsAndCount(reviewsAndCount)
   }
@@ -35,19 +35,29 @@ const CoursePage = () => {
 
   useEffect(() => {
     const inner = async () => {
-      const newUserId = Number((await browser.storage?.local.get('userId')).userId)
-      const newCourseCode = (await browser.storage.local.get('currentCourseCode'))
-        .currentCourseCode as string
-      await fetchAndSetUserReview(newCourseCode, newUserId)
+      const newUserId: string | undefined = (await browser.storage?.local.get('userId')).userId
+      const newCourseCode: string | undefined = (
+        await browser.storage.local.get('currentCourseCode')
+      ).currentCourseCode as string
+
+      if (!newCourseCode) {
+        throw new Error('No course code')
+      }
+
+      if (newUserId) {
+        await fetchAndSetUserReview(newCourseCode, newUserId)
+        setUserId(newUserId)
+      }
+
       await fetchAndSetOtherReviews(newCourseCode, newUserId)
       await fetchAndSetAverages(newCourseCode)
-      setUserId(newUserId)
+
       setCourseCode(newCourseCode)
     }
     inner()
   }, [])
 
-  if (!otherReviewsAndCount || !userId || !averages) {
+  if (!otherReviewsAndCount || !averages) {
     return <div>Loading...</div>
   }
 
@@ -65,6 +75,18 @@ const CoursePage = () => {
     },
   ]
 
+  let buttonText = '+ Write a Review'
+  let buttonEnabled = true
+
+  if (isMakingNewReview) {
+    buttonText = '- Cancel'
+  } else if (userReview) {
+    buttonText = '+ Edit your review'
+  } else if (!userId) {
+    buttonText = 'Log in to write a review'
+    buttonEnabled = false
+  }
+
   return (
     <>
       <Style />
@@ -75,15 +97,17 @@ const CoursePage = () => {
       </div>
       <span style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
         <h2 style={{ marginBottom: 28, marginTop: 28, fontSize: 24 }}>{reviewCount} Reviews</h2>
+
         <button
           className="btn btn-secondary btn-hollow btn-sm"
+          disabled={!buttonEnabled}
           onClick={() => setIsMakingNewReview((oldVal) => !oldVal)}
         >
-          {isMakingNewReview ? '- Cancel' : userReview ? '+ Edit your review' : '+ Write a Review'}
+          {buttonText}
         </button>
       </span>
       <div className="divider" />
-      {isMakingNewReview ? (
+      {isMakingNewReview && userId ? (
         <ReviewMakeForm
           userId={userId}
           courseCode={courseCode}
