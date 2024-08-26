@@ -3,14 +3,6 @@
   "description": "Sisu Course Reviewer",
   "version": "1.0.0",
   "manifest_version": 3,
-  "action": {
-    "default_popup": "index.html",
-    "default_title": "Sisu Course Reviewer",
-    "default_icon": {
-      "48": "logo48.png",
-      "96": "logo96.png"
-    }
-  },
   "permissions": ["webRequest", "storage"],
   "host_permissions": [
     "https://sisu.aalto.fi/*",
