@@ -8,5 +8,5 @@ const handleOpenCourse = (details) => {
 }
 
 browser.webRequest.onBeforeRequest.addListener(handleOpenCourse, {
-  urls: ['*://sisu.aalto.fi/*'],
+  urls: ['https://sisu.aalto.fi/*'],
 })

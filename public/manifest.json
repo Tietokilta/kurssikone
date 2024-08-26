@@ -11,7 +11,13 @@
       "96": "logo96.png"
     }
   },
-  "permissions": ["webRequest", "<all_urls>", "storage"],
+  "permissions": [
+    "webRequest",
+    "https://sisu.aalto.fi/*",
+    "storage",
+    "http://localhost/*",
+    "https://sisu-course-reviewer-api.otju.dev/*"
+  ],
   "icons": {
     "48": "logo48.png",
     "96": "logo96.png"

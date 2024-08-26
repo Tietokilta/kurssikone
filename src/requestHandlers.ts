@@ -4,7 +4,7 @@ import hashIt from 'hash-it'
 const isProduction = false
 
 const host = isProduction
-  ? 'https://sisu-course-reviewer-backend-f3dfc9f8gqb0bubz.northeurope-01.azurewebsites.net/api/'
+  ? 'https://sisu-course-reviewer-api.otju.dev/api'
   : 'http://localhost:3001/api'
 
 const get = async (
