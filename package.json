@@ -67,8 +67,8 @@
     "workbox-webpack-plugin": "^6.4.1"
   },
   "scripts": {
-    "build": "node scripts/build.js",
     "dev": "nodemon scripts/build.js",
+    "make-release": "node scripts/build.js && node scripts/make-release.js",
     "lint": "eslint src && tsc --noEmit"
   },
   "eslintConfig": {
@@ -142,5 +142,8 @@
     "presets": [
       "react-app"
     ]
+  },
+  "devDependencies": {
+    "zip-lib": "^1.0.4"
   }
 }
