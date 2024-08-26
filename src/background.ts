@@ -11,9 +11,9 @@ browser.webRequest.onBeforeRequest.addListener(handleOpenCourse, {
   urls: ['https://sisu.aalto.fi/*'],
 })
 
-const isProduction = false
+const IS_PRODUCTION = false
 
-const host = isProduction
+const host = IS_PRODUCTION
   ? 'https://sisu-course-reviewer-api.otju.dev/api'
   : 'http://localhost:3001/api'
 
