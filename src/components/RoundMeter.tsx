@@ -40,8 +40,7 @@ const RoundMeter = ({ title, value }: Props) => {
     c.strokeStyle = '#FFFFFF'
     c.lineWidth = 14
     c.stroke()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [value])
 
   return (
     <div style={{ position: 'relative', width: 'fit-content' }}>
