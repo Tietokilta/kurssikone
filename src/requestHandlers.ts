@@ -46,7 +46,7 @@ export const getUser = async (userId: string) => {
 
 export const makeUser = async (userId: string) => {
   const hash = hashIt({ userId })
-  await post(['users'], { userId, hash })
+  await post(['users'], { id: userId, hash })
 }
 
 export const makeOrEditReview = async (newReview: NewReview) => {
