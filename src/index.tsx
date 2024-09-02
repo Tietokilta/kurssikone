@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom/client'
 import CoursePage from './pages/CoursePage'
 import SearchResultPage from './pages/SearchResultPage'
+import { waitForElement } from './utils/waitForElement'
 
 let observer = new MutationObserver((mutations) => {
   let once = true
@@ -26,7 +27,7 @@ let observer = new MutationObserver((mutations) => {
   })
 })
 
-const handleSearchResult = (node: Node) => {
+const handleSearchResult = async (node: Node) => {
   const searchResultBody = node as HTMLElement
   const searchResultColumn = searchResultBody.querySelector('.col-12.col-md-5')
   const searchResultColumnParent = searchResultColumn?.parentElement
@@ -41,15 +42,16 @@ const handleSearchResult = (node: Node) => {
   root.render(<SearchResultPage courseCode={courseCode} />)
 }
 
-const handleCoursePage = (isModal: boolean) => {
-  const pageMainBody = document.querySelector('[role="tabpanel"]')?.parentElement
+const handleCoursePage = async (isModal: boolean) => {
   const reactRoot = document.createElement('div')
   reactRoot.setAttribute('id', 'review-root')
   reactRoot.setAttribute('class', 'review-root')
   reactRoot.setAttribute('role', 'tabpanel')
 
+  const pageMainBody = (await waitForElement('[role="tabpanel"]'))?.parentElement
   pageMainBody?.append(reactRoot)
   reactRoot.style.display = 'none'
+
   const root = ReactDOM.createRoot(reactRoot)
   root.render(<CoursePage />)
 
@@ -69,22 +71,13 @@ const handleCoursePage = (isModal: boolean) => {
 
   listElement.append(button)
 
-  const tabElementName = isModal ? 'sis-tab-content-switch' : 'sis-tab-navigation'
+  const tabList = await waitForElement('[role="tablist"]')
 
-  const tabs = document.querySelector(`${tabElementName} > .nav-tabs`)
+  await waitForElement('[role="tablist"] > li')
 
-  const otherListElements = document.querySelectorAll(`${tabElementName} > .nav-tabs > li`)
+  const tabListElements = document.querySelectorAll('[role="tablist"] > li')
 
-  const getReviewListElement = () => {
-    return document.querySelector('.review-list-element') as HTMLElement
-  }
-
-  const getOldModalContents = () => {
-    return document.querySelectorAll(`[role="tabpanel"]`) as unknown as HTMLElement[]
-  }
-
-  otherListElements.forEach((element) => {
-    element.classList.add('other-list-element')
+  tabListElements.forEach((element) => {
     element.addEventListener('click', function () {
       getOldModalContents().forEach((element) => {
         element.style.display = 'block'
@@ -92,26 +85,33 @@ const handleCoursePage = (isModal: boolean) => {
       reactRoot.style.display = 'none'
 
       element.classList.add('active')
+      element.classList.add('focusedTab')
       getReviewListElement().classList.remove('active')
     })
   })
 
-  const getOtherListElements = () => {
-    return document.querySelectorAll('.other-list-element')
-  }
-
-  tabs?.append(listElement)
+  tabList?.append(listElement)
 
   button.onclick = () => {
-    getOtherListElements().forEach((element) => {
+    tabListElements.forEach((element) => {
       element.classList.remove('active')
     })
+
     getReviewListElement().classList.add('active')
+
     getOldModalContents().forEach((element) => {
       element.style.display = 'none'
     })
     reactRoot.style.display = 'block'
   }
+}
+
+const getReviewListElement = () => {
+  return document.querySelector('.review-list-element') as HTMLElement
+}
+
+const getOldModalContents = () => {
+  return document.querySelectorAll(`[role="tabpanel"]`) as unknown as HTMLElement[]
 }
 
 const addCourseCodeToLocalStorage = () => {
