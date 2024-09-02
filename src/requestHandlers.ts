@@ -5,12 +5,12 @@ const get = async (
   pathParts: string[],
   query: { [key: string]: string | undefined | null } = {}
 ) => {
-  const res = await browser.runtime.sendMessage({ type: 'get', pathParts, query })
+  const res = await chrome.runtime.sendMessage({ type: 'get', pathParts, query })
   return res as { [key: string]: any } | null
 }
 
 const post = async (pathParts: string[], body: { [key: string]: any }) => {
-  await browser.runtime.sendMessage({ type: 'post', pathParts, body })
+  await chrome.runtime.sendMessage({ type: 'post', pathParts, body })
 }
 
 export const getReviewsForCourseExcludingUserReview = async (

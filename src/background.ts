@@ -1,13 +1,13 @@
-const handleOpenCourse = (details: browser.webRequest._OnBeforeRequestDetails) => {
+const handleOpenCourse = (details: chrome.webRequest.WebRequestBodyDetails) => {
   const startOfUrl = 'https://sisu.aalto.fi/osuva/api/notifications/student/aalto-HLO-'
   const url = details.url
   if (details.url.startsWith(startOfUrl)) {
     const userId = url.slice(startOfUrl.length).trim()
-    browser.storage.local.set({ userId })
+    chrome.storage.local.set({ userId })
   }
 }
 
-browser.webRequest.onBeforeRequest.addListener(handleOpenCourse, {
+chrome.webRequest.onBeforeRequest.addListener(handleOpenCourse, {
   urls: ['https://sisu.aalto.fi/*'],
 })
 
@@ -54,11 +54,12 @@ const post = async (pathParts: string[], body: { [key: string]: any }) => {
   })
 }
 
-browser.runtime.onMessage.addListener(async (message) => {
-  if (message.type === 'get') {
-    return await get(message.pathParts, message.query)
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'get') {
+    get(request.pathParts, request.query).then((res) => sendResponse(res))
   }
-  if (message.type === 'post') {
-    return await post(message.pathParts, message.body)
+  if (request.type === 'post') {
+    post(request.pathParts, request.body).then((res) => sendResponse(res))
   }
+  return true
 })

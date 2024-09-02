@@ -35,9 +35,9 @@ const CoursePage = () => {
 
   useEffect(() => {
     const inner = async () => {
-      const newUserId: string | undefined = (await browser.storage?.local.get('userId')).userId
+      const newUserId: string | undefined = (await chrome.storage?.local.get('userId')).userId
       const newCourseCode: string | undefined = (
-        await browser.storage.local.get('currentCourseCode')
+        await chrome.storage.local.get('currentCourseCode')
       ).currentCourseCode as string
 
       if (!newCourseCode) {

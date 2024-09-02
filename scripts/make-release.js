@@ -1,18 +1,18 @@
 const fs = require('fs')
 const zl = require('zip-lib')
 
-const start = async () => {
-  if (!fs.existsSync('build')) {
+const makeReleaseFromDir = async (dir, fileName) => {
+  if (!fs.existsSync(dir)) {
     console.error('Build folder does not exist. Run `npm run build` first.')
     process.exit(1)
   }
 
-  if (fs.existsSync('release.zip')) {
-    fs.rmSync('release.zip')
-    console.log('Deleted old release.zip')
+  if (fs.existsSync(fileName)) {
+    fs.rmSync(fileName)
+    console.log(`Deleted old ${fileName} file`)
   }
 
-  fs.cpSync('build', 'release', { overwrite: true, recursive: true })
+  fs.cpSync(dir, 'release', { overwrite: true, recursive: true })
   console.log('Copied build to temp release fpöder')
 
   const backgroundFile = fs.readFileSync('release/background.js', 'utf8')
@@ -22,11 +22,16 @@ const start = async () => {
   fs.writeFileSync('release/background.js', newBackgroundFile)
   console.log('Changed IS_PRODUCTION to true')
 
-  await zl.archiveFolder('release', 'release.zip')
+  await zl.archiveFolder('release', fileName)
   console.log('Zipped release')
 
   fs.rmSync('release', { recursive: true })
   console.log('Deleted temp release folder')
 }
 
-start()
+const main = async () => {
+  await makeReleaseFromDir('build-firefox', 'firefox-release.zip')
+  await makeReleaseFromDir('build-chrome', 'chrome-release.zip')
+}
+
+main()

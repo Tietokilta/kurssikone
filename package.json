@@ -144,6 +144,7 @@
     ]
   },
   "devDependencies": {
+    "@types/chrome": "^0.0.270",
     "zip-lib": "^1.0.4"
   }
 }
