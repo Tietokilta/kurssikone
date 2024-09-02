@@ -1,5 +1,7 @@
 import { Review } from '../types'
 import dayjs from 'dayjs'
+import Divider from './Divider'
+import ScoreBar from './ScoreBar'
 
 type Props = {
   review: Review
@@ -39,16 +41,12 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
           </h3>
         </header>
         <div style={{ display: 'flex', flexDirection: 'column', rowGap: 24 }}>
-          <span className="scoreList" style={{ fontSize: 14 }}>
+          <span style={{ fontSize: 14, display: 'flex', gap: 10 }}>
             {scores.map((score) => (
-              <span className="scoreListItem">
-                <dt className="smallScore">{score.name}</dt>
-                <dd>
-                  <meter
-                    max="5"
-                    value={score.value}
-                    style={{ marginRight: 4, marginLeft: 4, width: 50 }}
-                  />
+              <span style={{ display: 'flex', gap: 2 }}>
+                <dt style={{ fontWeight: 'bold' }}>{score.name}</dt>
+                <dd style={{ display: 'flex', alignItems: 'center', marginRight: 10 }}>
+                  <ScoreBar score={score.value} maxValue={5} />
                   {score.value}
                 </dd>
               </span>
@@ -57,7 +55,7 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
           <text style={{ whiteSpace: 'pre-line' }}>{review.content}</text>
         </div>
       </div>
-      <div className="divider" />
+      <Divider />
     </>
   )
 }

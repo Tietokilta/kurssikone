@@ -44,10 +44,33 @@ const RoundMeter = ({ title, value }: Props) => {
 
   return (
     <div style={{ position: 'relative', width: 'fit-content' }}>
-      <span className="points-title" style={{ position: 'absolute' }}>
+      <span
+        style={{
+          position: 'absolute',
+          textAlign: 'center',
+          fontSize: '1.3rem',
+          display: 'block',
+          width: '100%',
+          height: 20,
+          bottom: 113,
+          color: '#FFFFFF',
+        }}
+      >
         {title}
       </span>
-      <span className="points-value">{value.toFixed(1)}</span>
+      <span
+        style={{
+          position: 'absolute',
+          textAlign: 'center',
+          width: '100%',
+          bottom: 70,
+          fontSize: 55,
+          fontWeight: 300,
+          color: '#FFFFFF',
+        }}
+      >
+        {value.toFixed(1)}
+      </span>
       <canvas
         ref={canvasRef}
         width={cSize}

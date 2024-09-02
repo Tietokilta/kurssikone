@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Style } from '../Style'
 import RoundMeter from '../components/RoundMeter'
 import {
   getAveragesForCourse,
@@ -9,6 +8,7 @@ import {
 import { Review, ReviewAverages, ReviewsAndCount } from '../types'
 import ReviewMakeForm from '../components/ReviewMakeForm'
 import ReviewItem from '../components/ReviewItem'
+import Divider from '../components/Divider'
 
 const CoursePage = () => {
   const [userId, setUserId] = useState<string | null>(null)
@@ -89,7 +89,6 @@ const CoursePage = () => {
 
   return (
     <>
-      <Style />
       <div style={{ display: 'flex', gap: 40 }}>
         {scoreTypes.map((scoreType) => (
           <RoundMeter value={scoreType.value} title={scoreType.name} />
@@ -106,7 +105,7 @@ const CoursePage = () => {
           {buttonText}
         </button>
       </span>
-      <div className="divider" />
+      <Divider />
       {isMakingNewReview && userId ? (
         <ReviewMakeForm
           userId={userId}
