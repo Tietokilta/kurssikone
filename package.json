@@ -68,6 +68,7 @@
   },
   "scripts": {
     "dev": "nodemon scripts/build.js",
+    "dev-release": "nodemon --exec npm run make-release",
     "make-release": "node scripts/build.js && node scripts/make-release.js",
     "lint": "eslint src && tsc --noEmit",
     "install-hooks": "lefthook install"

@@ -1,8 +1,4 @@
 /node_modules
 /build
-/build-chrome
-/build-firefox
-/release
-chrome-release.zip
-firefox-release.zip
+/builds
 .env
