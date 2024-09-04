@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { Ref, useEffect, useRef } from 'react'
 
 const cSize = 170
 const cSizeHalf = cSize / 2
@@ -12,10 +12,12 @@ const RoundMeter = ({ title, value }: Props) => {
   const canvasRef = useRef(null)
 
   useEffect(() => {
-    const canvas = canvasRef.current
+    const canvas = canvasRef.current as unknown as HTMLCanvasElement | null
     if (!canvas) return
-    // @ts-ignore
-    const c: CanvasRenderingContext2D = canvas.getContext('2d')
+
+    const c: CanvasRenderingContext2D | null = canvas.getContext('2d')
+    if (!c) return
+
     c.clearRect(0, 0, cSize, cSize)
 
     c.beginPath()

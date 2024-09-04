@@ -13,8 +13,7 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
   const scores = scoreTypes.map(({ name, field }) => {
     return {
       name,
-      //@ts-ignore
-      value: review[field],
+      value: review[field as keyof Review] as number,
     }
   })
   const timeFormat = 'DD/MM/YYYY'
