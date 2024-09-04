@@ -1,7 +1,7 @@
 import React from 'react'
 import ScorePicker from './ScorePicker'
 import { NewReview, Review } from '../types'
-import { getUser, makeOrEditReview, makeUser } from '../requestHandlers'
+import { makeOrEditReview } from '../requestHandlers'
 
 type Props = {
   userId: string
@@ -38,10 +38,6 @@ const ReviewMakeForm = ({
     const difficultyScore = Number(target.difficultyScore.value)
     const id = currentUserReview ? currentUserReview.id : null
     if (!courseCode) return
-    const user = await getUser(userId)
-    if (!user) {
-      await makeUser(userId)
-    }
     const timeStamp = new Date().getTime()
     const newReview: NewReview = {
       id,

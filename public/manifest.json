@@ -20,7 +20,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://sisu.aalto.fi/*", "http://localhost/*"],
+      "matches": ["https://sisu.aalto.fi/*"],
       "js": ["/static/js/main.js"]
     }
   ]

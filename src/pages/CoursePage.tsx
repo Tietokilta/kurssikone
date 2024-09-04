@@ -9,13 +9,14 @@ import { Review, ReviewAverages, ReviewsAndCount } from '../types'
 import ReviewMakeForm from '../components/ReviewMakeForm'
 import ReviewItem from '../components/ReviewItem'
 import Divider from '../components/Divider'
+import NewAccountNotification from '../components/NewAccountNotification'
 
 const CoursePage = () => {
   const [userId, setUserId] = useState<string | null>(null)
   const [courseCode, setCourseCode] = useState<string | null>(null)
   const [otherReviewsAndCount, setOtherReviewsAndCount] = useState<ReviewsAndCount | null>(null)
   const [averages, setAverages] = useState<ReviewAverages | null>(null)
-  const [isMakingNewReview, setIsMakingNewReview] = useState(false)
+  const [IsMakingNewReview, setIsMakingNewReview] = useState(false)
   const [userReview, setUserReview] = useState<Review | null>(null)
 
   const fetchAndSetUserReview = async (courseCode: string, userId: string) => {
@@ -33,28 +34,29 @@ const CoursePage = () => {
     setAverages(newAverages)
   }
 
-  useEffect(() => {
-    const inner = async () => {
-      const newUserId: string | undefined = (await chrome.storage?.local.get('userId')).userId
-      const newCourseCode: string | undefined = (
-        await chrome.storage.local.get('currentCourseCode')
-      ).currentCourseCode as string
+  const setUserIdAndCourseCode = async () => {
+    const newUserId: string | undefined = (await chrome.storage.sync.get('userId')).userId
+    const newCourseCode: string | undefined = (await chrome.storage.sync.get('currentCourseCode'))
+      .currentCourseCode as string
 
-      if (!newCourseCode) {
-        throw new Error('No course code')
-      }
-
-      if (newUserId) {
-        await fetchAndSetUserReview(newCourseCode, newUserId)
-        setUserId(newUserId)
-      }
-
-      await fetchAndSetOtherReviews(newCourseCode, newUserId)
-      await fetchAndSetAverages(newCourseCode)
-
-      setCourseCode(newCourseCode)
+    if (!newCourseCode) {
+      throw new Error('No course code')
     }
-    inner()
+
+    if (newUserId) {
+      await fetchAndSetUserReview(newCourseCode, newUserId)
+      setUserId(newUserId)
+    }
+
+    await fetchAndSetOtherReviews(newCourseCode, newUserId)
+    await fetchAndSetAverages(newCourseCode)
+
+    setCourseCode(newCourseCode)
+  }
+
+  useEffect(() => {
+    setUserIdAndCourseCode()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (!otherReviewsAndCount || !averages) {
@@ -76,15 +78,11 @@ const CoursePage = () => {
   ]
 
   let buttonText = '+ Write a Review'
-  let buttonEnabled = true
 
-  if (isMakingNewReview) {
+  if (IsMakingNewReview) {
     buttonText = '- Cancel'
   } else if (userReview) {
     buttonText = '+ Edit your review'
-  } else if (!userId) {
-    buttonText = 'Log in to write a review'
-    buttonEnabled = false
   }
 
   return (
@@ -99,34 +97,41 @@ const CoursePage = () => {
 
         <button
           className="btn btn-secondary btn-hollow btn-sm"
-          disabled={!buttonEnabled}
           onClick={() => setIsMakingNewReview((oldVal) => !oldVal)}
         >
           {buttonText}
         </button>
       </span>
       <Divider />
-      {isMakingNewReview && userId ? (
-        <ReviewMakeForm
-          userId={userId}
-          courseCode={courseCode}
-          currentUserReview={userReview}
-          refetchUserReview={fetchAndSetUserReview}
-          refetchAverages={fetchAndSetAverages}
-          setIsMakingNewReview={setIsMakingNewReview}
-        />
-      ) : (
-        <dl className="fill-by-column">
-          {userReview && (
-            <>
-              <ReviewItem review={userReview} scoreTypes={scoreTypes} isUserReview />
-            </>
-          )}
-          {reviews.map((review) => (
-            <ReviewItem review={review} scoreTypes={scoreTypes} />
-          ))}
-        </dl>
-      )}
+      {IsMakingNewReview &&
+        (userId ? (
+          <ReviewMakeForm
+            userId={userId}
+            courseCode={courseCode}
+            currentUserReview={userReview}
+            refetchUserReview={fetchAndSetUserReview}
+            refetchAverages={fetchAndSetAverages}
+            setIsMakingNewReview={setIsMakingNewReview}
+          />
+        ) : (
+          <>
+            <NewAccountNotification
+              updateLocalState={setUserIdAndCourseCode}
+              setIsMakingNewReview={setIsMakingNewReview}
+            />
+            <Divider />
+          </>
+        ))}
+      <dl className="fill-by-column">
+        {userReview && (
+          <>
+            <ReviewItem review={userReview} scoreTypes={scoreTypes} isUserReview />
+          </>
+        )}
+        {reviews.map((review) => (
+          <ReviewItem review={review} scoreTypes={scoreTypes} />
+        ))}
+      </dl>
     </>
   )
 }

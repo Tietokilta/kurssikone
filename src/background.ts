@@ -1,16 +1,3 @@
-const handleOpenCourse = (details: chrome.webRequest.WebRequestBodyDetails) => {
-  const startOfUrl = 'https://sisu.aalto.fi/osuva/api/notifications/student/aalto-HLO-'
-  const url = details.url
-  if (details.url.startsWith(startOfUrl)) {
-    const userId = url.slice(startOfUrl.length).trim()
-    chrome.storage.local.set({ userId })
-  }
-}
-
-chrome.webRequest.onBeforeRequest.addListener(handleOpenCourse, {
-  urls: ['https://sisu.aalto.fi/*'],
-})
-
 const IS_PRODUCTION = false
 
 const host = IS_PRODUCTION
