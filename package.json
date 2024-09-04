@@ -69,7 +69,8 @@
   "scripts": {
     "dev": "nodemon scripts/build.js",
     "make-release": "node scripts/build.js && node scripts/make-release.js",
-    "lint": "eslint src && tsc --noEmit"
+    "lint": "eslint src && tsc --noEmit",
+    "install-hooks": "lefthook install"
   },
   "eslintConfig": {
     "extends": [
@@ -145,6 +146,7 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.0.270",
+    "lefthook": "^1.7.15",
     "zip-lib": "^1.0.4"
   }
 }
