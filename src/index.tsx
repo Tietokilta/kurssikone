@@ -67,7 +67,7 @@ const handleCoursePage = async (isModal: boolean) => {
   button.setAttribute('role', 'tab')
   button.setAttribute('class', 'link-button')
   button.setAttribute('tabindex', '-1')
-  button.innerHTML = 'Reviews'
+  button.textContent = 'Reviews'
 
   listElement.append(button)
 
