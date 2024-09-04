@@ -2,3 +2,8 @@ pre-commit:
   commands:
     linter:
       run: npm run lint
+
+post-commit:
+  commands:
+    make-release:
+      run: npm run make-release

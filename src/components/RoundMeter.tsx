@@ -1,4 +1,4 @@
-import { Ref, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 const cSize = 170
 const cSizeHalf = cSize / 2
