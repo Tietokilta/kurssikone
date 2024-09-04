@@ -26,7 +26,7 @@ const formatWebpackMessages = require('react-dev-utils/formatWebpackMessages')
 const printHostingInstructions = require('react-dev-utils/printHostingInstructions')
 const FileSizeReporter = require('react-dev-utils/FileSizeReporter')
 const printBuildError = require('react-dev-utils/printBuildError')
-const { renameManifestFiles } = require('./rename-manifest-files')
+const { renameManifestFiles } = require('./combine-manifest')
 
 const measureFileSizesBeforeBuild = FileSizeReporter.measureFileSizesBeforeBuild
 const printFileSizesAfterBuild = FileSizeReporter.printFileSizesAfterBuild

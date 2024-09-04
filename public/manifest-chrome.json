@@ -1,29 +1,4 @@
 {
-  "name": "Sisu Course Reviewer",
-  "description": "An extension that allows reviewing courses on Sisu, the Finnish student information system",
-  "version": "1.0.0",
-  "manifest_version": 3,
-  "permissions": ["webRequest", "storage"],
-  "host_permissions": [
-    "https://sisu.aalto.fi/*",
-    "http://localhost/*",
-    "https://sisu-course-reviewer-api.otju.dev/*"
-  ],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self';"
-  },
-  "icons": {
-    "16": "icon16.png",
-    "48": "icon48.png",
-    "96": "icon96.png",
-    "128": "icon128.png"
-  },
-  "content_scripts": [
-    {
-      "matches": ["https://sisu.aalto.fi/*", "http://localhost/*"],
-      "js": ["/static/js/main.js"]
-    }
-  ],
   "background": {
     "service_worker": "background.js"
   }
