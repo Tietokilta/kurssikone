@@ -146,6 +146,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/chrome": "^0.0.270",
     "lefthook": "^1.7.15",
     "zip-lib": "^1.0.4"
