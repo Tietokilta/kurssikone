@@ -41,12 +41,28 @@ const post = async (pathParts: string[], body: { [key: string]: any }) => {
   })
 }
 
+const del = async (pathParts: string[], body: { [key: string]: any }) => {
+  let url = `${host}/${pathParts.join('/')}`
+
+  console.log(body)
+  await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  })
+}
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'get') {
     get(request.pathParts, request.query).then((res) => sendResponse(res))
   }
   if (request.type === 'post') {
     post(request.pathParts, request.body).then((res) => sendResponse(res))
+  }
+  if (request.type === 'delete') {
+    del(request.pathParts, request.body).then((res) => sendResponse(res))
   }
   return true
 })

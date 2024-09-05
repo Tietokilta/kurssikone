@@ -13,6 +13,10 @@ const post = async (pathParts: string[], body: { [key: string]: any }) => {
   await chrome.runtime.sendMessage({ type: 'post', pathParts, body })
 }
 
+const del = async (pathParts: string[], body: { [key: string]: any }) => {
+  await chrome.runtime.sendMessage({ type: 'delete', pathParts, body })
+}
+
 export const getReviewsForCourseExcludingUserReview = async (
   courseCode: string,
   userId?: string
@@ -53,4 +57,12 @@ export const makeOrEditReview = async (newReview: NewReview) => {
   const { userId, courseCode } = newReview
   const hash = hashIt({ userId, courseCode })
   await post(['reviews'], { ...newReview, hash })
+}
+
+export const deleteReview = async (reviewId: number, userId: string) => {
+  const body = { id: reviewId, userId }
+  await del(['reviews', reviewId.toString()], {
+    hash: hashIt(body),
+    ...body,
+  })
 }

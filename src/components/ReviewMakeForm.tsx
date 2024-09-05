@@ -1,7 +1,8 @@
 import React from 'react'
 import ScorePicker from './ScorePicker'
 import { NewReview, Review } from '../types'
-import { makeOrEditReview } from '../requestHandlers'
+import { deleteReview, makeOrEditReview } from '../requestHandlers'
+import Divider from './Divider'
 
 type Props = {
   userId: string
@@ -59,6 +60,16 @@ const ReviewMakeForm = ({
     setIsMakingNewReview(false)
   }
 
+  const handleDelete = async () => {
+    if (!currentUserReview || !courseCode) return
+    if (window.confirm('Are you sure you want to delete your review?')) {
+      await deleteReview(currentUserReview.id, userId)
+      await refetchUserReview(courseCode, userId)
+      await refetchAverages(courseCode)
+      setIsMakingNewReview(false)
+    }
+  }
+
   return (
     <div>
       <form
@@ -67,6 +78,7 @@ const ReviewMakeForm = ({
           gap: 24,
           flexDirection: 'column',
           marginTop: 24,
+          marginBottom: 24,
         }}
         onSubmit={makeReview}
       >
@@ -103,14 +115,27 @@ const ReviewMakeForm = ({
           minText="Very easy"
           maxText="Very hard"
         />
-        <button
-          type="submit"
-          className="btn btn-secondary btn-hollow btn-sm"
-          style={{ width: 'fit-content' }}
-        >
-          {isEditingOldReview ? 'Publish edit' : 'Publish review'}
-        </button>
+        <div>
+          <button
+            type="submit"
+            className="btn btn-secondary btn-hollow btn-sm"
+            style={{ width: 'fit-content' }}
+          >
+            {isEditingOldReview ? 'Publish edit' : 'Publish review'}
+          </button>
+          {isEditingOldReview && (
+            <button
+              type="button"
+              className="btn btn-secondary btn-hollow btn-sm"
+              style={{ width: 'fit-content', marginLeft: 12 }}
+              onClick={handleDelete}
+            >
+              Delete review
+            </button>
+          )}
+        </div>
       </form>
+      <Divider />
     </div>
   )
 }
