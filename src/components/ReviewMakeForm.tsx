@@ -72,12 +72,13 @@ const ReviewMakeForm = ({
 
   return (
     <div>
+      <h4 style={{ marginTop: 12 }}>{isEditingOldReview ? 'Edit review' : 'New review'}</h4>
       <form
         style={{
           display: 'flex',
           gap: 24,
           flexDirection: 'column',
-          marginTop: 24,
+          marginTop: 16,
           marginBottom: 24,
         }}
         onSubmit={makeReview}
