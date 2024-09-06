@@ -13,31 +13,19 @@ Tested on following, but will probably work on other versions as well (e.g. Linu
 npm install
 ```
 
-## Development
+## Building & testing the extension
 
-Continuously make development build to `builds/build-{platform}`:
-
-```
-npm run dev
-```
-
-Continuously make release build to `builds/release-{platform}` & `builds/release-{platform}.zip`:
-
-```
-npm run dev-release
-```
-
-## Production
-
-Make production build to `builds/release-{platform}` & `builds/release-{platform}.zip`:
+You can make a release build (connects to an external backend) of the extension by running
 
 ```
 npm run make-release
 ```
 
+The extension will be built in the `builds` folder as `release-{platform}` and `release-{platform}.zip`.
+
 ## Seeing extension in action
 
-This extension works on the Aalto University's Sisu website.
+This extension works on Aalto University's Sisu website.
 
 You see the search result ratings by going to https://sisu.aalto.fi/student/search/main, and searching for courses.
 You can see and make reviews by selecting a course from the afformentioned search, and going to the "Reviews" tab. E.g. [here](https://sisu.aalto.fi/student/courseunit/aalto-CU-1150973070-20240801/brochure).
