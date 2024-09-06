@@ -1,9 +1,10 @@
+jest.retryTimes(3)
+
 describe('Reviews', () => {
   beforeEach(async () => {
     await page.setViewport({ width: 1920, height: 1080 })
     await page.goto('https://sisu.aalto.fi/student/courseunit/aalto-CU-1150973070-20240801')
     await fetch('http://localhost:3001/api/testing/reset', { method: 'POST' })
-    jest.retryTimes(3)
 
     // @ts-ignore
     const workerTarget = await browser.waitForTarget(
@@ -167,8 +168,8 @@ describe('Reviews', () => {
       body: JSON.stringify({
         title: 'test',
         content: 'test',
-        workloadScore: 5,
-        qualityScore: 5,
+        workloadScore: 3,
+        qualityScore: 1,
         difficultyScore: 5,
         courseCode: 'CS-A1110',
         userId: '3',
@@ -190,10 +191,10 @@ describe('Reviews', () => {
     await expect(page).toMatchTextContent('4 hakutulosta')
 
     await expect(page).toMatchElement('.review-root', {
-      text: 'Quality0Workload0Difficulty0',
+      text: 'Quality0.0Workload0.0Difficulty0.0',
     })
     await expect(page).toMatchElement('.review-root', {
-      text: 'Quality5Workload5Difficulty5',
+      text: 'Quality1.0Workload3.0Difficulty5.0',
     })
   })
 })

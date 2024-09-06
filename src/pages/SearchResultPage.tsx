@@ -45,7 +45,7 @@ const SearchResultPage = ({ courseCode }: Props) => {
             <span className="tiny-static-form-group">{score.name}</span>
             <span style={{ display: 'flex', alignItems: 'center' }}>
               <ScoreBar score={score.value} maxValue={5} />
-              {score.value}
+              {score.value.toFixed(1)}
             </span>
           </>
         ))}
