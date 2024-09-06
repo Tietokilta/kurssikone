@@ -1,6 +1,6 @@
 {
   "name": "Sisu Course Reviewer",
-  "description": "An extension that allows reviewing courses on Sisu, the Finnish student information system",
+  "description": "Adds extra features directly to Sisu, allowing you to read other students' reviews of courses and write your own!",
   "version": "1.0.1",
   "manifest_version": 3,
   "permissions": ["storage"],
