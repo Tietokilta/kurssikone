@@ -11,9 +11,12 @@ import ReviewItem from '../components/ReviewItem'
 import Divider from '../components/Divider'
 import NewAccountNotification from '../components/NewAccountNotification'
 
-const CoursePage = () => {
+type Props = {
+  courseCode?: string
+}
+
+const CoursePage = ({ courseCode }: Props) => {
   const [userId, setUserId] = useState<string | null>(null)
-  const [courseCode, setCourseCode] = useState<string | null>(null)
   const [otherReviewsAndCount, setOtherReviewsAndCount] = useState<ReviewsAndCount | null>(null)
   const [averages, setAverages] = useState<ReviewAverages | null>(null)
   const [IsMakingNewReview, setIsMakingNewReview] = useState(false)
@@ -34,30 +37,30 @@ const CoursePage = () => {
     setAverages(newAverages)
   }
 
-  const setUserIdAndCourseCode = async () => {
+  const getUserIdAndFetchData = async () => {
     const newUserId: string | undefined = (await chrome.storage.sync.get('userId')).userId
-    const newCourseCode: string | undefined = (await chrome.storage.local.get('currentCourseCode'))
-      .currentCourseCode as string
 
-    if (!newCourseCode) {
-      throw new Error('No course code')
+    if (!courseCode) {
+      return
     }
 
     if (newUserId) {
-      await fetchAndSetUserReview(newCourseCode, newUserId)
+      await fetchAndSetUserReview(courseCode, newUserId)
       setUserId(newUserId)
     }
 
-    await fetchAndSetOtherReviews(newCourseCode, newUserId)
-    await fetchAndSetAverages(newCourseCode)
-
-    setCourseCode(newCourseCode)
+    await fetchAndSetOtherReviews(courseCode, newUserId)
+    await fetchAndSetAverages(courseCode)
   }
 
   useEffect(() => {
-    setUserIdAndCourseCode()
+    getUserIdAndFetchData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  if (!courseCode) {
+    return <div>Course code not found</div>
+  }
 
   if (!otherReviewsAndCount || !averages) {
     return <div>Loading...</div>
@@ -116,7 +119,7 @@ const CoursePage = () => {
         ) : (
           <>
             <NewAccountNotification
-              updateLocalState={setUserIdAndCourseCode}
+              updateLocalState={getUserIdAndFetchData}
               setIsMakingNewReview={setIsMakingNewReview}
             />
             <Divider />

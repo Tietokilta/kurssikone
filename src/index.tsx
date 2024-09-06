@@ -52,10 +52,10 @@ const handleCoursePage = async (isModal: boolean) => {
   pageMainBody?.append(reactRoot)
   reactRoot.style.display = 'none'
 
-  const root = ReactDOM.createRoot(reactRoot)
-  root.render(<CoursePage />)
+  const courseCode = getCourseCode()
 
-  addCourseCodeToLocalStorage()
+  const root = ReactDOM.createRoot(reactRoot)
+  root.render(<CoursePage courseCode={courseCode} />)
 
   const listElement = document.createElement('li')
 
@@ -114,20 +114,14 @@ const getOldModalContents = () => {
   return document.querySelectorAll(`[role="tabpanel"]`) as unknown as HTMLElement[]
 }
 
-const addCourseCodeToLocalStorage = () => {
+const getCourseCode = () => {
   const courseCodeModalString = document.querySelector('.course-unit-code')?.textContent
   const courseCodePageString = document.querySelector('.page-sub-title')?.textContent
   if (courseCodeModalString) {
-    const currentCourseCode = courseCodeModalString.split('|')[0].trim()
-    if (currentCourseCode) {
-      chrome.storage.local.set({ currentCourseCode })
-    }
+    return courseCodeModalString.split('|')[0].trim()
   }
   if (courseCodePageString) {
-    const currentCourseCode = courseCodePageString.trim()
-    if (currentCourseCode) {
-      chrome.storage.local.set({ currentCourseCode })
-    }
+    return courseCodePageString.trim()
   }
 }
 
