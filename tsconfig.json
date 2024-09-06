@@ -15,6 +15,6 @@
     "isolatedModules": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"],
-  "exclude": ["src/background.ts"]
+  "include": ["src", "jest-puppeteer.config.ts"],
+  "exclude": ["src/background.ts", "src/tests/*"]
 }
