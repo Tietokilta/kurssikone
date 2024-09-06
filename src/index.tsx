@@ -120,13 +120,13 @@ const addCourseCodeToLocalStorage = () => {
   if (courseCodeModalString) {
     const currentCourseCode = courseCodeModalString.split('|')[0].trim()
     if (currentCourseCode) {
-      chrome.storage.sync.set({ currentCourseCode })
+      chrome.storage.local.set({ currentCourseCode })
     }
   }
   if (courseCodePageString) {
     const currentCourseCode = courseCodePageString.trim()
     if (currentCourseCode) {
-      chrome.storage.sync.set({ currentCourseCode })
+      chrome.storage.local.set({ currentCourseCode })
     }
   }
 }

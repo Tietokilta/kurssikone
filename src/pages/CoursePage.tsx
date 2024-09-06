@@ -36,7 +36,7 @@ const CoursePage = () => {
 
   const setUserIdAndCourseCode = async () => {
     const newUserId: string | undefined = (await chrome.storage.sync.get('userId')).userId
-    const newCourseCode: string | undefined = (await chrome.storage.sync.get('currentCourseCode'))
+    const newCourseCode: string | undefined = (await chrome.storage.local.get('currentCourseCode'))
       .currentCourseCode as string
 
     if (!newCourseCode) {

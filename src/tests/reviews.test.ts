@@ -14,6 +14,7 @@ describe('Reviews', () => {
     const worker = await workerTarget.worker()
 
     worker.evaluate(() => chrome.storage.sync.clear())
+    worker.evaluate(() => chrome.storage.local.clear())
   })
 
   it('Should contain correct data when empty"', async () => {
