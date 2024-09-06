@@ -12,7 +12,6 @@ const makeReleaseFromDir = async (dir, fileName) => {
 
   const zipFileName = mainFolder + `${fileName}.zip`
   const folderName = mainFolder + fileName
-  const backgroundFileName = `${folderName}/background.js`
 
   if (fs.existsSync(zipFileName)) {
     fs.rmSync(zipFileName)
@@ -22,12 +21,19 @@ const makeReleaseFromDir = async (dir, fileName) => {
   fs.cpSync(dirWithFolder, folderName, { overwrite: true, recursive: true })
   console.log('Copied build to release folder')
 
+  const backgroundFileName = `${folderName}/background.js`
   const backgroundFile = fs.readFileSync(backgroundFileName, 'utf8')
-
   const newBackgroundFile = backgroundFile.replace('IS_PRODUCTION = false', 'IS_PRODUCTION = true')
-
   fs.writeFileSync(backgroundFileName, newBackgroundFile)
   console.log('Changed IS_PRODUCTION to true')
+
+  const manifestFileName = `${folderName}/manifest.json`
+  const manifestFile = fs.readFileSync(manifestFileName, 'utf8')
+  const manifestJson = JSON.parse(manifestFile)
+  manifestJson.host_permissions = manifestJson.host_permissions.filter(
+    (item) => !item.includes('localhost')
+  )
+  fs.writeFileSync(manifestFileName, JSON.stringify(manifestJson, null, 2))
 
   await zl.archiveFolder(folderName, zipFileName)
   console.log('Zipped release')
