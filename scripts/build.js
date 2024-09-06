@@ -68,7 +68,7 @@ checkBrowsers(paths.appPath, isInteractive)
     const backgroundPath = paths.appIndexJs.split('\\').slice(0, -1).join('\\') + '\\background.ts'
 
     // Transpile background.ts
-    execSync(`tsc ${backgroundPath} --outDir ${paths.appBuild}`)
+    execSync(`tsc --skipLibCheck ${backgroundPath} --outDir ${paths.appBuild}`)
 
     // Merge with the public folder
     copyPublicFolder()
