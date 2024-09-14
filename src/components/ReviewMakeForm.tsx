@@ -3,7 +3,7 @@ import ScorePicker from './ScorePicker'
 import { NewReview, Review } from '../types'
 import { deleteReview, makeOrEditReview } from '../requestHandlers'
 import Divider from './Divider'
-import { scoreTypes } from '../utils/contants'
+import { scoreTypes } from '../utils/constants'
 
 type Props = {
   userId: string

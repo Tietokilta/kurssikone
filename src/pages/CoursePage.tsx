@@ -10,7 +10,7 @@ import ReviewMakeForm from '../components/ReviewMakeForm'
 import ReviewItem from '../components/ReviewItem'
 import Divider from '../components/Divider'
 import NewAccountNotification from '../components/NewAccountNotification'
-import { scoreTypes } from '../utils/contants'
+import { scoreTypes } from '../utils/constants'
 
 type Props = {
   courseCode?: string
