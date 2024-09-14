@@ -1,7 +1,7 @@
 {
   "name": "Sisu Course Reviewer",
   "description": "Adds extra features directly to Sisu, allowing you to read other students' reviews of courses and write your own!",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "manifest_version": 3,
   "permissions": ["storage"],
   "host_permissions": ["http://localhost/*", "https://sisu-course-reviewer-api.otju.dev/*"],

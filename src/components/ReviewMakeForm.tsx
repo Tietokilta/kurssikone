@@ -29,12 +29,16 @@ const ReviewMakeForm = ({
     const target = e.target as typeof e.target & {
       reviewTitle: { value: string }
       content: { value: string }
+      professor: { value: string }
+      year: { value: string }
       qualityScore: { value: number }
       workloadScore: { value: number }
       difficultyScore: { value: number }
     }
     const title = target.reviewTitle.value
     const content = target.content.value
+    const professor = target.professor.value
+    const year = Number(target.year.value)
     const qualityScore = Number(target.qualityScore.value)
     const workloadScore = Number(target.workloadScore.value)
     const difficultyScore = Number(target.difficultyScore.value)
@@ -45,6 +49,8 @@ const ReviewMakeForm = ({
       id,
       userId,
       title,
+      professor,
+      year,
       content,
       qualityScore,
       workloadScore,
@@ -71,6 +77,13 @@ const ReviewMakeForm = ({
     }
   }
 
+  const currentYear = new Date().getFullYear()
+  const earliestYear = 2010
+  const possibleYears = Array.from(
+    { length: currentYear - earliestYear + 1 },
+    (_, i) => currentYear - i
+  )
+
   return (
     <div>
       <h4 style={{ marginTop: 12 }}>{isEditingOldReview ? 'Edit review' : 'New review'}</h4>
@@ -85,16 +98,45 @@ const ReviewMakeForm = ({
         onSubmit={makeReview}
       >
         <label style={{ display: 'flex', flexDirection: 'column' }}>
-          Title
+          Title*
           <input
             name="reviewTitle"
             style={{ width: '90%' }}
             defaultValue={currentUserReview?.title ?? ''}
+            placeholder="Title of the review"
+            required
           />
         </label>
+        <div style={{ width: '90%', display: 'flex', gap: 36 }}>
+          <label style={{ display: 'flex', flexDirection: 'column', width: '30%' }}>
+            Responsible teacher
+            <input
+              name="professor"
+              defaultValue={currentUserReview?.professor ?? ''}
+              placeholder="Name of the responsible teacher (optional)"
+            />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', width: '15%' }}>
+            Year
+            <select name="year" defaultValue={currentUserReview?.year} style={{ height: 30 }}>
+              <option value={undefined}>Not specified</option>
+              {possibleYears.map((year) => (
+                <option key={year} value={year}>
+                  {year}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
         <label>
-          Content
-          <textarea name="content" rows={5} defaultValue={currentUserReview?.content ?? ''} />
+          Content*
+          <textarea
+            name="content"
+            rows={5}
+            defaultValue={currentUserReview?.content ?? ''}
+            placeholder="Write your review here. Possible questions to answer: How was the course implemented? Was there mandatory attendace? Could the course be completed remotely? Were the lectures, assignments, and materials engaging and effective? Was the workload manageable? What kind of and how many exercises did the course have? How was the exam? Share what you enjoyed, any challenges you faced, and tips for future students!"
+            required
+          />
         </label>
         {scoreTypes.map((scoreType) => (
           <ScorePicker

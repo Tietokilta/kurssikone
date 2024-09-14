@@ -39,7 +39,7 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
             </i>
           </h3>
         </header>
-        <div style={{ display: 'flex', flexDirection: 'column', rowGap: 24 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', rowGap: 16 }}>
           <span style={{ fontSize: 14, display: 'flex', gap: 10 }}>
             {scores.map((score) => (
               <span style={{ display: 'flex', gap: 2 }}>
@@ -51,6 +51,22 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
               </span>
             ))}
           </span>
+          {(review.professor || review.year) && (
+            <div style={{ display: 'flex', gap: 5, fontSize: 14 }}>
+              {review.professor && (
+                <>
+                  <dt style={{ fontWeight: 'bold' }}>Responsible teacher:</dt>
+                  <dd>{review.professor}</dd>
+                </>
+              )}
+              {review.year && (
+                <>
+                  <dt style={{ fontWeight: 'bold', marginLeft: 10 }}>Year:</dt>
+                  <dd>{review.year}</dd>
+                </>
+              )}
+            </div>
+          )}
           <text style={{ whiteSpace: 'pre-line' }}>{review.content}</text>
         </div>
       </div>

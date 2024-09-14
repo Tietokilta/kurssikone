@@ -1,6 +1,8 @@
 export type Review = {
   id: number
   title: string
+  professor: string
+  year: number
   content: string
   workloadScore: number
   qualityScore: number
