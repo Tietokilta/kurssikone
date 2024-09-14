@@ -6,9 +6,11 @@ const cSizeHalf = cSize / 2
 type Props = {
   title: string
   value: number
+  minText: string
+  maxText: string
 }
 
-const RoundMeter = ({ title, value }: Props) => {
+const RoundMeter = ({ title, value, minText, maxText }: Props) => {
   const canvasRef = useRef(null)
 
   useEffect(() => {
@@ -79,6 +81,21 @@ const RoundMeter = ({ title, value }: Props) => {
         height={cSize}
         style={{ backgroundColor: '#00103070', borderRadius: '50%' }}
       />
+      <span
+        style={{
+          position: 'absolute',
+          textAlign: 'center',
+          width: '100%',
+          bottom: -20,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 5,
+        }}
+      >
+        <span style={{ width: '75px' }}>{minText}</span>
+        <span>-</span>
+        <span style={{ width: '75px' }}>{maxText}</span>
+      </span>
     </div>
   )
 }

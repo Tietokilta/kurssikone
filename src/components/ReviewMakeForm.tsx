@@ -3,6 +3,7 @@ import ScorePicker from './ScorePicker'
 import { NewReview, Review } from '../types'
 import { deleteReview, makeOrEditReview } from '../requestHandlers'
 import Divider from './Divider'
+import { scoreTypes } from '../utils/contants'
 
 type Props = {
   userId: string
@@ -95,27 +96,15 @@ const ReviewMakeForm = ({
           Content
           <textarea name="content" rows={5} defaultValue={currentUserReview?.content ?? ''} />
         </label>
-        <ScorePicker
-          name="qualityScore"
-          label="Quality"
-          defaultValue={currentUserReview?.qualityScore}
-          minText="Bad"
-          maxText="Amazing"
-        />
-        <ScorePicker
-          name="workloadScore"
-          label="Workload"
-          defaultValue={currentUserReview?.workloadScore}
-          minText="Negligible"
-          maxText="Massive"
-        />
-        <ScorePicker
-          name="difficultyScore"
-          label="Difficulty"
-          defaultValue={currentUserReview?.difficultyScore}
-          minText="Very easy"
-          maxText="Very hard"
-        />
+        {scoreTypes.map((scoreType) => (
+          <ScorePicker
+            name={scoreType.name}
+            label={scoreType.label}
+            defaultValue={currentUserReview ? currentUserReview[scoreType.name] : 3}
+            minText={scoreType.minText}
+            maxText={scoreType.maxText}
+          />
+        ))}
         <div>
           <button
             type="submit"

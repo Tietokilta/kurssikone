@@ -10,6 +10,7 @@ import ReviewMakeForm from '../components/ReviewMakeForm'
 import ReviewItem from '../components/ReviewItem'
 import Divider from '../components/Divider'
 import NewAccountNotification from '../components/NewAccountNotification'
+import { scoreTypes } from '../utils/contants'
 
 type Props = {
   courseCode?: string
@@ -70,15 +71,24 @@ const CoursePage = ({ courseCode }: Props) => {
 
   const reviewCount = otherReviewCount + (userReview ? 1 : 0)
 
-  const scoreTypes = [
-    { name: 'Quality', field: 'qualityScore', value: averages.qualityAverage },
-    { name: 'Workload', field: 'workloadScore', value: averages.workloadAverage },
-    {
-      name: 'Difficulty',
-      field: 'difficultyScore',
-      value: averages.difficultyAverage,
-    },
-  ]
+  const scoreTypesWithValues = scoreTypes.map((scoreType) => {
+    let average = 0
+    if (scoreType.label === 'Quality') {
+      average = averages.qualityAverage
+    } else if (scoreType.label === 'Workload') {
+      average = averages.workloadAverage
+    } else {
+      average = averages.difficultyAverage
+    }
+
+    return {
+      name: scoreType.label,
+      field: scoreType.name,
+      minText: scoreType.minText,
+      maxText: scoreType.maxText,
+      value: average,
+    }
+  })
 
   let buttonText = '+ Write a Review'
 
@@ -91,8 +101,13 @@ const CoursePage = ({ courseCode }: Props) => {
   return (
     <>
       <div style={{ display: 'flex', gap: 40 }}>
-        {scoreTypes.map((scoreType) => (
-          <RoundMeter value={scoreType.value} title={scoreType.name} />
+        {scoreTypesWithValues.map((scoreType) => (
+          <RoundMeter
+            value={scoreType.value}
+            title={scoreType.name}
+            minText={scoreType.minText}
+            maxText={scoreType.maxText}
+          />
         ))}
       </div>
       <span style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
@@ -128,11 +143,11 @@ const CoursePage = ({ courseCode }: Props) => {
       <dl className="fill-by-column">
         {userReview && (
           <>
-            <ReviewItem review={userReview} scoreTypes={scoreTypes} isUserReview />
+            <ReviewItem review={userReview} scoreTypes={scoreTypesWithValues} isUserReview />
           </>
         )}
         {reviews.map((review) => (
-          <ReviewItem review={review} scoreTypes={scoreTypes} />
+          <ReviewItem review={review} scoreTypes={scoreTypesWithValues} />
         ))}
       </dl>
     </>
