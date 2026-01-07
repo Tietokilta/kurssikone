@@ -39,6 +39,7 @@
     "jest-resolve": "^27.4.2",
     "jest-watch-typeahead": "^1.0.0",
     "mini-css-extract-plugin": "^2.4.5",
+    "nodemon": "^3.1.11",
     "postcss": "^8.4.4",
     "postcss-flexbugs-fixes": "^5.0.2",
     "postcss-loader": "^6.2.1",
@@ -69,6 +70,7 @@
   "scripts": {
     "dev": "nodemon scripts/build.js",
     "dev-release": "nodemon --exec npm run make-release",
+    "bruh": "tsc --skipLibCheck \background.ts --outDir /home/otju/git/sisu-course-reviewer/build",
     "make-release": "node scripts/build.js && node scripts/make-release.js",
     "lint": "eslint src && tsc --noEmit",
     "install-hooks": "lefthook install",

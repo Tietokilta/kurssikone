@@ -65,10 +65,17 @@ checkBrowsers(paths.appPath, isInteractive)
     // if you're in it, you don't end up in Trash
     fs.emptyDirSync(paths.appBuild)
 
-    const backgroundPath = paths.appIndexJs.split('\\').slice(0, -1).join('\\') + '\\background.ts'
+    const backgroundPath = path.join(path.dirname(paths.appIndexJs), 'background.ts')
 
     // Transpile background.ts
-    execSync(`tsc --skipLibCheck ${backgroundPath} --outDir ${paths.appBuild}`)
+    try {
+      execSync(`npx tsc --skipLibCheck ${backgroundPath} --outDir ${paths.appBuild}`, {
+        stdio: 'inherit',
+      })
+    } catch (error) {
+      console.error(chalk.red('TypeScript compilation failed for background.ts'))
+      throw error
+    }
 
     // Merge with the public folder
     copyPublicFolder()
