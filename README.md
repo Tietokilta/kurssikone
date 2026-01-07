@@ -1,4 +1,4 @@
-# Sisu Course Reviewer
+# Kurssikompassi
 
 ## System & Software Requirements for Development
 
