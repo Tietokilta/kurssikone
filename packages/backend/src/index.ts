@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import { connectToDatabase } from './utils/db'
 import reviewRouter from './controllers/reviews'
 import userRouter from './controllers/users'
@@ -9,6 +10,7 @@ import morganBody from 'morgan-body'
 
 const app = express()
 
+app.use(cors())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 
