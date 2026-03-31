@@ -82,7 +82,7 @@ router.get('/course/:courseCode/', async (req, res) => {
   }
 
   if (userIdToExclude) {
-    // @ts-ignore
+    // @ts-expect-error - dynamically adding where clause
     query.where.userId = {
       [Op.not]: userIdToExclude,
     }

@@ -1,4 +1,5 @@
-require('pg').defaults.parseInt8 = true
+import pg from 'pg'
+pg.defaults.parseInt8 = true
 import { Sequelize } from 'sequelize'
 import { Umzug, SequelizeStorage } from 'umzug'
 import { POSTGRES_URL } from './config'
