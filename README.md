@@ -11,8 +11,21 @@ kurssikompassi/
 ├── packages/
 │   ├── extension/    # Browser extension (Chrome & Firefox)
 │   ├── backend/      # Express.js API server
-│   └── web/          # Standalone React website
+│   └── web/          # Standalone React website (Vite)
+├── lefthook.yml      # Git hooks configuration
+└── package.json      # Root package with shared scripts
 ```
+
+## Getting Started
+
+Install dependencies in each package you want to work with, then install git hooks:
+
+```bash
+npm install
+npm run install-hooks
+```
+
+The hooks will run lint tests before allowing commits
 
 ## Packages
 
@@ -38,7 +51,7 @@ The extension will be built in the `builds` folder.
 
 ### Backend (`packages/backend`)
 
-Express.js API server with PostgreSQL database.
+Express.js API server with PostgreSQL database using Sequelize ORM.
 
 **Development with Docker:**
 
@@ -58,7 +71,7 @@ npm run dev
 
 ### Web (`packages/web`)
 
-Standalone React website with the same functionality as the extension.
+Standalone React website built with Vite.
 
 **Development:**
 
@@ -94,7 +107,3 @@ VITE_API_URL=http://localhost:3001/api
 - Read detailed course reviews
 - Write and edit your own reviews
 - Anonymous user system with portable user IDs
-
-## License
-
-MIT
