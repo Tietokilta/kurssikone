@@ -15,12 +15,15 @@
   "main": "index.js",
   "devDependencies": {
     "@types/express": "^4.17.21",
-    "@types/morgan": "^1.9.9"
+    "@types/morgan": "^1.9.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0",
+    "nodemon": "^3.1.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon ./src/index.ts",
-    "dev-docker": "nodemon -L ./src/index.ts",
+    "dev-docker": "ts-node ./src/index.ts",
     "migration:down": "ts-node ./src/utils/rollback.ts",
     "build": "tsc"
   },

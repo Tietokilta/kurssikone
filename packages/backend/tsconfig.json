@@ -11,5 +11,9 @@
     "isolatedModules": true,
     "outDir": "dist/src"
   },
-  "include": ["src"]
+  "include": ["src"],
+  "ts-node": {
+    "esm": false,
+    "transpileOnly": true
+  }
 }
