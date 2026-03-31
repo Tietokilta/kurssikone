@@ -1,0 +1,7 @@
+.env
+node_modules/
+dist/
+db/
+watchtower_config.json
+key.pem
+cert.pem

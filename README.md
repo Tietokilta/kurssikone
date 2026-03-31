@@ -1,31 +1,100 @@
 # Kurssikompassi
 
-## System & Software Requirements for Development
+A course review platform for Aalto University courses. Available as a browser extension and a standalone website.
 
-Tested on following, but will probably work on other versions as well (e.g. Linux):
+## Project Structure
 
-- Windows 11 Home 23H2
-- Node v20.11.0 & npm 10.8.2
-
-## Installing dependencies
+This is a monorepo containing three packages:
 
 ```
+kurssikompassi/
+├── packages/
+│   ├── extension/    # Browser extension (Chrome & Firefox)
+│   ├── backend/      # Express.js API server
+│   └── web/          # Standalone React website
+```
+
+## Packages
+
+### Extension (`packages/extension`)
+
+Browser extension that integrates directly into Aalto's Sisu system.
+
+**Development:**
+
+```bash
+cd packages/extension
 npm install
+npm run dev
 ```
 
-## Building & testing the extension
+**Build:**
 
-You can make a release build (connects to an external backend) of the extension by running
-
-```
+```bash
 npm run make-release
 ```
 
-The extension will be built in the `builds` folder as `release-{platform}` and `release-{platform}.zip`.
+The extension will be built in the `builds` folder.
 
-## Seeing extension in action
+### Backend (`packages/backend`)
 
-This extension works on Aalto University's Sisu website.
+Express.js API server with PostgreSQL database.
 
-You see the search result ratings by going to https://sisu.aalto.fi/student/search/main, and searching for courses.
-You can see and make reviews by selecting a course from the afformentioned search, and going to the "Reviews" tab. E.g. [here](https://sisu.aalto.fi/student/courseunit/aalto-CU-1150973070-20240801/brochure).
+**Development with Docker:**
+
+```bash
+cd packages/backend
+cp .env.example .env  # Edit with your settings
+docker-compose up
+```
+
+**Development without Docker:**
+
+```bash
+cd packages/backend
+npm install
+npm run dev
+```
+
+### Web (`packages/web`)
+
+Standalone React website with the same functionality as the extension.
+
+**Development:**
+
+```bash
+cd packages/web
+npm install
+npm run dev
+```
+
+**Build:**
+
+```bash
+npm run build
+```
+
+**Environment Variables:**
+
+Create a `.env` file:
+
+```
+VITE_API_URL=http://localhost:3001/api
+```
+
+## System Requirements
+
+- Node.js v20+
+- npm 10+
+- Docker (optional, for backend development)
+
+## Features
+
+- View course ratings (Quality, Workload, Difficulty)
+- Read detailed course reviews
+- Write and edit your own reviews
+- Anonymous user system with portable user IDs
+
+## License
+
+MIT

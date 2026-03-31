@@ -1,0 +1,7 @@
+POST http://localhost:3001/api/users
+content-Type: application/json
+
+{
+    "id": "3",
+    "hash": 350307021737
+}

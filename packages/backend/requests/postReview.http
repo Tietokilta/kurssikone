@@ -1,0 +1,14 @@
+POST http://localhost:3001/api/reviews
+content-Type: application/json
+
+{
+    "title": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+    "content": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis.",
+    "workloadScore": 5,
+    "qualityScore": 5,
+    "difficultyScore": 5,
+    "courseCode": "CS-A1110",
+    "userId": "3",
+    "timestampCreated": 1620000000000,
+    "hash": 15005318265153
+}
