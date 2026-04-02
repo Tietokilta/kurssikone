@@ -7,81 +7,31 @@ type Props = {
 
 const Layout = ({ children }: Props) => {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <header
-        style={{
-          backgroundColor: '#0066cc',
-          color: 'white',
-          padding: '16px 24px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1200,
-            margin: '0 auto',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <Link
-            to="/"
-            style={{
-              color: 'white',
-              textDecoration: 'none',
-              fontSize: 24,
-              fontWeight: 600,
-            }}
-          >
+    <div className="min-h-screen flex flex-col">
+      <header className="bg-gray-900 text-white px-6 py-4">
+        <div className="max-w-4xl mx-auto flex justify-between items-center">
+          <Link to="/" className="font-medium text-white no-underline hover:text-gray-200">
             Kurssikompassi
           </Link>
           <nav>
-            <Link
-              to="/"
-              style={{
-                color: 'white',
-                textDecoration: 'none',
-                padding: '8px 16px',
-              }}
-            >
+            <Link to="/" className="text-sm text-white no-underline hover:text-gray-200">
               Home
             </Link>
           </nav>
         </div>
       </header>
 
-      <main
-        style={{
-          flex: 1,
-          padding: '40px 24px',
-          maxWidth: 1200,
-          margin: '0 auto',
-          width: '100%',
-        }}
-      >
-        {children}
-      </main>
+      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">{children}</main>
 
-      <footer
-        style={{
-          backgroundColor: '#333',
-          color: '#999',
-          padding: '24px',
-          textAlign: 'center',
-          fontSize: 14,
-        }}
-      >
-        <p>
-          Kurssikompassi - Course reviews for Aalto University
-        </p>
-        <p style={{ marginTop: 8 }}>
+      <footer className="bg-gray-100 border-t border-gray-300 text-gray-600 text-sm text-center px-6 py-6 mt-12">
+        <p>Kurssikompassi - Course reviews for Aalto University</p>
+        <p className="mt-2">
           Also available as a{' '}
           <a
             href="https://github.com/otju/kurssikompassi"
-            style={{ color: '#ccc' }}
             target="_blank"
             rel="noopener noreferrer"
+            className="text-blue-600 underline hover:text-blue-800"
           >
             browser extension
           </a>

@@ -1,4 +1,5 @@
 import ReactDOM from 'react-dom/client'
+import './index.css'
 import CoursePage from './pages/CoursePage'
 import SearchResultPage from './pages/SearchResultPage'
 import { waitForElement } from './utils/waitForElement'

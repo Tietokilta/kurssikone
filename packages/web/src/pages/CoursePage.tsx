@@ -68,9 +68,12 @@ const CoursePage = () => {
 
   if (!courseCode) {
     return (
-      <div style={{ padding: 40, textAlign: 'center' }}>
-        <h2>Course code not found</h2>
-        <Link to="/" className="btn btn-primary" style={{ marginTop: 20 }}>
+      <div className="text-center py-10">
+        <h2 className="text-xl font-medium mb-4">Course code not found</h2>
+        <Link
+          to="/"
+          className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
           Go to Home
         </Link>
       </div>
@@ -79,8 +82,8 @@ const CoursePage = () => {
 
   if (!otherReviewsAndCount || !averages) {
     return (
-      <div style={{ padding: 40, textAlign: 'center' }}>
-        <p>Loading...</p>
+      <div className="text-center py-10">
+        <p className="text-gray-600">Loading...</p>
       </div>
     )
   }
@@ -118,15 +121,15 @@ const CoursePage = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 20 }}>
-        <Link to="/" style={{ fontSize: 14 }}>
+      <div className="mb-4">
+        <Link to="/" className="text-blue-600 underline hover:text-blue-800">
           &larr; Back to search
         </Link>
       </div>
 
-      <h1 style={{ marginBottom: 30, fontSize: 28 }}>Course: {courseCode}</h1>
+      <h1 className="text-2xl font-medium mb-6">Course: {courseCode}</h1>
 
-      <div style={{ display: 'flex', gap: 40, flexWrap: 'wrap', marginBottom: 30 }}>
+      <div className="flex gap-8 flex-wrap mb-6">
         {scoreTypesWithValues.map((scoreType) => (
           <RoundMeter
             key={scoreType.name}
@@ -138,16 +141,15 @@ const CoursePage = () => {
         ))}
       </div>
 
-      <span style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
-        <h2 style={{ marginBottom: 28, marginTop: 28, fontSize: 24 }}>{reviewCount} Reviews</h2>
-
+      <div className="flex gap-6 items-center mb-4">
+        <h2 className="text-xl font-medium">{reviewCount} Reviews</h2>
         <button
-          className="btn btn-secondary btn-sm"
+          className="px-3 py-1.5 text-sm bg-gray-200 text-gray-900 border border-gray-300 rounded-md hover:bg-gray-300 transition-colors"
           onClick={() => setIsMakingNewReview((oldVal) => !oldVal)}
         >
           {buttonText}
         </button>
-      </span>
+      </div>
 
       <Divider />
 
@@ -176,7 +178,7 @@ const CoursePage = () => {
           </>
         ))}
 
-      <dl className="fill-by-column">
+      <dl className="flex flex-col gap-4">
         {userReview && (
           <ReviewItem review={userReview} scoreTypes={scoreTypesWithValues} isUserReview />
         )}
@@ -186,9 +188,7 @@ const CoursePage = () => {
       </dl>
 
       {reviewCount === 0 && (
-        <p style={{ padding: 20, color: '#666' }}>
-          No reviews yet. Be the first to write a review!
-        </p>
+        <p className="text-gray-600">No reviews yet. Be the first to write a review!</p>
       )}
     </div>
   )
