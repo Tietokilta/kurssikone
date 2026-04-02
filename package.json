@@ -3,10 +3,12 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "dev": "concurrently --names \"web,extension,backend\" --prefix-colors \"cyan,magenta,yellow\" \"npm run dev --prefix packages/web\" \"npm run dev --prefix packages/extension\" \"docker compose -f packages/backend/docker-compose.yml up\"",
     "lint": "npm run lint --prefix packages/backend && npm run lint --prefix packages/web && npm run lint --prefix packages/extension",
     "install-hooks": "lefthook install"
   },
   "devDependencies": {
+    "concurrently": "^9.0.0",
     "lefthook": "^1.7.15"
   }
 }
