@@ -1,22 +1,30 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import RoundMeter from '../components/RoundMeter'
+import {
+  RoundMeter,
+  ReviewMakeForm,
+  ReviewItem,
+  Divider,
+  NewAccountNotification,
+  scoreTypes,
+  Review,
+  ReviewAverages,
+  ReviewsAndCount,
+} from '@kurssikompassi/shared'
 import {
   getAveragesForCourse,
   getReviewsForCourseExcludingUserReview,
   getUserReviewForCourse,
+  getUser,
+  makeUser,
+  makeOrEditReview,
+  deleteReview,
 } from '../api/client'
-import { Review, ReviewAverages, ReviewsAndCount } from '../types'
-import ReviewMakeForm from '../components/ReviewMakeForm'
-import ReviewItem from '../components/ReviewItem'
-import Divider from '../components/Divider'
-import NewAccountNotification from '../components/NewAccountNotification'
-import { scoreTypes } from '../utils/constants'
-import { getUserId } from '../utils/userStorage'
+import { getUserId, setUserId } from '../utils/userStorage'
 
 const CoursePage = () => {
   const { courseCode } = useParams<{ courseCode: string }>()
-  const [userId, setUserId] = useState<string | null>(null)
+  const [userId, setUserIdState] = useState<string | null>(null)
   const [otherReviewsAndCount, setOtherReviewsAndCount] = useState<ReviewsAndCount | null>(null)
   const [averages, setAverages] = useState<ReviewAverages | null>(null)
   const [IsMakingNewReview, setIsMakingNewReview] = useState(false)
@@ -46,7 +54,7 @@ const CoursePage = () => {
 
     if (storedUserId) {
       await fetchAndSetUserReview(courseCode, storedUserId)
-      setUserId(storedUserId)
+      setUserIdState(storedUserId)
     }
 
     await fetchAndSetOtherReviews(courseCode, storedUserId ?? undefined)
@@ -152,12 +160,17 @@ const CoursePage = () => {
             refetchUserReview={fetchAndSetUserReview}
             refetchAverages={fetchAndSetAverages}
             setIsMakingNewReview={setIsMakingNewReview}
+            makeOrEditReview={makeOrEditReview}
+            deleteReview={deleteReview}
           />
         ) : (
           <>
             <NewAccountNotification
               updateLocalState={getUserIdAndFetchData}
               setIsMakingNewReview={setIsMakingNewReview}
+              setUserId={setUserId}
+              getUser={getUser}
+              makeUser={makeUser}
             />
             <Divider />
           </>

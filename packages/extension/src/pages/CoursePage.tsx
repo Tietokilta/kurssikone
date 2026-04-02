@@ -1,16 +1,24 @@
 import { useEffect, useState } from 'react'
-import RoundMeter from '../components/RoundMeter'
+import {
+  RoundMeter,
+  ReviewMakeForm,
+  ReviewItem,
+  Divider,
+  NewAccountNotification,
+  scoreTypes,
+  Review,
+  ReviewAverages,
+  ReviewsAndCount,
+} from '@kurssikompassi/shared'
 import {
   getAveragesForCourse,
   getReviewsForCourseExcludingUserReview,
   getUserReviewForCourse,
+  getUser,
+  makeUser,
+  makeOrEditReview,
+  deleteReview,
 } from '../requestHandlers'
-import { Review, ReviewAverages, ReviewsAndCount } from '../types'
-import ReviewMakeForm from '../components/ReviewMakeForm'
-import ReviewItem from '../components/ReviewItem'
-import Divider from '../components/Divider'
-import NewAccountNotification from '../components/NewAccountNotification'
-import { scoreTypes } from '../utils/constants'
 
 type Props = {
   courseCode?: string
@@ -52,6 +60,10 @@ const CoursePage = ({ courseCode }: Props) => {
 
     await fetchAndSetOtherReviews(courseCode, newUserId)
     await fetchAndSetAverages(courseCode)
+  }
+
+  const setUserIdInStorage = async (id: string) => {
+    await chrome.storage.sync.set({ userId: id })
   }
 
   useEffect(() => {
@@ -103,6 +115,7 @@ const CoursePage = ({ courseCode }: Props) => {
       <div style={{ display: 'flex', gap: 40 }}>
         {scoreTypesWithValues.map((scoreType) => (
           <RoundMeter
+            key={scoreType.name}
             value={scoreType.value}
             title={scoreType.name}
             minText={scoreType.minText}
@@ -130,12 +143,17 @@ const CoursePage = ({ courseCode }: Props) => {
             refetchUserReview={fetchAndSetUserReview}
             refetchAverages={fetchAndSetAverages}
             setIsMakingNewReview={setIsMakingNewReview}
+            makeOrEditReview={makeOrEditReview}
+            deleteReview={deleteReview}
           />
         ) : (
           <>
             <NewAccountNotification
               updateLocalState={getUserIdAndFetchData}
               setIsMakingNewReview={setIsMakingNewReview}
+              setUserId={setUserIdInStorage}
+              getUser={getUser}
+              makeUser={makeUser}
             />
             <Divider />
           </>
@@ -147,7 +165,7 @@ const CoursePage = ({ courseCode }: Props) => {
           </>
         )}
         {reviews.map((review) => (
-          <ReviewItem review={review} scoreTypes={scoreTypesWithValues} />
+          <ReviewItem key={review.id} review={review} scoreTypes={scoreTypesWithValues} />
         ))}
       </dl>
     </>

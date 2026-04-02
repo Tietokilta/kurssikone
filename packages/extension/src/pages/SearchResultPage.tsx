@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getAveragesForCourse } from '../requestHandlers'
-import { ReviewAverages } from '../types'
-import ScoreBar from '../components/ScoreBar'
+import { ReviewAverages, ScoreBar } from '@kurssikompassi/shared'
 
 type Props = {
   courseCode: string
@@ -41,13 +40,13 @@ const SearchResultPage = ({ courseCode }: Props) => {
     <div className="review-root">
       <span style={{ fontSize: 14, display: 'grid', gridTemplateColumns: 'auto 1fr' }}>
         {scoreTypes.map((score) => (
-          <>
+          <span key={score.name} style={{ display: 'contents' }}>
             <span className="tiny-static-form-group">{score.name}</span>
             <span style={{ display: 'flex', alignItems: 'center' }}>
               <ScoreBar score={score.value} maxValue={5} />
               {score.value.toFixed(1)}
             </span>
-          </>
+          </span>
         ))}
       </span>
     </div>

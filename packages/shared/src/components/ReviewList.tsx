@@ -10,7 +10,7 @@ const ReviewList = ({ reviews, scoreTypes }: Props) => {
   return (
     <dl className="fill-by-column">
       {reviews.map((review) => (
-        <ReviewItem review={review} scoreTypes={scoreTypes} />
+        <ReviewItem key={review.id} review={review} scoreTypes={scoreTypes} />
       ))}
     </dl>
   )

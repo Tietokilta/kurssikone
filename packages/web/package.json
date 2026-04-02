@@ -10,6 +10,7 @@
     "lint": "eslint src && tsc --noEmit"
   },
   "dependencies": {
+    "@kurssikompassi/shared": "file:../shared",
     "@ramonak/react-progress-bar": "^5.2.0",
     "dayjs": "^1.11.10",
     "hash-it": "^6.0.0",

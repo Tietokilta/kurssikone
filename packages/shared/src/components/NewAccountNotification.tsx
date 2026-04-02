@@ -1,21 +1,28 @@
 import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { getUser, makeUser } from '../api/client'
-import { setUserId } from '../utils/userStorage'
 
 type Props = {
   updateLocalState: () => Promise<void>
   setIsMakingNewReview: (isMakingNewReview: boolean) => void
+  setUserId: (userId: string) => void | Promise<void>
+  getUser: (userId: string) => Promise<unknown>
+  makeUser: (userId: string) => Promise<void>
 }
 
-const NewAccountNotification = ({ updateLocalState, setIsMakingNewReview }: Props) => {
+const NewAccountNotification = ({
+  updateLocalState,
+  setIsMakingNewReview,
+  setUserId,
+  getUser,
+  makeUser,
+}: Props) => {
   const [generatedUserId] = useState<string>(uuidv4())
   const [previousUserId, setPreviousUserId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
 
   const handleSettingNewUserId = async () => {
     await makeUser(generatedUserId)
-    setUserId(generatedUserId)
+    await setUserId(generatedUserId)
     await updateLocalState()
   }
 
@@ -27,7 +34,7 @@ const NewAccountNotification = ({ updateLocalState, setIsMakingNewReview }: Prop
       return
     }
 
-    setUserId(previousUserId)
+    await setUserId(previousUserId)
     await updateLocalState()
     setIsMakingNewReview(false)
   }

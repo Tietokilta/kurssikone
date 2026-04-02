@@ -62,6 +62,7 @@ module.exports = {
   appIndexJs: resolveModule(resolveApp, process.env.INDEX_TS_FILE || 'src/index'),
   appPackageJson: resolveApp('package.json'),
   appSrc: resolveApp('src'),
+  sharedSrc: resolveApp('../shared/src'),
   appTsConfig: resolveApp('tsconfig.json'),
   appJsConfig: resolveApp('jsconfig.json'),
   yarnLockFile: resolveApp('yarn.lock'),

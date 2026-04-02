@@ -1,4 +1,4 @@
-import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '../types'
+import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikompassi/shared'
 import hashIt from 'hash-it'
 
 const host = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'

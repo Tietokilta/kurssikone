@@ -283,7 +283,7 @@ module.exports = function (webpackEnv) {
       // We placed these paths second because we want `node_modules` to "win"
       // if there are any conflicts. This matches Node resolution mechanism.
       // https://github.com/facebook/create-react-app/issues/253
-      modules: ['node_modules', paths.appNodeModules].concat(modules.additionalModulePaths || []),
+      modules: [paths.appNodeModules, 'node_modules'].concat(modules.additionalModulePaths || []),
       // These are the reasonable defaults supported by the Node ecosystem.
       // We also include JSX as a common component filename extension to support
       // some tools, although we do not recommend using it, see:
@@ -312,6 +312,7 @@ module.exports = function (webpackEnv) {
         // Make sure your source files are compiled, as they will not be processed in any way.
         new ModuleScopePlugin(paths.appSrc, [
           paths.appPackageJson,
+          paths.sharedSrc,
           reactRefreshRuntimeEntry,
           reactRefreshWebpackPluginRuntimeEntry,
           babelRuntimeEntry,
@@ -389,7 +390,7 @@ module.exports = function (webpackEnv) {
             // The preset includes JSX, Flow, TypeScript, and some ESnext features.
             {
               test: /\.(js|mjs|jsx|ts|tsx)$/,
-              include: paths.appSrc,
+              include: [paths.appSrc, paths.sharedSrc],
               loader: require.resolve('babel-loader'),
               options: {
                 customize: require.resolve('babel-preset-react-app/webpack-overrides'),

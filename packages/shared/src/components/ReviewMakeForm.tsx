@@ -1,9 +1,8 @@
 import React from 'react'
 import ScorePicker from './ScorePicker'
 import { NewReview, Review } from '../types'
-import { deleteReview, makeOrEditReview } from '../api/client'
 import Divider from './Divider'
-import { scoreTypes } from '../utils/constants'
+import { scoreTypes } from '../constants'
 
 type Props = {
   userId: string
@@ -12,6 +11,8 @@ type Props = {
   refetchUserReview: (courseCode: string, userId: string) => Promise<void>
   refetchAverages: (courseCode: string) => Promise<void>
   setIsMakingNewReview: (isMakingNewReview: boolean) => void
+  makeOrEditReview: (review: NewReview) => Promise<void>
+  deleteReview: (reviewId: number, userId: string) => Promise<void>
 }
 
 const ReviewMakeForm = ({
@@ -21,6 +22,8 @@ const ReviewMakeForm = ({
   refetchUserReview,
   setIsMakingNewReview,
   refetchAverages,
+  makeOrEditReview,
+  deleteReview,
 }: Props) => {
   const isEditingOldReview = currentUserReview !== null
 
