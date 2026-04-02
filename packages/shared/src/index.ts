@@ -7,6 +7,16 @@ export { default as ReviewItem } from './components/ReviewItem'
 export { default as ReviewList } from './components/ReviewList'
 export { default as NewAccountNotification } from './components/NewAccountNotification'
 export { default as ReviewMakeForm } from './components/ReviewMakeForm'
+export { default as CoursePageContent } from './components/CoursePageContent'
+export type { CoursePageContentProps } from './components/CoursePageContent'
+
+// Hooks
+export { useCoursePageData } from './hooks/useCoursePageData'
+export type {
+  CoursePageApiHandlers,
+  CoursePageStorageHandlers,
+  UseCoursePageDataResult,
+} from './hooks/useCoursePageData'
 
 // Types
 export * from './types'

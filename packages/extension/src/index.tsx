@@ -4,6 +4,8 @@ import CoursePage from './pages/CoursePage'
 import SearchResultPage from './pages/SearchResultPage'
 import { waitForElement } from './utils/waitForElement'
 
+console.log('[Kurssikompassi] Extension loaded successfully')
+
 let observer = new MutationObserver((mutations) => {
   let once = true
   mutations.forEach((mutation) => {
@@ -44,66 +46,76 @@ const handleSearchResult = async (node: Node) => {
 }
 
 const handleCoursePage = async (isModal: boolean) => {
-  const reactRoot = document.createElement('div')
-  reactRoot.setAttribute('id', 'review-root')
-  reactRoot.setAttribute('class', 'review-root')
-  reactRoot.setAttribute('role', 'tabpanel')
+  console.log('[Kurssikompassi] handleCoursePage called, isModal:', isModal)
+  try {
+    const reactRoot = document.createElement('div')
+    reactRoot.setAttribute('id', 'review-root')
+    reactRoot.setAttribute('class', 'review-root')
+    reactRoot.setAttribute('role', 'tabpanel')
 
-  const pageMainBody = (await waitForElement('[role="tabpanel"]'))?.parentElement
-  pageMainBody?.append(reactRoot)
-  reactRoot.style.display = 'none'
+    const pageMainBody = (await waitForElement('[role="tabpanel"]'))?.parentElement
+    pageMainBody?.append(reactRoot)
+    reactRoot.style.display = 'none'
 
-  const courseCode = getCourseCode()
+    const courseCode = getCourseCode()
+    console.log('[Kurssikompassi] courseCode:', courseCode)
 
-  const root = ReactDOM.createRoot(reactRoot)
-  root.render(<CoursePage courseCode={courseCode} />)
+    const root = ReactDOM.createRoot(reactRoot)
+    root.render(<CoursePage courseCode={courseCode} />)
+    console.log('[Kurssikompassi] React render called')
 
-  const listElement = document.createElement('li')
+    const listElement = document.createElement('li')
 
-  listElement.setAttribute('role', 'presentation')
-  listElement.setAttribute('class', 'review-list-element')
+    listElement.setAttribute('role', 'presentation')
+    listElement.setAttribute('class', 'review-list-element')
 
-  const button = document.createElement('button')
-  button.setAttribute('type', 'button')
-  button.setAttribute('role', 'tab')
-  button.setAttribute('class', 'link-button')
-  button.setAttribute('tabindex', '-1')
-  button.textContent = 'Reviews'
+    const button = document.createElement('button')
+    button.setAttribute('type', 'button')
+    button.setAttribute('role', 'tab')
+    button.setAttribute('class', 'link-button')
+    button.setAttribute('tabindex', '-1')
+    button.textContent = 'Reviews'
 
-  listElement.append(button)
+    listElement.append(button)
 
-  const tabList = await waitForElement('[role="tablist"]')
+    const tabList = await waitForElement('[role="tablist"]')
+    console.log('[Kurssikompassi] tabList found:', tabList)
 
-  await waitForElement('[role="tablist"] > li')
+    await waitForElement('[role="tablist"] > li')
 
-  const tabListElements = document.querySelectorAll('[role="tablist"] > li')
+    const tabListElements = document.querySelectorAll('[role="tablist"] > li')
+    console.log('[Kurssikompassi] tabListElements:', tabListElements.length)
 
-  tabListElements.forEach((element) => {
-    element.addEventListener('click', function () {
-      getOldModalContents().forEach((element) => {
-        element.style.display = 'block'
-      })
-      reactRoot.style.display = 'none'
-
-      element.classList.add('active')
-      element.classList.add('focusedTab')
-      getReviewListElement().classList.remove('active')
-    })
-  })
-
-  tabList?.append(listElement)
-
-  button.onclick = () => {
     tabListElements.forEach((element) => {
-      element.classList.remove('active')
+      element.addEventListener('click', function () {
+        getOldModalContents().forEach((element) => {
+          element.style.display = 'block'
+        })
+        reactRoot.style.display = 'none'
+
+        element.classList.add('active')
+        element.classList.add('focusedTab')
+        getReviewListElement().classList.remove('active')
+      })
     })
 
-    getReviewListElement().classList.add('active')
+    tabList?.append(listElement)
+    console.log('[Kurssikompassi] Reviews tab added')
 
-    getOldModalContents().forEach((element) => {
-      element.style.display = 'none'
-    })
-    reactRoot.style.display = 'block'
+    button.onclick = () => {
+      tabListElements.forEach((element) => {
+        element.classList.remove('active')
+      })
+
+      getReviewListElement().classList.add('active')
+
+      getOldModalContents().forEach((element) => {
+        element.style.display = 'none'
+      })
+      reactRoot.style.display = 'block'
+    }
+  } catch (error) {
+    console.error('[Kurssikompassi] Error in handleCoursePage:', error)
   }
 }
 
