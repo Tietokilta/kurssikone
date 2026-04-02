@@ -37,12 +37,12 @@ const SearchResultPage = ({ courseCode }: Props) => {
   ]
 
   return (
-    <div className="review-root">
-      <span style={{ fontSize: 14, display: 'grid', gridTemplateColumns: 'auto 1fr' }}>
+    <div>
+      <span className="text-sm grid grid-cols-[auto_1fr]">
         {scoreTypes.map((score) => (
-          <span key={score.name} style={{ display: 'contents' }}>
-            <span className="tiny-static-form-group">{score.name}</span>
-            <span style={{ display: 'flex', alignItems: 'center' }}>
+          <span key={score.name} className="contents">
+            <span className="text-gray-600 pr-2">{score.name}</span>
+            <span className="flex items-center">
               <ScoreBar score={score.value} maxValue={5} />
               {score.value.toFixed(1)}
             </span>
@@ -52,4 +52,5 @@ const SearchResultPage = ({ courseCode }: Props) => {
     </div>
   )
 }
+
 export default SearchResultPage

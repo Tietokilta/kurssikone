@@ -12,9 +12,9 @@ const ScorePicker = ({ name, label, defaultValue, minText, maxText }: Props) => 
   const [score, setScore] = useState(defaultValue)
 
   return (
-    <label style={{ display: 'grid', gridTemplateColumns: '120px 250px' }}>
+    <label className="grid grid-cols-[120px_250px]">
       {label}: {score}
-      <span style={{ position: 'relative' }}>
+      <span className="relative">
         <input
           name={name}
           type="range"
@@ -23,30 +23,12 @@ const ScorePicker = ({ name, label, defaultValue, minText, maxText }: Props) => 
           step="1"
           value={score}
           onChange={(e) => setScore(Number(e.target.value))}
-          style={{ width: '100%' }}
+          className="w-full"
         />
-        <span
-          style={{
-            position: 'absolute',
-            bottom: -14,
-            left: 0,
-            fontSize: 12,
-            textTransform: 'none',
-            translate: '-40%',
-          }}
-        >
+        <span className="absolute -bottom-3.5 left-0 text-xs -translate-x-[40%]">
           {minText}
         </span>
-        <span
-          style={{
-            position: 'absolute',
-            bottom: -14,
-            right: 0,
-            fontSize: 12,
-            textTransform: 'none',
-            translate: '40%',
-          }}
-        >
+        <span className="absolute -bottom-3.5 right-0 text-xs translate-x-[40%]">
           {maxText}
         </span>
       </span>

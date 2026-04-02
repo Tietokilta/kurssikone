@@ -40,14 +40,13 @@ const NewAccountNotification = ({
   }
 
   return (
-    <div style={{ marginTop: 24, marginBottom: 24 }}>
+    <div className="my-6">
       <h4>Looks like this is your first time making a review!</h4>
       <p>An user ID has been generated for you.</p>
       <p>
         Your user ID is: <b>{generatedUserId}</b>
         <button
-          className="btn btn-secondary btn-hollow btn-sm"
-          style={{ marginLeft: 8 }}
+          className="ml-2 px-2 py-1 text-sm bg-gray-200 border border-gray-300 rounded hover:bg-gray-300"
           onClick={() => {
             navigator.clipboard.writeText(generatedUserId)
           }}
@@ -60,31 +59,29 @@ const NewAccountNotification = ({
         <b>save this ID somewhere safe.</b>
       </p>
       <button
-        className="btn btn-secondary btn-hollow btn-sm"
-        style={{ marginTop: 8, marginBottom: 8 }}
+        className="my-2 px-3 py-1.5 text-sm bg-gray-200 border border-gray-300 rounded hover:bg-gray-300"
         onClick={handleSettingNewUserId}
       >
         Understood, I have saved my user ID
       </button>
 
-      <p style={{ marginTop: 24 }}>
+      <p className="mt-6">
         Alternatively, if you already have a previously saved user ID, paste it below and click
         submit.
       </p>
       {error && (
         <p>
-          <b style={{ color: 'red' }}>{error}</b>
+          <b className="text-red-600">{error}</b>
         </p>
       )}
       <input
         type="text"
         placeholder="Paste your user ID here"
-        style={{ minWidth: 282, maxWidth: 400 }}
+        className="min-w-[282px] max-w-[400px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
         onChange={(e) => setPreviousUserId(e.target.value)}
       />
       <button
-        className="btn btn-secondary btn-hollow btn-sm"
-        style={{ marginLeft: 8 }}
+        className="ml-2 px-3 py-1.5 text-sm bg-gray-200 border border-gray-300 rounded hover:bg-gray-300"
         onClick={handleSettingPreviousUserId}
       >
         Submit

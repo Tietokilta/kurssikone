@@ -29,13 +29,11 @@ const RoundMeter = ({ title, value, minText, maxText }: Props) => {
     const maxLength = 300
     const radius = 70
 
-    // Draw the background circle
     c.arc(cSizeHalf, cSizeHalf, radius, rad * startLength, rad * (startLength + maxLength))
     c.strokeStyle = '#4D647D'
     c.lineWidth = 12
     c.stroke()
 
-    // Draw the progress circle
     c.beginPath()
     const maxValue = 5
     const percent = value / maxValue
@@ -47,54 +45,23 @@ const RoundMeter = ({ title, value, minText, maxText }: Props) => {
   }, [value])
 
   return (
-    <div style={{ position: 'relative', width: 'fit-content' }}>
-      <span
-        style={{
-          position: 'absolute',
-          textAlign: 'center',
-          fontSize: '1.3rem',
-          display: 'block',
-          width: '100%',
-          height: 20,
-          bottom: 113,
-          color: '#FFFFFF',
-        }}
-      >
+    <div className="relative w-fit">
+      <span className="absolute text-center text-xl block w-full h-5 bottom-[113px] text-white">
         {title}
       </span>
-      <span
-        style={{
-          position: 'absolute',
-          textAlign: 'center',
-          width: '100%',
-          bottom: 70,
-          fontSize: 55,
-          fontWeight: 300,
-          color: '#FFFFFF',
-        }}
-      >
+      <span className="absolute text-center w-full bottom-[70px] text-[55px] font-light text-white">
         {value.toFixed(1)}
       </span>
       <canvas
         ref={canvasRef}
         width={cSize}
         height={cSize}
-        style={{ backgroundColor: '#00103070', borderRadius: '50%' }}
+        className="bg-[#00103070] rounded-full"
       />
-      <span
-        style={{
-          position: 'absolute',
-          textAlign: 'center',
-          width: '100%',
-          bottom: -20,
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 5,
-        }}
-      >
-        <span style={{ width: '75px' }}>{minText}</span>
+      <span className="absolute text-center w-full -bottom-5 flex justify-center gap-1.5">
+        <span className="w-[75px]">{minText}</span>
         <span>-</span>
-        <span style={{ width: '75px' }}>{maxText}</span>
+        <span className="w-[75px]">{maxText}</span>
       </span>
     </div>
   )

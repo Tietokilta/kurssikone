@@ -72,11 +72,11 @@ const CoursePage = ({ courseCode }: Props) => {
   }, [])
 
   if (!courseCode) {
-    return <div>Course code not found</div>
+    return <div className="p-4 text-gray-600">Course code not found</div>
   }
 
   if (!otherReviewsAndCount || !averages) {
-    return <div>Loading...</div>
+    return <div className="p-4 text-gray-600">Loading...</div>
   }
 
   const { reviews, count: otherReviewCount } = otherReviewsAndCount
@@ -112,7 +112,7 @@ const CoursePage = ({ courseCode }: Props) => {
 
   return (
     <>
-      <div style={{ display: 'flex', gap: 40 }}>
+      <div className="flex gap-10 flex-wrap">
         {scoreTypesWithValues.map((scoreType) => (
           <RoundMeter
             key={scoreType.name}
@@ -123,16 +123,15 @@ const CoursePage = ({ courseCode }: Props) => {
           />
         ))}
       </div>
-      <span style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
-        <h2 style={{ marginBottom: 28, marginTop: 28, fontSize: 24 }}>{reviewCount} Reviews</h2>
-
+      <div className="flex gap-9 items-center my-7">
+        <h2 className="text-2xl">{reviewCount} Reviews</h2>
         <button
-          className="btn btn-secondary btn-hollow btn-sm"
+          className="px-3 py-1.5 text-sm bg-gray-200 border border-gray-300 rounded hover:bg-gray-300"
           onClick={() => setIsMakingNewReview((oldVal) => !oldVal)}
         >
           {buttonText}
         </button>
-      </span>
+      </div>
       <Divider />
       {IsMakingNewReview &&
         (userId ? (
@@ -158,11 +157,9 @@ const CoursePage = ({ courseCode }: Props) => {
             <Divider />
           </>
         ))}
-      <dl className="fill-by-column">
+      <dl className="flex flex-col gap-4">
         {userReview && (
-          <>
-            <ReviewItem review={userReview} scoreTypes={scoreTypesWithValues} isUserReview />
-          </>
+          <ReviewItem review={userReview} scoreTypes={scoreTypesWithValues} isUserReview />
         )}
         {reviews.map((review) => (
           <ReviewItem key={review.id} review={review} scoreTypes={scoreTypesWithValues} />
@@ -171,4 +168,5 @@ const CoursePage = ({ courseCode }: Props) => {
     </>
   )
 }
+
 export default CoursePage

@@ -8,7 +8,7 @@ type Props = {
 
 const ReviewList = ({ reviews, scoreTypes }: Props) => {
   return (
-    <dl className="fill-by-column">
+    <dl className="flex flex-col gap-4">
       {reviews.map((review) => (
         <ReviewItem key={review.id} review={review} scoreTypes={scoreTypes} />
       ))}

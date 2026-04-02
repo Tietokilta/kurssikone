@@ -1,26 +1,12 @@
 const ScoreBar = ({ score, maxValue }: { score: number; maxValue: number }) => {
+  const widthPercent = (score / maxValue) * 100
+
   return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        marginLeft: 6,
-        marginRight: 6,
-        width: 50,
-        borderRadius: 10,
-        height: 14,
-        background: '#CCCCCC',
-        overflow: 'hidden',
-      }}
-    >
+    <span className="inline-flex items-center mx-1.5 w-12 rounded-full h-3.5 bg-gray-300 overflow-hidden">
       <span
-        style={{
-          display: 'inline-block',
-          width: `${(score / maxValue) * 100}%`,
-          height: 14,
-          background: '#1076db',
-        }}
-      ></span>
+        className="inline-block h-3.5 bg-blue-600"
+        style={{ width: `${widthPercent}%` }}
+      />
     </span>
   )
 }

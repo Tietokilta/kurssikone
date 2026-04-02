@@ -89,39 +89,35 @@ const ReviewMakeForm = ({
 
   return (
     <div>
-      <h4 style={{ marginTop: 12 }}>{isEditingOldReview ? 'Edit review' : 'New review'}</h4>
-      <form
-        style={{
-          display: 'flex',
-          gap: 24,
-          flexDirection: 'column',
-          marginTop: 16,
-          marginBottom: 24,
-        }}
-        onSubmit={makeReview}
-      >
-        <label style={{ display: 'flex', flexDirection: 'column' }}>
+      <h4 className="mt-3">{isEditingOldReview ? 'Edit review' : 'New review'}</h4>
+      <form className="flex gap-6 flex-col mt-4 mb-6" onSubmit={makeReview}>
+        <label className="flex flex-col">
           Title*
           <input
             name="reviewTitle"
-            style={{ width: '90%', maxWidth: 500 }}
+            className="w-[90%] max-w-[500px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
             defaultValue={currentUserReview?.title ?? ''}
             placeholder="Title of the review"
             required
           />
         </label>
-        <div style={{ width: '90%', display: 'flex', gap: 36, flexWrap: 'wrap' }}>
-          <label style={{ display: 'flex', flexDirection: 'column', minWidth: 200 }}>
+        <div className="w-[90%] flex gap-9 flex-wrap">
+          <label className="flex flex-col min-w-[200px]">
             Responsible teacher
             <input
               name="professor"
+              className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
               defaultValue={currentUserReview?.professor ?? ''}
               placeholder="Name of the responsible teacher (optional)"
             />
           </label>
-          <label style={{ display: 'flex', flexDirection: 'column', minWidth: 120 }}>
+          <label className="flex flex-col min-w-[120px]">
             Year
-            <select name="year" defaultValue={currentUserReview?.year} style={{ height: 38 }}>
+            <select
+              name="year"
+              defaultValue={currentUserReview?.year}
+              className="h-[38px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            >
               <option value={undefined}>Not specified</option>
               {possibleYears.map((year) => (
                 <option key={year} value={year}>
@@ -131,12 +127,12 @@ const ReviewMakeForm = ({
             </select>
           </label>
         </div>
-        <label>
+        <label className="flex flex-col">
           Content*
           <textarea
             name="content"
             rows={5}
-            style={{ maxWidth: 700 }}
+            className="max-w-[700px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
             defaultValue={currentUserReview?.content ?? ''}
             placeholder="Write your review here. Possible questions to answer: How was the course implemented? Was there mandatory attendace? Could the course be completed remotely? Were the lectures, assignments, and materials engaging and effective? Was the workload manageable? What kind of and how many exercises did the course have? How was the exam? Share what you enjoyed, any challenges you faced, and tips for future students!"
             required
@@ -155,16 +151,14 @@ const ReviewMakeForm = ({
         <div>
           <button
             type="submit"
-            className="btn btn-primary btn-sm"
-            style={{ width: 'fit-content' }}
+            className="w-fit px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             {isEditingOldReview ? 'Publish edit' : 'Publish review'}
           </button>
           {isEditingOldReview && (
             <button
               type="button"
-              className="btn btn-secondary btn-sm"
-              style={{ width: 'fit-content', marginLeft: 12 }}
+              className="w-fit ml-3 px-3 py-2 bg-gray-200 border border-gray-300 rounded hover:bg-gray-300"
               onClick={handleDelete}
             >
               Delete review
