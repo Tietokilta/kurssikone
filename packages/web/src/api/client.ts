@@ -1,4 +1,12 @@
-import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikompassi/shared'
+import {
+  NewReview,
+  Review,
+  ReviewAverages,
+  ReviewsAndCount,
+  CoursesResponse,
+  CourseWithRealisations,
+  CourseRealisation,
+} from '@kurssikompassi/shared'
 import hashIt from 'hash-it'
 
 const host = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
@@ -100,4 +108,30 @@ export const deleteReview = async (reviewId: number, userId: string) => {
     hash: hashIt(body),
     ...body,
   })
+}
+
+export const getCourses = async (
+  search?: string,
+  limit?: number,
+  offset?: number
+): Promise<CoursesResponse> => {
+  const result = await get(['courses'], {
+    search: search || null,
+    limit: limit?.toString() || null,
+    offset: offset?.toString() || null,
+  })
+  return result as CoursesResponse
+}
+
+export const getCourseByCode = async (
+  code: string
+): Promise<CourseWithRealisations[] | null> => {
+  return (await get(['courses', code])) as CourseWithRealisations[] | null
+}
+
+export const getCourseRealisations = async (
+  code: string
+): Promise<CourseRealisation[]> => {
+  const result = await get(['courses', code, 'realisations'])
+  return (result || []) as CourseRealisation[]
 }

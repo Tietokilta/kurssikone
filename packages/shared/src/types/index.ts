@@ -27,3 +27,47 @@ export type ReviewAverages = {
   qualityAverage: number
   difficultyAverage: number
 }
+
+export type Course = {
+  id: string
+  code: string
+  groupId: string | null
+  nameFi: string | null
+  nameEn: string | null
+  creditsMin: number | null
+  creditsMax: number | null
+  validityStart: string | null
+  validityEnd: string | null
+}
+
+export type CourseRealisation = {
+  id: string
+  code: string
+  nameFi: string | null
+  nameEn: string | null
+  startDate: string | null
+  endDate: string | null
+  creditsMin: number | null
+  creditsMax: number | null
+  contentEn: string | null
+  contentFi: string | null
+  learningOutcomesEn: string | null
+  prerequisitesEn: string | null
+  teachers: string[] | null
+  teacherInCharge: string[] | null
+  languageCodes: string[] | null
+  organizationNameEn: string | null
+  gradingScale: string | null
+  level: string | null
+}
+
+export type CourseWithRealisations = Course & {
+  courseRealisations: CourseRealisation[]
+}
+
+export type CoursesResponse = {
+  courses: Course[]
+  total: number
+  limit: number
+  offset: number
+}

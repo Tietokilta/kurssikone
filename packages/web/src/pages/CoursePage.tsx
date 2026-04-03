@@ -1,5 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
-import { CoursePageContent, useCoursePageData } from '@kurssikompassi/shared'
+import { useEffect, useState } from 'react'
+import { CoursePageContent, useCoursePageData, CourseWithRealisations } from '@kurssikompassi/shared'
 import {
   getAveragesForCourse,
   getReviewsForCourseExcludingUserReview,
@@ -8,11 +9,15 @@ import {
   makeUser,
   makeOrEditReview,
   deleteReview,
+  getCourseByCode,
 } from '../api/client'
 import { getUserId, setUserId } from '../utils/userStorage'
+import CourseInfo from '../components/CourseInfo'
 
 const CoursePage = () => {
   const { courseCode } = useParams<{ courseCode: string }>()
+  const [courseData, setCourseData] = useState<CourseWithRealisations | null>(null)
+  const [isCourseLoading, setIsCourseLoading] = useState(true)
 
   const {
     userId,
@@ -37,6 +42,35 @@ const CoursePage = () => {
       setUserId,
     },
   })
+
+  useEffect(() => {
+    if (!courseCode) return
+
+    const fetchCourseData = async () => {
+      setIsCourseLoading(true)
+      try {
+        const courses = await getCourseByCode(courseCode)
+        if (courses && courses.length > 0) {
+          // Merge all realisations from all course versions into the first course
+          const allRealisations = courses.flatMap((c) => c.courseRealisations || [])
+          const mergedCourse = {
+            ...courses[0],
+            courseRealisations: allRealisations,
+          }
+          setCourseData(mergedCourse)
+        } else {
+          setCourseData(null)
+        }
+      } catch (error) {
+        console.error('Failed to fetch course data:', error)
+        setCourseData(null)
+      } finally {
+        setIsCourseLoading(false)
+      }
+    }
+
+    fetchCourseData()
+  }, [courseCode])
 
   if (!courseCode) {
     return (
@@ -64,11 +98,25 @@ const CoursePage = () => {
     <div>
       <div className="mb-4">
         <Link to="/" className="text-blue-600 underline hover:text-blue-800">
-          &larr; Back to search
+          &larr; Back to courses
         </Link>
       </div>
 
-      <h1 className="text-2xl font-medium mb-6">Course: {courseCode}</h1>
+      <h1 className="text-2xl font-medium mb-6">{courseCode}</h1>
+
+      {isCourseLoading ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
+          <p className="text-gray-500">Loading course information...</p>
+        </div>
+      ) : courseData ? (
+        <CourseInfo course={courseData} />
+      ) : (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
+          <p className="text-yellow-800 text-sm">
+            Course information not available. This course may not be in the Sisu system.
+          </p>
+        </div>
+      )}
 
       <CoursePageContent
         courseCode={courseCode}
