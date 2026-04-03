@@ -3,9 +3,10 @@ FROM node:20.11.0-alpine
 
 WORKDIR /usr/src/app
 
-COPY package*.json .
-COPY nodemon.json .
-COPY tsconfig.json .
+COPY package-lock.json .
+COPY packages/backend/package.json .
+COPY packages/backend/nodemon.json .
+COPY packages/backend/tsconfig.json .
 
 RUN npm ci
 
