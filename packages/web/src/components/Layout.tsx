@@ -13,11 +13,6 @@ const Layout = ({ children }: Props) => {
           <Link to="/" className="font-medium text-white no-underline hover:text-gray-200">
             Kurssikompassi
           </Link>
-          <nav>
-            <Link to="/" className="text-sm text-white no-underline hover:text-gray-200">
-              Home
-            </Link>
-          </nav>
         </div>
       </header>
 

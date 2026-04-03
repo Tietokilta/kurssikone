@@ -16,7 +16,7 @@ const HomePage = () => {
     <div>
       <h1 className="text-2xl font-medium mb-2">Kurssikompassi</h1>
       <p className="text-gray-600 mb-8">
-        Find and share course reviews for Aalto University courses
+        Find and share course reviews & information for Aalto University courses
       </p>
 
       <form onSubmit={handleSearch} className="mb-8">
@@ -36,24 +36,6 @@ const HomePage = () => {
           </button>
         </div>
       </form>
-
-      <div className="bg-gray-100 border border-gray-300 rounded-md p-6 mb-8">
-        <h2 className="text-lg font-medium mb-4">How it works</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <h3 className="font-medium mb-1">1. Search</h3>
-            <p className="text-sm text-gray-600">Enter a course code to find reviews</p>
-          </div>
-          <div>
-            <h3 className="font-medium mb-1">2. Read</h3>
-            <p className="text-sm text-gray-600">See ratings and reviews from other students</p>
-          </div>
-          <div>
-            <h3 className="font-medium mb-1">3. Write</h3>
-            <p className="text-sm text-gray-600">Share your own experience with a review</p>
-          </div>
-        </div>
-      </div>
 
       <div>
         <h3 className="font-medium mb-3">Popular course codes</h3>
