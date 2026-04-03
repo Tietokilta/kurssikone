@@ -48,6 +48,7 @@ const CourseInfo = ({ course }: Props) => {
   const organization = latestRealisation?.organizationNameEn
   const level = latestRealisation?.level
   const gradingScale = latestRealisation?.gradingScale
+  const sisuUrl = `https://sisu.aalto.fi/student/courseunit/${course.id}/brochure`
 
   const descriptionTruncateLength = 300
   const shouldTruncateDescription =
@@ -58,6 +59,14 @@ const CourseInfo = ({ course }: Props) => {
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
           {name && <h2 className="text-xl font-medium text-gray-900">{name}</h2>}
+          <a
+            href={sisuUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 text-sm hover:underline"
+          >
+            View in Sisu
+          </a>
         </div>
         {credits && (
           <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium shrink-0">
