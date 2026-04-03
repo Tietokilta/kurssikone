@@ -10,4 +10,4 @@ COPY packages/backend/tsconfig.json .
 
 RUN npm ci
 
-CMD ["npm", "run", "dev-docker"]
+CMD ["npm", "run", "dev"]

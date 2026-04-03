@@ -31,7 +31,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon ./src/index.ts",
-    "dev-docker": "ts-node ./src/index.ts",
     "migration:down": "ts-node ./src/utils/rollback.ts",
     "build": "tsc",
     "lint": "eslint src && tsc --noEmit"
