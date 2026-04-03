@@ -49,7 +49,7 @@ const RoundMeter = ({ title, value, minText, maxText }: Props) => {
       <span className="absolute text-center text-xl block w-full h-5 bottom-[113px] text-white">
         {title}
       </span>
-      <span className="absolute text-center w-full bottom-[70px] text-[55px] font-light text-white">
+      <span className="absolute text-center w-full bottom-[30px] text-[55px] font-light text-white">
         {value.toFixed(1)}
       </span>
       <canvas

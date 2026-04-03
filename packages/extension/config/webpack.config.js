@@ -348,6 +348,25 @@ module.exports = function (webpackEnv) {
                 and: [/\.(ts|tsx|js|jsx|md|mdx)$/],
               },
             },
+            // Handle CSS imports with ?inline query - returns CSS as string for Shadow DOM injection
+            {
+              resourceQuery: /inline/,
+              test: /\.css$/,
+              use: [
+                {
+                  loader: require.resolve('css-loader'),
+                  options: {
+                    exportType: 'string',
+                  },
+                },
+                {
+                  loader: require.resolve('@tailwindcss/webpack'),
+                  options: {
+                    base: path.resolve(paths.appPath, '..'),
+                  },
+                },
+              ],
+            },
             // Process application JS with Babel.
             // The preset includes JSX, Flow, TypeScript, and some ESnext features.
             {

@@ -1,10 +1,21 @@
 import ReactDOM from 'react-dom/client'
-import './index.css'
+// @ts-expect-error - CSS imported as string via ?inline query
+import styles from './index.css?inline'
 import CoursePage from './pages/CoursePage'
 import SearchResultPage from './pages/SearchResultPage'
 import { waitForElement } from './utils/waitForElement'
 
 console.log('[Kurssikompassi] Extension loaded successfully')
+
+const createShadowRoot = (hostElement: HTMLElement): ShadowRoot => {
+  const shadow = hostElement.attachShadow({ mode: 'open' })
+
+  const styleElement = document.createElement('style')
+  styleElement.textContent = styles
+  shadow.appendChild(styleElement)
+
+  return shadow
+}
 
 let observer = new MutationObserver((mutations) => {
   let once = true
@@ -30,16 +41,23 @@ let observer = new MutationObserver((mutations) => {
   })
 })
 
-const handleSearchResult = async (node: Node) => {
+const handleSearchResult = (node: Node) => {
   const searchResultBody = node as HTMLElement
   const searchResultColumn = searchResultBody.querySelector('.col-12.col-md-5')
   const searchResultColumnParent = searchResultColumn?.parentElement
-  const reactRoot = document.createElement('div')
-  reactRoot.setAttribute('class', 'col-12 col-md-5')
-  searchResultColumnParent?.append(reactRoot)
+
+  const shadowHost = document.createElement('div')
+  shadowHost.setAttribute('class', 'col-12 col-md-5 kurssikompassi-shadow-host')
+  searchResultColumnParent?.append(shadowHost)
+
   for (const child of searchResultColumnParent?.children || []) {
     child.setAttribute('style', 'width: 33% !important')
   }
+
+  const shadow = createShadowRoot(shadowHost)
+  const reactRoot = document.createElement('div')
+  shadow.appendChild(reactRoot)
+
   const courseCode = searchResultBody.querySelector('.courseunit-code')?.textContent || ''
   const root = ReactDOM.createRoot(reactRoot)
   root.render(<SearchResultPage courseCode={courseCode} />)
@@ -48,14 +66,20 @@ const handleSearchResult = async (node: Node) => {
 const handleCoursePage = async (isModal: boolean) => {
   console.log('[Kurssikompassi] handleCoursePage called, isModal:', isModal)
   try {
-    const reactRoot = document.createElement('div')
-    reactRoot.setAttribute('id', 'review-root')
-    reactRoot.setAttribute('class', 'review-root')
-    reactRoot.setAttribute('role', 'tabpanel')
+    const shadowHost = document.createElement('div')
+    shadowHost.setAttribute('id', 'review-root-host')
+    shadowHost.setAttribute('class', 'kurssikompassi-shadow-host')
+    shadowHost.setAttribute('role', 'tabpanel')
 
     const pageMainBody = (await waitForElement('[role="tabpanel"]'))?.parentElement
-    pageMainBody?.append(reactRoot)
-    reactRoot.style.display = 'none'
+    pageMainBody?.append(shadowHost)
+    shadowHost.style.display = 'none'
+
+    const shadow = createShadowRoot(shadowHost)
+    const reactRoot = document.createElement('div')
+    reactRoot.setAttribute('id', 'review-root')
+    reactRoot.setAttribute('class', 'review-root p-4')
+    shadow.appendChild(reactRoot)
 
     const courseCode = getCourseCode()
     console.log('[Kurssikompassi] courseCode:', courseCode)
@@ -91,7 +115,7 @@ const handleCoursePage = async (isModal: boolean) => {
         getOldModalContents().forEach((element) => {
           element.style.display = 'block'
         })
-        reactRoot.style.display = 'none'
+        shadowHost.style.display = 'none'
 
         element.classList.add('active')
         element.classList.add('focusedTab')
@@ -112,7 +136,7 @@ const handleCoursePage = async (isModal: boolean) => {
       getOldModalContents().forEach((element) => {
         element.style.display = 'none'
       })
-      reactRoot.style.display = 'block'
+      shadowHost.style.display = 'block'
     }
   } catch (error) {
     console.error('[Kurssikompassi] Error in handleCoursePage:', error)
@@ -124,7 +148,9 @@ const getReviewListElement = () => {
 }
 
 const getOldModalContents = () => {
-  return document.querySelectorAll(`[role="tabpanel"]`) as unknown as HTMLElement[]
+  return document.querySelectorAll(
+    `[role="tabpanel"]:not(.kurssikompassi-shadow-host)`
+  ) as unknown as HTMLElement[]
 }
 
 const getCourseCode = () => {
