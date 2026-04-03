@@ -33,8 +33,7 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
                 <br />
               </>
             )}
-            {review.title}
-            <i className="text-sm ml-4 font-normal">
+            <i className="text-sm font-normal">
               Published {publishDate}{' '}
               {editDate && editDate !== publishDate && ` (Edited ${editDate})`}
             </i>
@@ -68,7 +67,24 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
               )}
             </div>
           )}
-          <p className="whitespace-pre-line">{review.content}</p>
+          {review.learnings && (
+            <div>
+              <dt className="font-bold text-sm">What you'll learn</dt>
+              <dd className="whitespace-pre-line">{review.learnings}</dd>
+            </div>
+          )}
+          {review.tasks && (
+            <div>
+              <dt className="font-bold text-sm">What you'll need to do</dt>
+              <dd className="whitespace-pre-line">{review.tasks}</dd>
+            </div>
+          )}
+          {review.otherInfo && (
+            <div>
+              <dt className="font-bold text-sm">Other info</dt>
+              <dd className="whitespace-pre-line">{review.otherInfo}</dd>
+            </div>
+          )}
         </div>
       </div>
       <Divider />

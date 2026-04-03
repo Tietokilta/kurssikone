@@ -6,13 +6,13 @@ class Review extends Model {}
 Review.init(
   {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-    title: { type: DataTypes.TEXT, allowNull: false },
-    content: { type: DataTypes.TEXT, allowNull: false },
+    learnings: { type: DataTypes.TEXT, allowNull: true },
+    tasks: { type: DataTypes.TEXT, allowNull: true },
+    otherInfo: { type: DataTypes.TEXT, allowNull: true },
     professor: { type: DataTypes.TEXT, allowNull: true },
     year: { type: DataTypes.INTEGER, allowNull: true },
     workloadScore: { type: DataTypes.INTEGER, allowNull: false },
     qualityScore: { type: DataTypes.INTEGER, allowNull: false },
-    difficultyScore: { type: DataTypes.INTEGER, allowNull: false },
     courseCode: { type: DataTypes.TEXT, allowNull: false },
     timestampCreated: { type: DataTypes.BIGINT, allowNull: false },
     timestampLastEdit: { type: DataTypes.BIGINT, allowNull: true },

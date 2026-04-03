@@ -1,12 +1,12 @@
 export type Review = {
   id: number
-  title: string
   professor: string
   year: number
-  content: string
+  learnings: string
+  tasks: string
+  otherInfo: string
   workloadScore: number
   qualityScore: number
-  difficultyScore: number
   courseCode: string
   timestampCreated: number
   timestampLastEdit?: number
@@ -25,7 +25,6 @@ export type ReviewsAndCount = {
 export type ReviewAverages = {
   workloadAverage: number
   qualityAverage: number
-  difficultyAverage: number
 }
 
 export type Course = {

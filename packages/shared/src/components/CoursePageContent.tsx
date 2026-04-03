@@ -51,8 +51,6 @@ const CoursePageContent = ({
       average = averages.qualityAverage
     } else if (scoreType.label === 'Workload') {
       average = averages.workloadAverage
-    } else {
-      average = averages.difficultyAverage
     }
 
     return {

@@ -103,12 +103,10 @@ const getAverageScores = async (courseCode: string) => {
     attributes: [
       [sequelize.fn('AVG', sequelize.col('workload_score')), 'workloadAverage'],
       [sequelize.fn('AVG', sequelize.col('quality_score')), 'qualityAverage'],
-      [sequelize.fn('AVG', sequelize.col('difficulty_score')), 'difficultyAverage'],
     ],
   })) as unknown as {
     workLoadAverage: number
     qualityAverage: number
-    difficultyAverage: number
   } | null
 }
 

@@ -30,34 +30,34 @@ const ReviewMakeForm = ({
   const makeReview = async (e: React.SyntheticEvent) => {
     e.preventDefault()
     const target = e.target as typeof e.target & {
-      reviewTitle: { value: string }
-      content: { value: string }
+      learnings: { value: string }
+      tasks: { value: string }
+      otherInfo: { value: string }
       professor: { value: string }
       year: { value: string }
       qualityScore: { value: number }
       workloadScore: { value: number }
-      difficultyScore: { value: number }
     }
-    const title = target.reviewTitle.value
-    const content = target.content.value
+    const learnings = target.learnings.value
+    const tasks = target.tasks.value
+    const otherInfo = target.otherInfo.value
     const professor = target.professor.value
     const year = Number(target.year.value)
     const qualityScore = Number(target.qualityScore.value)
     const workloadScore = Number(target.workloadScore.value)
-    const difficultyScore = Number(target.difficultyScore.value)
     const id = currentUserReview ? currentUserReview.id : null
     if (!courseCode) return
     const timeStamp = new Date().getTime()
     const newReview: NewReview = {
       id,
       userId,
-      title,
       professor,
       year,
-      content,
+      learnings,
+      tasks,
+      otherInfo,
       qualityScore,
       workloadScore,
-      difficultyScore,
       courseCode,
       timestampCreated: currentUserReview?.timestampCreated || timeStamp,
     }
@@ -91,16 +91,6 @@ const ReviewMakeForm = ({
     <div>
       <h4 className="mt-3">{isEditingOldReview ? 'Edit review' : 'New review'}</h4>
       <form className="flex gap-6 flex-col mt-4 mb-6" onSubmit={makeReview}>
-        <label className="flex flex-col">
-          Title*
-          <input
-            name="reviewTitle"
-            className="w-[90%] max-w-[500px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-            defaultValue={currentUserReview?.title ?? ''}
-            placeholder="Title of the review"
-            required
-          />
-        </label>
         <div className="w-[90%] flex gap-9 flex-wrap">
           <label className="flex flex-col min-w-[200px]">
             Responsible teacher
@@ -128,14 +118,33 @@ const ReviewMakeForm = ({
           </label>
         </div>
         <label className="flex flex-col">
-          Content*
+          What you'll learn
           <textarea
-            name="content"
-            rows={5}
+            name="learnings"
+            rows={3}
             className="max-w-[700px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-            defaultValue={currentUserReview?.content ?? ''}
-            placeholder="Write your review here. Possible questions to answer: How was the course implemented? Was there mandatory attendace? Could the course be completed remotely? Were the lectures, assignments, and materials engaging and effective? Was the workload manageable? What kind of and how many exercises did the course have? How was the exam? Share what you enjoyed, any challenges you faced, and tips for future students!"
-            required
+            defaultValue={currentUserReview?.learnings ?? ''}
+            placeholder="What skills, concepts, or knowledge did you gain from this course?"
+          />
+        </label>
+        <label className="flex flex-col">
+          What you'll need to do
+          <textarea
+            name="tasks"
+            rows={3}
+            className="max-w-[700px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            defaultValue={currentUserReview?.tasks ?? ''}
+            placeholder="What kind of assignments, exercises, exams, or projects did the course have?"
+          />
+        </label>
+        <label className="flex flex-col">
+          Other info
+          <textarea
+            name="otherInfo"
+            rows={3}
+            className="max-w-[700px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            defaultValue={currentUserReview?.otherInfo ?? ''}
+            placeholder="Any other information, tips, or comments about the course?"
           />
         </label>
         {scoreTypes.map((scoreType) => (

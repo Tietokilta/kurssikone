@@ -11,10 +11,4 @@ export const scoreTypes = [
     minText: 'Trivial',
     maxText: 'Massive',
   },
-  {
-    name: 'difficultyScore',
-    label: 'Difficulty',
-    minText: 'Very easy',
-    maxText: 'Very hard',
-  },
 ] as const

@@ -22,7 +22,6 @@ describe('Reviews', () => {
     await expect(page).toMatchTextContent('Quality')
     await expect(page).toMatchTextContent('0.0')
     await expect(page).toMatchTextContent('Workload')
-    await expect(page).toMatchTextContent('Difficulty')
     await expect(page).toMatchTextContent('+ Write a Review')
     await expect(page).toMatchTextContent('0 Reviews')
   })
@@ -89,14 +88,12 @@ describe('Reviews', () => {
     await expect(page).toClick('button', { text: 'Understood, I have saved my user ID' })
 
     await expect(page).toMatchTextContent('- Cancel')
-    await expect(page).toFill('input[name="reviewTitle"]', 'Test review title')
-    await expect(page).toFill('textarea[name="content"]', 'Test review content')
+    await expect(page).toFill('textarea[name="otherInfo"]', 'Test review content')
 
     await expect(page).toClick('button', { text: 'Publish review' })
     await expect(page).not.toMatchTextContent('- Cancel')
 
     await expect(page).toMatchTextContent('Your review:')
-    await expect(page).toMatchTextContent('Test review title')
     await expect(page).toMatchTextContent('Test review content')
 
     await expect(page).toMatchTextContent('3')
@@ -108,15 +105,13 @@ describe('Reviews', () => {
 
     await expect(page).toMatchTextContent('- Cancel')
 
-    await expect(page).toFill('input[name="reviewTitle"]', 'Test another title')
-    await expect(page).toFill('textarea[name="content"]', 'Test another content')
+    await expect(page).toFill('textarea[name="otherInfo"]', 'Test another content')
 
     await expect(page).toClick('button', { text: 'Publish edit' })
 
     await expect(page).not.toMatchTextContent('- Cancel')
 
     await expect(page).toMatchTextContent('Your review:')
-    await expect(page).toMatchTextContent('Test another title')
     await expect(page).toMatchTextContent('Test another content')
 
     await expect(page).toMatchTextContent('3')
@@ -167,11 +162,9 @@ describe('Reviews', () => {
     await fetch('http://localhost:3001/api/reviews', {
       method: 'POST',
       body: JSON.stringify({
-        title: 'test',
-        content: 'test',
+        otherInfo: 'test',
         workloadScore: 3,
         qualityScore: 1,
-        difficultyScore: 5,
         courseCode: 'CS-A1110',
         userId: '3',
         timestampCreated: 1620000000000,
@@ -192,10 +185,10 @@ describe('Reviews', () => {
     await expect(page).toMatchTextContent('4 hakutulosta')
 
     await expect(page).toMatchElement('.review-root', {
-      text: 'Quality0.0Workload0.0Difficulty0.0',
+      text: 'Quality0.0Workload0.0',
     })
     await expect(page).toMatchElement('.review-root', {
-      text: 'Quality1.0Workload3.0Difficulty5.0',
+      text: 'Quality1.0Workload3.0',
     })
   })
 })

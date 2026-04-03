@@ -29,11 +29,6 @@ const SearchResultPage = ({ courseCode }: Props) => {
   const scoreTypes = [
     { name: 'Quality', field: 'qualityScore', value: averages.qualityAverage },
     { name: 'Workload', field: 'workloadScore', value: averages.workloadAverage },
-    {
-      name: 'Difficulty',
-      field: 'difficultyScore',
-      value: averages.difficultyAverage,
-    },
   ]
 
   return (
