@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "docker compose -f packages/backend/docker-compose.yml up -d && concurrently --names \"web,extension,backend\" --prefix-colors \"cyan,magenta,yellow\" \"npm run dev --prefix packages/web\" \"npm run dev --prefix packages/extension\" \"docker compose -f packages/backend/docker-compose.yml logs -f backend\"",
     "lint": "npm run lint --prefix packages/backend && npm run lint --prefix packages/web && npm run lint --prefix packages/extension",
+    "test": "npm run test --prefix packages/backend",
     "install-hooks": "lefthook install"
   },
   "devDependencies": {

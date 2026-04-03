@@ -1,12 +1,7 @@
 pre-commit:
   parallel: true
   commands:
-    lint-backend:
-      root: packages/backend
+    lint:
       run: npm run lint
-    lint-web:
-      root: packages/web
-      run: npm run lint
-    lint-extension:
-      root: packages/extension
-      run: npm run lint
+    test:
+      run: npm run test

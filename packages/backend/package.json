@@ -26,10 +26,11 @@
     "eslint": "^9.0.0",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^4.1.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "dev": "nodemon ./src/index.ts",
     "migration:down": "ts-node ./src/utils/rollback.ts",
     "build": "tsc",

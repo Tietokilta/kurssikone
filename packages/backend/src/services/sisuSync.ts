@@ -56,7 +56,7 @@ async function fetchCourseRealisations(): Promise<SisuCourseRealisation[]> {
   return response.json()
 }
 
-function parseDate(dateStr: string | null | undefined): string | null {
+export function parseDate(dateStr: string | null | undefined): string | null {
   if (!dateStr) return null
   const date = new Date(dateStr)
   if (isNaN(date.getTime())) return null
