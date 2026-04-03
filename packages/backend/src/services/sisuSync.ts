@@ -72,19 +72,36 @@ async function syncCourses(): Promise<number> {
   let upsertCount = 0
 
   for (const unit of courseUnits) {
-    await Course.upsert({
-      id: unit.id,
-      code: unit.code,
-      groupId: unit.groupId,
-      nameFi: unit.name?.fi || null,
-      nameEn: unit.name?.en || null,
-      creditsMin: unit.credits?.min ?? null,
-      creditsMax: unit.credits?.max ?? null,
-      validityStart: parseDate(unit['validityPeriod.startDate']),
-      validityEnd: parseDate(unit['validityPeriod.endDate']),
-      curriculumPeriodIds: unit.curriculumPeriodIds || null,
-      updatedAt: now,
-    })
+    await Course.upsert(
+      {
+        id: unit.id,
+        code: unit.code,
+        groupId: unit.groupId,
+        nameFi: unit.name?.fi || null,
+        nameEn: unit.name?.en || null,
+        creditsMin: unit.credits?.min ?? null,
+        creditsMax: unit.credits?.max ?? null,
+        validityStart: parseDate(unit['validityPeriod.startDate']),
+        validityEnd: parseDate(unit['validityPeriod.endDate']),
+        curriculumPeriodIds: unit.curriculumPeriodIds || null,
+        updatedAt: now,
+      },
+      {
+        fields: [
+          'id',
+          'code',
+          'groupId',
+          'nameFi',
+          'nameEn',
+          'creditsMin',
+          'creditsMax',
+          'validityStart',
+          'validityEnd',
+          'curriculumPeriodIds',
+          'updatedAt',
+        ],
+      }
+    )
     upsertCount++
   }
 

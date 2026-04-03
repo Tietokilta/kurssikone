@@ -4,12 +4,30 @@ import {
   ReviewAverages,
   ReviewsAndCount,
   CoursesResponse,
+  Course,
+  CourseListSortBy,
+  ListSortOrder,
   CourseWithRealisations,
   CourseRealisation,
 } from '@kurssikompassi/shared'
 import hashIt from 'hash-it'
 
 const host = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+
+function toNumberOrNull(value: unknown): number | null {
+  if (value == null || value === '') return null
+  const n = Number(value)
+  return Number.isFinite(n) ? n : null
+}
+
+function normalizeCourseRecord(raw: Record<string, unknown>): Course {
+  return {
+    ...(raw as unknown as Course),
+    avgQualityScore: toNumberOrNull(raw.avgQualityScore),
+    avgWorkloadScore: toNumberOrNull(raw.avgWorkloadScore),
+    reviewCount: Number(raw.reviewCount ?? 0),
+  }
+}
 
 const get = async (
   pathParts: string[],
@@ -113,20 +131,35 @@ export const deleteReview = async (reviewId: number, userId: string) => {
 export const getCourses = async (
   search?: string,
   limit?: number,
-  offset?: number
+  offset?: number,
+  sortBy?: CourseListSortBy,
+  sortOrder?: ListSortOrder
 ): Promise<CoursesResponse> => {
-  const result = await get(['courses'], {
+  const result = (await get(['courses'], {
     search: search || null,
     limit: limit?.toString() || null,
     offset: offset?.toString() || null,
-  })
-  return result as CoursesResponse
+    sortBy: sortBy || null,
+    sortOrder: sortOrder || null,
+  })) as CoursesResponse | null
+  if (!result) {
+    return { courses: [], total: 0, limit: limit ?? 50, offset: offset ?? 0 }
+  }
+  return {
+    ...result,
+    courses: result.courses.map((c) => normalizeCourseRecord(c as unknown as Record<string, unknown>)),
+  }
 }
 
 export const getCourseByCode = async (
   code: string
 ): Promise<CourseWithRealisations[] | null> => {
-  return (await get(['courses', code])) as CourseWithRealisations[] | null
+  const rows = (await get(['courses', code])) as CourseWithRealisations[] | null
+  if (!rows) return null
+  return rows.map((c) => ({
+    ...normalizeCourseRecord(c as unknown as Record<string, unknown>),
+    courseRealisations: c.courseRealisations ?? [],
+  }))
 }
 
 export const getCourseRealisations = async (

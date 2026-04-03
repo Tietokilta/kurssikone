@@ -1,15 +1,50 @@
 import express from 'express'
-import { Op, literal } from 'sequelize'
+import { Op, literal, OrderItem } from 'sequelize'
 import { Course, CourseRealisation } from '../models'
 import { runFullSync } from '../services/sisuSync'
 
 const router = express.Router()
 
+const SORT_BY_VALUES = ['alphabetical', 'credits', 'quality', 'workload'] as const
+type SortBy = (typeof SORT_BY_VALUES)[number]
+
+const SORT_ORDER_VALUES = ['asc', 'desc'] as const
+type SortOrder = (typeof SORT_ORDER_VALUES)[number]
+
+function parseSortBy(value: unknown): SortBy {
+  return typeof value === 'string' && SORT_BY_VALUES.includes(value as SortBy)
+    ? (value as SortBy)
+    : 'quality'
+}
+
+function parseSortOrder(value: unknown): SortOrder {
+  return typeof value === 'string' && SORT_ORDER_VALUES.includes(value as SortOrder)
+    ? (value as SortOrder)
+    : 'desc'
+}
+
+function buildCourseListOrder(sortBy: SortBy, sortOrder: SortOrder): OrderItem[] {
+  const dir = sortOrder === 'desc' ? 'DESC' : 'ASC'
+  switch (sortBy) {
+    case 'quality':
+      return [literal(`avg_quality_score ${dir} NULLS LAST, code ASC`)]
+    case 'workload':
+      return [literal(`avg_workload_score ${dir} NULLS LAST, code ASC`)]
+    case 'credits':
+      return [literal(`COALESCE(credits_max, credits_min) ${dir} NULLS LAST, code ASC`)]
+    default:
+      return [['code', dir] as OrderItem]
+  }
+}
+
 router.get('/', async (req, res) => {
-  const { search, limit = '50', offset = '0' } = req.query
+  const { search, limit = '50', offset = '0', sortBy: sortByParam, sortOrder: sortOrderParam } =
+    req.query
 
   const limitNum = Math.min(parseInt(limit as string, 10) || 50, 100)
   const offsetNum = parseInt(offset as string, 10) || 0
+  const sortBy = parseSortBy(sortByParam)
+  const sortOrder = parseSortOrder(sortOrderParam)
 
   const where: Record<string, unknown> = {}
   if (search && typeof search === 'string') {
@@ -32,7 +67,7 @@ router.get('/', async (req, res) => {
     where,
     limit: limitNum,
     offset: offsetNum,
-    order: [['code', 'ASC']],
+    order: buildCourseListOrder(sortBy, sortOrder),
   })
 
   res.json({

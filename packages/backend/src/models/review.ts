@@ -1,7 +1,10 @@
 import { Model, DataTypes } from 'sequelize'
 import { sequelize } from '../utils/db'
 
-class Review extends Model {}
+class Review extends Model {
+  declare id: number
+  declare courseCode: string
+}
 
 Review.init(
   {

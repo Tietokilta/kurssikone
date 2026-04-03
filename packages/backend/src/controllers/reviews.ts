@@ -3,6 +3,7 @@ import { Review, User } from '../models'
 import { sequelize } from '../utils/db'
 import { Op } from 'sequelize'
 import hashIt from 'hash-it'
+import { refreshCourseReviewAggregates } from '../services/reviewAggregates'
 
 const router = Router()
 
@@ -23,7 +24,8 @@ router.post('/', async (req, res) => {
     const { hash, ...review } = req.body
     const correctHash = hashIt({ userId: review.userId, courseCode: review.courseCode })
     if (hash === correctHash) {
-      const newReview = await Review.upsert({ ...review })
+      const [newReview] = await Review.upsert({ ...review })
+      await refreshCourseReviewAggregates(review.courseCode)
       res.json(newReview)
     } else {
       res.status(400).end()
@@ -39,7 +41,12 @@ router.delete('/:id', async (req, res) => {
   const correctHash = hashIt({ userId: review.userId, id: review.id })
   const id = Number(req.params.id)
   if (hash === correctHash && req.params.id && review.id === id) {
+    const existing = await Review.findByPk(id)
+    if (!existing) {
+      return res.status(400).end()
+    }
     await Review.destroy({ where: { id: id } })
+    await refreshCourseReviewAggregates(existing.courseCode)
     res.status(204).end()
   } else {
     res.status(400).end()

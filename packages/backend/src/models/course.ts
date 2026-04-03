@@ -12,6 +12,9 @@ class Course extends Model {
   declare validityStart: string | null
   declare validityEnd: string | null
   declare curriculumPeriodIds: string[] | null
+  declare avgQualityScore: number | null
+  declare avgWorkloadScore: number | null
+  declare reviewCount: number
   declare updatedAt: Date
 }
 
@@ -27,6 +30,9 @@ Course.init(
     validityStart: { type: DataTypes.DATEONLY, allowNull: true },
     validityEnd: { type: DataTypes.DATEONLY, allowNull: true },
     curriculumPeriodIds: { type: DataTypes.JSONB, allowNull: true },
+    avgQualityScore: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
+    avgWorkloadScore: { type: DataTypes.DECIMAL(4, 2), allowNull: true },
+    reviewCount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     updatedAt: { type: DataTypes.DATE, allowNull: false },
   },
   {

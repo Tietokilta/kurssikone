@@ -12,9 +12,17 @@ const formatCredits = (min: number | null, max: number | null): string => {
   return `${min}-${max} cr`
 }
 
+const formatAvg = (value: number | null): string | null => {
+  if (value == null || !Number.isFinite(value)) return null
+  return value.toFixed(1)
+}
+
 const CourseCard = ({ course }: Props) => {
   const name = course.nameEn || course.nameFi || 'Unnamed course'
   const credits = formatCredits(course.creditsMin, course.creditsMax)
+  const hasReviews = (course.reviewCount ?? 0) > 0
+  const q = formatAvg(course.avgQualityScore)
+  const w = formatAvg(course.avgWorkloadScore)
 
   return (
     <Link
@@ -26,11 +34,25 @@ const CourseCard = ({ course }: Props) => {
           <div className="font-medium text-blue-600">{course.code}</div>
           <div className="text-gray-700 text-sm mt-1 line-clamp-2">{name}</div>
         </div>
-        {credits && (
-          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded shrink-0">
-            {credits}
-          </span>
-        )}
+        <div className="flex flex-col items-end gap-1.5 shrink-0 text-right">
+          {credits ? (
+            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">{credits}</span>
+          ) : null}
+          {hasReviews && q != null && w != null ? (
+            <div className="text-xs text-gray-600 tabular-nums leading-tight">
+              <div>
+                <span className="text-gray-500">Quality</span>{' '}
+                <span className="font-medium text-gray-800">{q}</span>
+              </div>
+              <div>
+                <span className="text-gray-500">Workload</span>{' '}
+                <span className="font-medium text-gray-800">{w}</span>
+              </div>
+            </div>
+          ) : (
+            <span className="text-xs text-gray-400">No reviews yet</span>
+          )}
+        </div>
       </div>
     </Link>
   )

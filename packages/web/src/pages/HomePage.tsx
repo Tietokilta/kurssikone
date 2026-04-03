@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Course } from '@kurssikompassi/shared'
+import { Course, CourseListSortBy, ListSortOrder } from '@kurssikompassi/shared'
 import { getCourses } from '../api/client'
 import CourseCard from '../components/CourseCard'
 
@@ -8,6 +8,8 @@ const COURSES_PER_PAGE = 20
 const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [sortBy, setSortBy] = useState<CourseListSortBy>('quality')
+  const [sortOrder, setSortOrder] = useState<ListSortOrder>('desc')
   const [courses, setCourses] = useState<Course[]>([])
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -30,7 +32,13 @@ const HomePage = () => {
 
     const fetchInitial = async () => {
       try {
-        const result = await getCourses(debouncedSearch || undefined, COURSES_PER_PAGE, 0)
+        const result = await getCourses(
+          debouncedSearch || undefined,
+          COURSES_PER_PAGE,
+          0,
+          sortBy,
+          sortOrder
+        )
         setCourses(result.courses)
         setTotal(result.total)
       } catch (error) {
@@ -41,7 +49,7 @@ const HomePage = () => {
     }
 
     fetchInitial()
-  }, [debouncedSearch])
+  }, [debouncedSearch, sortBy, sortOrder])
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || courses.length >= total) return
@@ -50,7 +58,13 @@ const HomePage = () => {
     const newOffset = offset + COURSES_PER_PAGE
 
     try {
-      const result = await getCourses(debouncedSearch || undefined, COURSES_PER_PAGE, newOffset)
+      const result = await getCourses(
+        debouncedSearch || undefined,
+        COURSES_PER_PAGE,
+        newOffset,
+        sortBy,
+        sortOrder
+      )
       setCourses((prev) => [...prev, ...result.courses])
       setOffset(newOffset)
     } catch (error) {
@@ -58,7 +72,7 @@ const HomePage = () => {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [isLoadingMore, courses.length, total, offset, debouncedSearch])
+  }, [isLoadingMore, courses.length, total, offset, debouncedSearch, sortBy, sortOrder])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -89,14 +103,46 @@ const HomePage = () => {
         Find and share course reviews & information for Aalto University courses
       </p>
 
-      <div className="mb-6">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search courses by code or name..."
-          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-        />
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+        <div className="w-full max-w-md">
+          <label htmlFor="course-search" className="sr-only">
+            Search courses
+          </label>
+          <input
+            id="course-search"
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search courses by code or name..."
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          />
+        </div>
+        <div className="flex flex-wrap gap-4">
+          <label className="flex flex-col text-sm text-gray-600 gap-1">
+            <span>Sort by</span>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as CourseListSortBy)}
+              className="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-[11rem]"
+            >
+              <option value="quality">Quality</option>
+              <option value="workload">Workload</option>
+              <option value="alphabetical">Course code</option>
+              <option value="credits">Credits</option>
+            </select>
+          </label>
+          <label className="flex flex-col text-sm text-gray-600 gap-1">
+            <span>Order</span>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as ListSortOrder)}
+              className="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-[9rem]"
+            >
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+          </label>
+        </div>
       </div>
 
       {isLoading ? (

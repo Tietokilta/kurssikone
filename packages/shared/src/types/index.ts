@@ -27,6 +27,10 @@ export type ReviewAverages = {
   qualityAverage: number
 }
 
+export type CourseListSortBy = 'alphabetical' | 'credits' | 'quality' | 'workload'
+
+export type ListSortOrder = 'asc' | 'desc'
+
 export type Course = {
   id: string
   code: string
@@ -37,6 +41,9 @@ export type Course = {
   creditsMax: number | null
   validityStart: string | null
   validityEnd: string | null
+  avgQualityScore: number | null
+  avgWorkloadScore: number | null
+  reviewCount: number
 }
 
 export type CourseRealisation = {
