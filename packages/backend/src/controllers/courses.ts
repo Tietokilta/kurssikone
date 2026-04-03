@@ -1,5 +1,5 @@
 import express from 'express'
-import { Op } from 'sequelize'
+import { Op, literal } from 'sequelize'
 import { Course, CourseRealisation } from '../models'
 import { runFullSync } from '../services/sisuSync'
 
@@ -7,6 +7,9 @@ const router = express.Router()
 
 router.get('/', async (req, res) => {
   const { search, limit = '50', offset = '0' } = req.query
+
+  const limitNum = Math.min(parseInt(limit as string, 10) || 50, 100)
+  const offsetNum = parseInt(offset as string, 10) || 0
 
   const where: Record<string, unknown> = {}
   if (search && typeof search === 'string') {
@@ -17,18 +20,26 @@ router.get('/', async (req, res) => {
     ]
   }
 
-  const courses = await Course.findAndCountAll({
+  where.id = {
+    [Op.in]: literal(`(
+      SELECT DISTINCT ON (code) id
+      FROM courses
+      ORDER BY code, validity_start DESC NULLS LAST
+    )`),
+  }
+
+  const { count, rows: courses } = await Course.findAndCountAll({
     where,
-    limit: Math.min(parseInt(limit as string, 10) || 50, 100),
-    offset: parseInt(offset as string, 10) || 0,
+    limit: limitNum,
+    offset: offsetNum,
     order: [['code', 'ASC']],
   })
 
   res.json({
-    courses: courses.rows,
-    total: courses.count,
-    limit: parseInt(limit as string, 10) || 50,
-    offset: parseInt(offset as string, 10) || 0,
+    courses,
+    total: count,
+    limit: limitNum,
+    offset: offsetNum,
   })
 })
 
