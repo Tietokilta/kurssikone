@@ -1,4 +1,5 @@
 {
   "ext": "js,json,hbs,html,tsx,css,ts",
+  "watch": ["src", "../shared/src"],
   "ignore": ["build/*", "builds/*"]
 }
