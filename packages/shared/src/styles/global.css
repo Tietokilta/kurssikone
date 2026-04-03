@@ -87,4 +87,30 @@
     font-family: var(--font-sans);
     font-size: 16px;
   }
+
+  /*
+   * Tailwind v4 uses @property rules for CSS variable defaults, but @property
+   * doesn't work in shadow DOM. We must explicitly set these defaults for
+   * shadow DOM compatibility.
+   */
+  :host *,
+  :host ::before,
+  :host ::after,
+  :host ::backdrop {
+    --tw-border-style: solid;
+    --tw-shadow: 0 0 #0000;
+    --tw-shadow-color: initial;
+    --tw-shadow-alpha: 100%;
+    --tw-inset-shadow: 0 0 #0000;
+    --tw-inset-shadow-color: initial;
+    --tw-inset-shadow-alpha: 100%;
+    --tw-ring-color: initial;
+    --tw-ring-shadow: 0 0 #0000;
+    --tw-inset-ring-color: initial;
+    --tw-inset-ring-shadow: 0 0 #0000;
+    --tw-ring-inset: initial;
+    --tw-ring-offset-width: 0px;
+    --tw-ring-offset-color: #fff;
+    --tw-ring-offset-shadow: 0 0 #0000;
+  }
 }

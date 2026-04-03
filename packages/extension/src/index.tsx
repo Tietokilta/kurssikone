@@ -8,8 +8,14 @@ import { waitForElement } from './utils/waitForElement'
 console.log('[Kurssikompassi] Extension loaded successfully')
 
 // Transform Tailwind CSS for shadow DOM compatibility
-// Replace :root with :host so CSS custom properties work in shadow DOM
-const shadowStyles = styles.replace(/:root/g, ':host')
+// 1. Replace :root with :host so CSS custom properties work in shadow DOM
+// 2. Replace universal selectors to scope Tailwind's CSS variable defaults to shadow DOM
+const shadowStyles = styles
+  .replace(/:root/g, ':host')
+  .replace(
+    /\*, ::before, ::after, ::backdrop \{/g,
+    ':host, :host *, :host ::before, :host ::after, :host ::backdrop {'
+  )
 
 const createShadowRoot = (hostElement: HTMLElement): ShadowRoot => {
   const shadow = hostElement.attachShadow({ mode: 'closed' })
