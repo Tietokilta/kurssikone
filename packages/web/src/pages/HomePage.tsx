@@ -114,7 +114,7 @@ const HomePage = () => {
           <p className="text-sm text-gray-500 mb-4">
             {debouncedSearch
               ? `Found ${total} course${total !== 1 ? 's' : ''}`
-              : `Showing ${courses.length} of ${total} courses`}
+              : `${total} courses`}
           </p>
 
           <div className="grid gap-3 sm:grid-cols-2">
