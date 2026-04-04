@@ -3,12 +3,13 @@ import { fetchStudyPlans, getCoursesByIds } from '../requestHandlers'
 import { SisuCourseUnitSelection } from '../utils/types'
 import { buildTimelineCards, parseCourseUnitPlannedPeriods } from '../utils/parsePlannedPeriods'
 import { Course } from '@kurssikompassi/shared/src/types'
+import TimelinePeriodCourseItem from './TimelinePeriodCourseItem'
 
 type Props = {
   planId: string
 }
 
-type ParsedCourseUnitSelection = {
+export type ParsedCourseUnitSelection = {
   id: string
   name: string
   creditsMin: number
@@ -150,27 +151,9 @@ const TimelinePage = ({ planId }: Props) => {
                     <span className="text-neutral-400">—</span>
                   ) : (
                     <ul className="flex flex-col gap-1">
-                      {p.selections.map((s) => {
-                        const credits = s.plannedCredits
-                        const creditsForPeriod = credits / s.parsedPlannedPeriods.length
-
-                        return (
-                          <li
-                            key={s.id}
-                            className="bg-gray-300 flex"
-                            style={{ minHeight: creditsForPeriod * 20 }}
-                          >
-                            <div className="py-2 px-1 bg-blue-500 text-center w-12 shrink-0 flex flex-col items-center justify-center">
-                              <i>{creditsForPeriod.toFixed(1)}</i>
-                              {s.creditsMax === s.creditsMin
-                                ? s.creditsMax
-                                : `${s.creditsMin}–${s.creditsMax}`}
-                            </div>
-
-                            <div className="p-2">{s.name}</div>
-                          </li>
-                        )
-                      })}
+                      {p.selections.map((s) => (
+                        <TimelinePeriodCourseItem key={s.id} selection={s} />
+                      ))}
                     </ul>
                   )}
                 </div>
