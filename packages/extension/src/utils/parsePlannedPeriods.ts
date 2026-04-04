@@ -196,6 +196,42 @@ export function parsePlannedPeriods(
   return { season: timelineSeason, year: timelineYear, period, key, plannedPeriod }
 }
 
+/**
+ * Build a Sisu `plannedPeriod` path for a timeline slot when no in-cell example exists
+ * (inverse of {@link parsePlannedPeriods}).
+ */
+export function formatPlannedPeriodForSlot(
+  rootId: string,
+  timelineYear: number,
+  season: Season,
+  periodLabel: string
+): string {
+  const periods = PERIODS_FOR_SEASON[season] as readonly string[]
+  if (!periods.includes(periodLabel)) {
+    throw new Error(`Invalid period label "${periodLabel}" for season ${season}`)
+  }
+
+  let pathYear: number
+  let seasonPart: string
+  let periodPart: string
+
+  if (season === 'Fall') {
+    pathYear = timelineYear
+    seasonPart = '0'
+    periodPart = periodLabel === 'I' ? '1' : '2'
+  } else if (season === 'Spring') {
+    pathYear = timelineYear - 1
+    seasonPart = '1'
+    periodPart = periodLabel === 'III' ? '0' : periodLabel === 'IV' ? '1' : '2'
+  } else {
+    pathYear = timelineYear - 1
+    seasonPart = '1'
+    periodPart = '3'
+  }
+
+  return `${rootId}/${pathYear}/${seasonPart}/${periodPart}`
+}
+
 export function parseCourseUnitPlannedPeriods(
   courseUnitId: string,
   plannedPeriods: string[]

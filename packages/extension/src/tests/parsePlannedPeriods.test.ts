@@ -7,10 +7,12 @@ import {
   buildTimelineCards,
   comparePeriodKeysChronological,
   computeTimelineRange,
+  formatPlannedPeriodForSlot,
   getCurrentAcademicSeason,
   getCurrentSeasonStartKey,
   iterateYearSeasonSlots,
   makePeriodKey,
+  PERIODS_FOR_SEASON,
   parseCourseUnitPlannedPeriods,
   parsePeriodKey,
   parsePlannedPeriods,
@@ -203,6 +205,39 @@ describe('parsePlannedPeriods', () => {
       key: '2026-2-00',
       plannedPeriod: 'aalto-university-root-id/2025/1/3',
     })
+  })
+})
+
+describe('formatPlannedPeriodForSlot', () => {
+  const root = 'aalto-university-root-id'
+
+  it.each([
+    [2025, 'Fall' as const, 'I', 'aalto-university-root-id/2025/0/1'],
+    [2025, 'Fall' as const, 'II', 'aalto-university-root-id/2025/0/2'],
+    [2027, 'Spring' as const, 'III', 'aalto-university-root-id/2026/1/0'],
+    [2027, 'Spring' as const, 'IV', 'aalto-university-root-id/2026/1/1'],
+    [2027, 'Spring' as const, 'V', 'aalto-university-root-id/2026/1/2'],
+    [2026, 'Summer' as const, 'Summer', 'aalto-university-root-id/2025/1/3'],
+  ])('round-trips %# (%s %s %s)', (timelineYear, season, periodLabel, expectedPath) => {
+    const formatted = formatPlannedPeriodForSlot(root, timelineYear, season, periodLabel)
+    expect(formatted).toBe(expectedPath)
+    const parsed = parsePlannedPeriods(formatted)
+    expect(parsed).not.toBeNull()
+    const periodIndex = PERIODS_FOR_SEASON[season].indexOf(periodLabel)
+    expect(parsed).toMatchObject({
+      year: timelineYear,
+      season,
+      period: periodLabel,
+      key: makePeriodKey(timelineYear, season, periodIndex),
+    })
+  })
+
+  it('uses custom root id', () => {
+    expect(formatPlannedPeriodForSlot('my-root', 2025, 'Fall', 'I')).toBe('my-root/2025/0/1')
+  })
+
+  it('throws for invalid period label', () => {
+    expect(() => formatPlannedPeriodForSlot(root, 2025, 'Fall', 'III')).toThrow(/Invalid period label/)
   })
 })
 

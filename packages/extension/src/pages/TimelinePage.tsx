@@ -1,7 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
+import {
+  DndContext,
+  PointerSensor,
+  type DragEndEvent,
+  useDroppable,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { fetchStudyPlans, getCoursesByIds } from '../requestHandlers'
 import { SisuCourseUnitSelection } from '../utils/types'
-import { buildTimelineCards, parseCourseUnitPlannedPeriods } from '../utils/parsePlannedPeriods'
+import {
+  buildTimelineCards,
+  formatPlannedPeriodForSlot,
+  parseCourseUnitPlannedPeriods,
+  type TimelineCard,
+  type TimelinePeriod,
+} from '../utils/parsePlannedPeriods'
 import { Course } from '@kurssikompassi/shared/src/types'
 import TimelinePeriodCourseItem from './TimelinePeriodCourseItem'
 
@@ -19,12 +33,76 @@ export type ParsedCourseUnitSelection = {
   rawData: SisuCourseUnitSelection
 }
 
+const DEFAULT_SISU_ROOT_ID = 'aalto-university-root-id'
+
+function extractSisuRootId(selections: ParsedCourseUnitSelection[]): string {
+  for (const s of selections) {
+    for (const p of s.rawData.plannedPeriods) {
+      const root = p.split('/')[0]
+      if (root) {
+        return root
+      }
+    }
+  }
+  return DEFAULT_SISU_ROOT_ID
+}
+
+function TimelinePeriodColumn({
+  card,
+  period: p,
+  sisuRootId,
+}: {
+  card: TimelineCard<ParsedCourseUnitSelection>
+  period: TimelinePeriod<ParsedCourseUnitSelection>
+  sisuRootId: string
+}) {
+  const resolvedPlannedPeriod =
+    p.plannedPeriod || formatPlannedPeriodForSlot(sisuRootId, card.year, card.season, p.period)
+
+  const { setNodeRef, isOver } = useDroppable({
+    id: `drop-${p.periodKey}`,
+    data: { plannedPeriod: resolvedPlannedPeriod },
+  })
+
+  return (
+    <li
+      ref={setNodeRef}
+      className={`flex flex-col gap-3 text-sm ${isOver ? 'rounded bg-neutral-50 ring-1 ring-neutral-300' : ''}`}
+    >
+      <span className="w-14 shrink-0 text-neutral-500">{p.period}</span>
+
+      <div className="min-h-8 min-w-0 flex-1 text-neutral-800">
+        {p.selections.length === 0 ? (
+          <span className="text-neutral-400">—</span>
+        ) : (
+          <ul className="flex flex-col gap-1">
+            {p.selections.map((s) => (
+              <TimelinePeriodCourseItem
+                key={`${s.id}-${p.periodKey}`}
+                selection={s}
+                periodKey={p.periodKey}
+                sourcePlannedPeriod={resolvedPlannedPeriod}
+              />
+            ))}
+          </ul>
+        )}
+      </div>
+    </li>
+  )
+}
+
 const TimelinePage = ({ planId }: Props) => {
   const [courseUnitSelections, setCourseUnitSelections] = useState<
     ParsedCourseUnitSelection[] | null
   >(null)
   const [error, setError] = useState<string | null>(null)
   const [showSummer, setShowSummer] = useState(true)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 6 },
+    })
+  )
 
   const timelineCards = useMemo(
     () =>
@@ -33,6 +111,28 @@ const TimelinePage = ({ planId }: Props) => {
         : [],
     [courseUnitSelections, showSummer]
   )
+
+  const sisuRootId = useMemo(
+    () => extractSisuRootId(courseUnitSelections ?? []),
+    [courseUnitSelections]
+  )
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event
+    if (!over) {
+      return
+    }
+    const courseId = active.data.current?.courseId
+    const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
+    const targetPlannedPeriod = over.data.current?.plannedPeriod
+    if (
+      typeof courseId === 'string' &&
+      typeof startPlannedPeriod === 'string' &&
+      typeof targetPlannedPeriod === 'string'
+    ) {
+      console.log(courseId, startPlannedPeriod, targetPlannedPeriod)
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -132,36 +232,29 @@ const TimelinePage = ({ planId }: Props) => {
         Show summer periods
       </label>
 
-      {timelineCards.map((card) => (
-        <section
-          key={card.cardKey}
-          className="rounded border border-neutral-200 bg-white p-3 shadow-sm"
-        >
-          <h2 className="mb-2 text-sm font-medium text-neutral-900">
-            {card.season} {card.year}
-          </h2>
+      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+        {timelineCards.map((card) => (
+          <section
+            key={card.cardKey}
+            className="rounded border border-neutral-200 bg-white p-3 shadow-sm"
+          >
+            <h2 className="mb-2 text-sm font-medium text-neutral-900">
+              {card.season} {card.year}
+            </h2>
 
-          <ul className="grid grid-cols-3 gap-4">
-            {card.periods.map((p) => (
-              <li key={p.periodKey} className="flex flex-col gap-3 text-sm">
-                <span className="w-14 shrink-0 text-neutral-500">{p.period}</span>
-
-                <div className="min-w-0 flex-1 text-neutral-800">
-                  {p.selections.length === 0 ? (
-                    <span className="text-neutral-400">—</span>
-                  ) : (
-                    <ul className="flex flex-col gap-1">
-                      {p.selections.map((s) => (
-                        <TimelinePeriodCourseItem key={s.id} selection={s} />
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+            <ul className="grid grid-cols-3 gap-4">
+              {card.periods.map((p) => (
+                <TimelinePeriodColumn
+                  key={p.periodKey}
+                  card={card}
+                  period={p}
+                  sisuRootId={sisuRootId}
+                />
+              ))}
+            </ul>
+          </section>
+        ))}
+      </DndContext>
     </div>
   )
 }
