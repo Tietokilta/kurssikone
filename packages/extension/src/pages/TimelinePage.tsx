@@ -1,59 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { fetchStudyPlans, getCoursesByIds } from '../requestHandlers'
 import { SisuCourseUnitSelection } from '../utils/types'
+import { buildTimelineCards, parseCourseUnitPlannedPeriods } from '../utils/parsePlannedPeriods'
 
 type Props = {
   planId: string
 }
 
-const parsePlannedPeriods = (plannedPeriod: string | undefined) => {
-  if (!plannedPeriod) {
-    return null
-  }
-
-  const [_, year, seasonPart, periodPart] = plannedPeriod.split('/')
-  const season = seasonPart === '1' ? 'Spring' : seasonPart === '0' ? 'Fall' : null
-
-  if (!season || !year) {
-    return null
-  }
-
-  if (season === 'Spring') {
-    const period =
-      periodPart === '0'
-        ? 'III'
-        : periodPart === '1'
-          ? 'IV'
-          : periodPart === '2'
-            ? 'V'
-            : periodPart === '3'
-              ? 'Summer'
-              : null
-
-    if (!period) {
-      return null
-    }
-
-    return { season, year, period }
-  }
-
-  if (season === 'Fall') {
-    const period = periodPart === '1' ? 'I' : periodPart === '2' ? 'II' : null
-
-    if (!period) {
-      return null
-    }
-
-    return { season, year, period }
-  }
-
-  return null
-}
-
 type ParsedCourseUnitSelection = {
   id: string
   name: string
-  parsedPlannedPeriods: ReturnType<typeof parsePlannedPeriods>[]
+  parsedPlannedPeriods: ReturnType<typeof parseCourseUnitPlannedPeriods>
   rawData: SisuCourseUnitSelection
 }
 
@@ -62,6 +19,11 @@ const TimelinePage = ({ planId }: Props) => {
     ParsedCourseUnitSelection[] | null
   >(null)
   const [error, setError] = useState<string | null>(null)
+
+  const timelineCards = useMemo(
+    () => (courseUnitSelections ? buildTimelineCards(courseUnitSelections) : []),
+    [courseUnitSelections]
+  )
 
   useEffect(() => {
     let cancelled = false
@@ -112,9 +74,11 @@ const TimelinePage = ({ planId }: Props) => {
       const parsedSelections: ParsedCourseUnitSelection[] = selections.map((s) => ({
         id: s.courseUnitId,
         name: names[s.courseUnitId] || s.courseUnitId,
-        parsedPlannedPeriods: s.plannedPeriods.map(parsePlannedPeriods),
+        parsedPlannedPeriods: parseCourseUnitPlannedPeriods(s.courseUnitId, s.plannedPeriods),
         rawData: s,
       }))
+
+      console.log('Parsed course unit selections:', parsedSelections)
 
       setCourseUnitSelections(parsedSelections)
     })()
@@ -125,24 +89,44 @@ const TimelinePage = ({ planId }: Props) => {
   }, [planId])
 
   if (error) {
-    return <div>{error}</div>
+    return <div className="p-4 text-red-600">{error}</div>
   }
 
   if (courseUnitSelections === null) {
-    return <div>Loading…</div>
+    return <div className="p-4 text-neutral-600">Loading…</div>
   }
 
   return (
-    <ul>
-      {courseUnitSelections.map((selection) => (
-        <li key={selection.id}>
-          {selection.name}
-          {selection.parsedPlannedPeriods
-            .map((p) => `(${p?.season} ${p?.year} ${p?.period})`)
-            .join(' ')}
-        </li>
+    <div className="space-y-3 p-3">
+      {timelineCards.map((card) => (
+        <section
+          key={card.cardKey}
+          className="rounded border border-neutral-200 bg-white p-3 shadow-sm"
+        >
+          <h2 className="mb-2 text-sm font-medium text-neutral-900">
+            {card.season} {card.year}
+          </h2>
+          <ul className="space-y-2">
+            {card.periods.map((row) => (
+              <li key={row.periodKey} className="flex gap-3 text-sm">
+                <span className="w-14 shrink-0 text-neutral-500">{row.period}</span>
+                <div className="min-w-0 flex-1 text-neutral-800">
+                  {row.selections.length === 0 ? (
+                    <span className="text-neutral-400">—</span>
+                  ) : (
+                    <ul className="space-y-0.5">
+                      {row.selections.map((s) => (
+                        <li key={s.id}>{s.name}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
       ))}
-    </ul>
+    </div>
   )
 }
 
