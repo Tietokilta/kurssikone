@@ -1,38 +1,42 @@
-import { comparePeriodKeysChronological, parsePlannedPeriods } from './parsePlannedPeriods'
+import {
+  comparePeriodKeysChronological,
+  lookupParsedPlannedPeriod,
+  normalizeStudyLocator,
+  type StudyPeriodIndex,
+} from './parsePlannedPeriods'
 import type { SisuCourseUnitSelection, SisuStudyPlan } from './types'
 
 export function plannedPeriodKeysEqual(
   a: string,
   b: string,
-  courseUnitId: string
+  _courseUnitId: string,
+  index: StudyPeriodIndex
 ): boolean {
-  const pa = parsePlannedPeriods(a, courseUnitId)
-  const pb = parsePlannedPeriods(b, courseUnitId)
+  const pa = lookupParsedPlannedPeriod(index, a)
+  const pb = lookupParsedPlannedPeriod(index, b)
   if (!pa || !pb) {
     return false
   }
   return comparePeriodKeysChronological(pa.key, pb.key) === 0
 }
 
-/**
- * Remove one planned period matching the source cell (exact string first, else same parsed slot).
- */
 export function removePlannedPeriodForSlot(
   periods: string[],
   sourcePlannedPeriod: string,
-  courseUnitId: string
+  _courseUnitId: string,
+  index: StudyPeriodIndex
 ): string[] | null {
-  const idxExact = periods.indexOf(sourcePlannedPeriod)
+  const idxExact = periods.findIndex((p) => normalizeStudyLocator(p) === normalizeStudyLocator(sourcePlannedPeriod))
   if (idxExact >= 0) {
     return periods.filter((_, i) => i !== idxExact)
   }
-  const sourceParsed = parsePlannedPeriods(sourcePlannedPeriod, courseUnitId)
+  const sourceParsed = lookupParsedPlannedPeriod(index, sourcePlannedPeriod)
   if (!sourceParsed) {
     return null
   }
   let removed = false
   const out = periods.filter((p) => {
-    const parsed = parsePlannedPeriods(p, courseUnitId)
+    const parsed = lookupParsedPlannedPeriod(index, p)
     if (!parsed) {
       return true
     }
@@ -48,17 +52,19 @@ export function removePlannedPeriodForSlot(
 export function addPlannedPeriodIfMissing(
   periods: string[],
   targetPlannedPeriod: string,
-  courseUnitId: string
+  _courseUnitId: string,
+  index: StudyPeriodIndex
 ): string[] {
-  if (periods.includes(targetPlannedPeriod)) {
+  const normTarget = normalizeStudyLocator(targetPlannedPeriod)
+  if (periods.some((p) => normalizeStudyLocator(p) === normTarget)) {
     return periods
   }
-  const targetParsed = parsePlannedPeriods(targetPlannedPeriod, courseUnitId)
+  const targetParsed = lookupParsedPlannedPeriod(index, targetPlannedPeriod)
   if (!targetParsed) {
     return [...periods, targetPlannedPeriod]
   }
   for (const p of periods) {
-    const parsed = parsePlannedPeriods(p, courseUnitId)
+    const parsed = lookupParsedPlannedPeriod(index, p)
     if (parsed && comparePeriodKeysChronological(parsed.key, targetParsed.key) === 0) {
       return periods
     }
@@ -69,13 +75,15 @@ export function addPlannedPeriodIfMissing(
 export function moveCourseUnitPlannedPeriod(
   row: SisuCourseUnitSelection,
   sourcePlannedPeriod: string,
-  targetPlannedPeriod: string
+  targetPlannedPeriod: string,
+  index: StudyPeriodIndex
 ): SisuCourseUnitSelection | null {
   const { courseUnitId } = row
   const withoutSource = removePlannedPeriodForSlot(
     row.plannedPeriods,
     sourcePlannedPeriod,
-    courseUnitId
+    courseUnitId,
+    index
   )
   if (withoutSource === null) {
     return null
@@ -83,7 +91,8 @@ export function moveCourseUnitPlannedPeriod(
   const newPeriods = addPlannedPeriodIfMissing(
     withoutSource,
     targetPlannedPeriod,
-    courseUnitId
+    courseUnitId,
+    index
   )
   return { ...row, plannedPeriods: newPeriods }
 }
@@ -96,16 +105,17 @@ export function applyPlannedPeriodMove(
   plan: SisuStudyPlan,
   selectionIndex: number,
   sourcePlannedPeriod: string,
-  targetPlannedPeriod: string
+  targetPlannedPeriod: string,
+  index: StudyPeriodIndex
 ): ApplyPlannedPeriodMoveResult {
   const row = plan.courseUnitSelections[selectionIndex]
   if (!row) {
     return { ok: false, reason: 'invalid_index' }
   }
-  if (plannedPeriodKeysEqual(sourcePlannedPeriod, targetPlannedPeriod, row.courseUnitId)) {
+  if (plannedPeriodKeysEqual(sourcePlannedPeriod, targetPlannedPeriod, row.courseUnitId, index)) {
     return { ok: false, reason: 'same_slot' }
   }
-  const moved = moveCourseUnitPlannedPeriod(row, sourcePlannedPeriod, targetPlannedPeriod)
+  const moved = moveCourseUnitPlannedPeriod(row, sourcePlannedPeriod, targetPlannedPeriod, index)
   if (!moved) {
     return { ok: false, reason: 'source_not_found' }
   }

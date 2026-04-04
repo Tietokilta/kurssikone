@@ -195,3 +195,41 @@ export type SisuAttainment =
   | SisuCustomCourseUnitAttainment
 
 export type SisuAttainmentsResponse = SisuAttainment[]
+
+/** Kori study-years API (`/kori/api/study-years`); shapes from `data/studyYears.json`. */
+export interface SisuDateRange {
+  startDate: string
+  endDate: string
+}
+
+export interface SisuLocalizedName {
+  en?: string
+  fi?: string
+  sv?: string
+}
+
+export interface SisuStudyPeriod {
+  locator: string
+  valid: SisuDateRange
+  name: SisuLocalizedName
+  size: number
+  visibleByDefault: boolean
+  includedInTargetCreditsCalculation: boolean
+  startDate: string
+}
+
+export interface SisuStudyTerm {
+  valid: SisuDateRange
+  name: SisuLocalizedName
+  studyPeriods: SisuStudyPeriod[]
+}
+
+export interface SisuStudyYear {
+  valid: SisuDateRange
+  org: string
+  studyTerms: SisuStudyTerm[]
+  name: string
+  startYear: number
+}
+
+export type SisuStudyYearsResponse = SisuStudyYear[]

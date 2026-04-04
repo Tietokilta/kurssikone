@@ -23,6 +23,43 @@ export type ParsedPlannedPeriod = {
   plannedPeriod: string
 }
 
+export interface StudyPeriodIndex {
+  byLocator: Map<string, ParsedPlannedPeriod>
+  intervals: Array<{ startDay: string; endDay: string; parsed: ParsedPlannedPeriod }>
+  /** key `${timelineYear}|${season}` → columns left-to-right */
+  periodsByCard: Map<string, { label: string; periodKey: string; locator: string }[]>
+  /**
+   * Organisation id used in kori study-year locators (e.g. `aalto-university-root-id`).
+   * My-plans locators may use a programme root; lookups rewrite the first path segment to this.
+   */
+  locatorLookupOrgRoot: string
+}
+
+/** Replace the first locator segment with `organisationRoot` (same year/term/period tail). */
+export function rewriteLocatorOrganisationRoot(locator: string, organisationRoot: string): string | null {
+  const parts = normalizeStudyLocator(locator).split('/').filter(Boolean)
+  if (parts.length < 2) {
+    return null
+  }
+  return [organisationRoot, ...parts.slice(1)].join('/')
+}
+
+export function lookupParsedPlannedPeriod(
+  index: StudyPeriodIndex,
+  plannedPeriod: string
+): ParsedPlannedPeriod | null {
+  const norm = normalizeStudyLocator(plannedPeriod)
+  const direct = index.byLocator.get(norm)
+  if (direct) {
+    return direct
+  }
+  const rewritten = rewriteLocatorOrganisationRoot(norm, index.locatorLookupOrgRoot)
+  if (!rewritten) {
+    return null
+  }
+  return index.byLocator.get(rewritten) ?? null
+}
+
 /**
  * Period keys: Spring = 0, Fall = 1, Summer = 2 (middle segment).
  * Legacy keys used `Spring` index 3 for summer; `parsePeriodKey` normalizes those to Summer.
@@ -48,7 +85,6 @@ export function parsePeriodKey(key: string): { year: number; season: Season; per
   } else {
     season = 'Spring'
   }
-  // Pre–Summer-season encoding: fourth Spring slot was summer
   if (season === 'Spring' && periodIndex === 3) {
     return { year, season: 'Summer', periodIndex: 0 }
   }
@@ -60,10 +96,6 @@ export function yearSeasonFromKey(key: string): YearSeason {
   return { year: p.year, season: p.season }
 }
 
-/**
- * Raw period keys are not chronologically ordered lexically (e.g. Fall uses `…-1-…` but Summer uses `…-2-…`).
- * Use this for min/max over keys and any stable chronological ordering.
- */
 export function comparePeriodKeysChronological(a: string, b: string): number {
   const pa = parsePeriodKey(a)
   const pb = parsePeriodKey(b)
@@ -103,9 +135,6 @@ function nextSeason(ys: YearSeason): YearSeason {
   return { year: ys.year + 1, season: 'Spring' }
 }
 
-/**
- * Counts distinct calendar year numbers that appear in any semester slot from start through end (inclusive).
- */
 function distinctCalendarYearCount(start: YearSeason, end: YearSeason): number {
   const years = new Set<number>()
   let cur: YearSeason = start
@@ -119,9 +148,6 @@ function distinctCalendarYearCount(start: YearSeason, end: YearSeason): number {
   return years.size
 }
 
-/**
- * Aug–Dec: Fall of that calendar year. Jan–Jul: Spring of that calendar year.
- */
 export function getCurrentAcademicSeason(now: Date = new Date()): YearSeason {
   const month = now.getMonth() + 1
   if (month >= 8) {
@@ -135,108 +161,52 @@ export function getCurrentSeasonStartKey(now?: Date): string {
   return makePeriodKey(ys.year, ys.season, 0)
 }
 
-/**
- * Parse a single Sisu `plannedPeriod` string. Pass `courseUnitId` from the selection when available
- * so unit-specific Sisu quirks match the study plan UI.
- */
-export function parsePlannedPeriods(
-  plannedPeriod: string | undefined,
-  courseUnitId?: string
-): ParsedPlannedPeriod | null {
-  if (!plannedPeriod) {
-    return null
-  }
-
-  const [, yearStringRaw, seasonPartRaw, periodPartRaw] = plannedPeriod.split('/')
-  const yearString = yearStringRaw?.trim() ?? ''
-  const seasonPart = seasonPartRaw?.trim() ?? ''
-  const periodPart = periodPartRaw?.trim() ?? ''
-  const pathYear = parseInt(yearString, 10)
-  const season = seasonPart === '1' ? 'Spring' : seasonPart === '0' ? 'Fall' : null
-
-  if (!season || isNaN(pathYear)) {
-    return null
-  }
-
-  let period: string | null = null
-
-  let timelineSeason: Season = season
-
-  if (season === 'Spring') {
-    period =
-      periodPart === '0'
-        ? 'III'
-        : periodPart === '1'
-          ? 'IV'
-          : periodPart === '2'
-            ? 'V'
-            : periodPart === '3'
-              ? 'Summer'
-              : null
-    if (period === 'Summer') {
-      timelineSeason = 'Summer'
-    }
-  } else {
-    period = periodPart === '1' ? 'I' : periodPart === '2' ? 'II' : null
-  }
-
-  if (!period) {
-    return null
-  }
-
-  const periods = PERIODS_FOR_SEASON[timelineSeason] as readonly string[]
-  const periodIndex = periods.indexOf(period)
-  if (periodIndex < 0) {
-    return null
-  }
-
-  const timelineYear = season === 'Spring' ? pathYear + 1 : pathYear
-  const key = makePeriodKey(timelineYear, timelineSeason, periodIndex)
-
-  return { season: timelineSeason, year: timelineYear, period, key, plannedPeriod }
+/** Normalize Sisu locator strings for map lookup (trim each path segment). */
+export function normalizeStudyLocator(loc: string): string {
+  return loc
+    .trim()
+    .split('/')
+    .map((s) => s.trim())
+    .join('/')
 }
 
 /**
- * Build a Sisu `plannedPeriod` path for a timeline slot when no in-cell example exists
- * (inverse of {@link parsePlannedPeriods}).
+ * Resolve a planned-period locator using only {@link StudyPeriodIndex} from study-years data.
+ */
+export function parsePlannedPeriods(
+  plannedPeriod: string | undefined,
+  _courseUnitId?: string,
+  index?: StudyPeriodIndex | null
+): ParsedPlannedPeriod | null {
+  if (!plannedPeriod || !index) {
+    return null
+  }
+  return lookupParsedPlannedPeriod(index, plannedPeriod)
+}
+
+/**
+ * Locator for an empty grid cell; requires study-years index (no path-string synthesis).
  */
 export function formatPlannedPeriodForSlot(
-  rootId: string,
+  _rootId: string,
   timelineYear: number,
   season: Season,
-  periodLabel: string
+  periodLabel: string,
+  index: StudyPeriodIndex
 ): string {
-  const periods = PERIODS_FOR_SEASON[season] as readonly string[]
-  if (!periods.includes(periodLabel)) {
-    throw new Error(`Invalid period label "${periodLabel}" for season ${season}`)
+  const hit = index.periodsByCard.get(`${timelineYear}|${season}`)?.find((c) => c.label === periodLabel)
+  if (!hit) {
+    throw new Error(`Unknown slot ${timelineYear} ${season} ${periodLabel}`)
   }
-
-  let pathYear: number
-  let seasonPart: string
-  let periodPart: string
-
-  if (season === 'Fall') {
-    pathYear = timelineYear
-    seasonPart = '0'
-    periodPart = periodLabel === 'I' ? '1' : '2'
-  } else if (season === 'Spring') {
-    pathYear = timelineYear - 1
-    seasonPart = '1'
-    periodPart = periodLabel === 'III' ? '0' : periodLabel === 'IV' ? '1' : '2'
-  } else {
-    pathYear = timelineYear - 1
-    seasonPart = '1'
-    periodPart = '3'
-  }
-
-  return `${rootId}/${pathYear}/${seasonPart}/${periodPart}`
+  return hit.locator
 }
 
 export function parseCourseUnitPlannedPeriods(
   courseUnitId: string,
-  plannedPeriods: string[]
+  plannedPeriods: string[],
+  index?: StudyPeriodIndex | null
 ): (ParsedPlannedPeriod | null)[] {
-  return plannedPeriods.map((p) => parsePlannedPeriods(p, courseUnitId))
+  return plannedPeriods.map((p) => parsePlannedPeriods(p, courseUnitId, index))
 }
 
 function collectAllPeriodKeys(
@@ -253,10 +223,6 @@ function collectAllPeriodKeys(
   return keys
 }
 
-/**
- * Range: earliest planned key → latest, clamped so we never start before the current academic season,
- * then extended forward until at least three distinct calendar years appear in the span.
- */
 export function computeTimelineRange(
   selections: { parsedPlannedPeriods: (ParsedPlannedPeriod | null)[] }[],
   now: Date = new Date()
@@ -308,7 +274,6 @@ export function iterateYearSeasonSlots(start: YearSeason, end: YearSeason): Year
 
 export type TimelinePeriod<T = { id: string; name: string }> = {
   period: string
-  /** Representative original `plannedPeriods` string for this slot (first in-cell selection). */
   plannedPeriod: string
   periodKey: string
   selections: T[]
@@ -322,8 +287,22 @@ export type TimelineCard<T = { id: string; name: string }> = {
 }
 
 export type BuildTimelineCardsOptions = {
-  /** When false, summer semester columns are omitted from the grid. Default true. */
   showSummer?: boolean
+  /** From kori study-years; missing or empty → no cards. */
+  periodIndex?: StudyPeriodIndex | null
+}
+
+function mergeCellSelections<T extends { id: string; completed?: boolean }>(items: T[]): T[] {
+  const byId = new Map<string, T>()
+  for (const it of items) {
+    const cur = byId.get(it.id)
+    if (!cur) {
+      byId.set(it.id, it)
+    } else if (it.completed && !cur.completed) {
+      byId.set(it.id, it)
+    }
+  }
+  return [...byId.values()]
 }
 
 export function buildTimelineCards<
@@ -335,44 +314,56 @@ export function buildTimelineCards<
 ): TimelineCard<T>[] {
   const { start, end } = computeTimelineRange(selections, now)
   const slots = iterateYearSeasonSlots(start, end)
-  const visibleSlots =
-    options?.showSummer === false ? slots.filter((slot) => slot.season !== 'Summer') : slots
+  const showSummer = options?.showSummer !== false
+  const visibleSlots = showSummer ? slots : slots.filter((slot) => slot.season !== 'Summer')
+  const index = options?.periodIndex
+  if (!index || index.periodsByCard.size === 0) {
+    return []
+  }
 
-  return visibleSlots.map((slot) => {
-    const periods: TimelinePeriod<T>[] = PERIODS_FOR_SEASON[slot.season].map(
-      (periodLabel, periodIndex) => {
-        const periodKey = makePeriodKey(slot.year, slot.season, periodIndex)
-        const inCell: T[] = []
-        const seen = new Set<string>()
-        for (const sel of selections) {
-          const match = sel.parsedPlannedPeriods.some(
-            (p) =>
-              p !== null &&
-              p.year === slot.year &&
-              p.season === slot.season &&
-              p.period === periodLabel
-          )
-          if (match && !seen.has(sel.id)) {
-            seen.add(sel.id)
-            inCell.push(sel)
-          }
-        }
-        inCell.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-        const firstMatch = inCell[0]?.parsedPlannedPeriods.find(
-          (pp) =>
-            pp !== null &&
-            pp.year === slot.year &&
-            pp.season === slot.season &&
-            pp.period === periodLabel
+  return visibleSlots
+    .map((slot) => {
+    const ck = `${slot.year}|${slot.season}`
+    const indexedCols = index.periodsByCard.get(ck)
+    if (!indexedCols?.length) {
+      return null
+    }
+    const columnDefs = indexedCols.map((c) => ({
+      label: c.label,
+      periodKey: c.periodKey,
+      plannedPeriod: c.locator,
+    }))
+
+    const periods: TimelinePeriod<T>[] = columnDefs.map((col) => {
+      const raw: T[] = []
+      const seen = new Set<string>()
+      for (const sel of selections) {
+        const match = sel.parsedPlannedPeriods.some(
+          (p) =>
+            p !== null &&
+            p.year === slot.year &&
+            p.season === slot.season &&
+            p.period === col.label
         )
-        return {
-          period: periodLabel,
-          periodKey,
-          selections: inCell,
-          plannedPeriod: firstMatch?.plannedPeriod ?? '',
+        if (match && !seen.has(sel.id)) {
+          seen.add(sel.id)
+          raw.push(sel)
         }
       }
-    )
+      const inCell = mergeCellSelections(raw)
+      inCell.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+      const firstMatch = inCell[0]?.parsedPlannedPeriods.find(
+        (pp) =>
+          pp !== null && pp.year === slot.year && pp.season === slot.season && pp.period === col.label
+      )
+      return {
+        period: col.label,
+        periodKey: col.periodKey,
+        selections: inCell,
+        plannedPeriod: firstMatch?.plannedPeriod ?? col.plannedPeriod,
+      }
+    })
+
     return {
       year: slot.year,
       season: slot.season,
@@ -380,4 +371,5 @@ export function buildTimelineCards<
       periods,
     }
   })
+    .filter((c): c is TimelineCard<T> => c !== null)
 }

@@ -18,11 +18,22 @@ import {
   parsePlannedPeriods,
   yearSeasonFromKey,
 } from '../utils/parsePlannedPeriods'
+import { createPeriodIndex } from '../utils/studyYearPeriods'
+import type { SisuStudyYear } from '../utils/types'
 
 const dataDir = path.join(__dirname, 'data')
+const TEST_ORG = 'aalto-university-root-id'
+
+function loadStudyYears(): SisuStudyYear[] {
+  return loadJson<SisuStudyYear[]>('studyYears.json')
+}
+
+function periodIndex(showSummer = true) {
+  return createPeriodIndex(loadStudyYears(), TEST_ORG, showSummer)
+}
 
 function loadJson<T>(file: string): T {
-  const raw = fs.readFileSync(path.join(dataDir, file), 'utf8')
+  const raw = fs.readFileSync(path.join(dataDir, file), 'utf8').replace(/^\uFEFF/, '')
   return JSON.parse(raw) as T
 }
 
@@ -64,8 +75,8 @@ function seasonStartKey(ys: YearSeason): string {
   return makePeriodKey(ys.year, ys.season, 0)
 }
 
-function formatJoinedFromPlannedStrings(courseUnitId: string, periods: string[]): string {
-  const parsed = parseCourseUnitPlannedPeriods(courseUnitId, periods).filter(
+function formatJoinedFromPlannedStrings(courseUnitId: string, periods: string[], idx: ReturnType<typeof periodIndex>): string {
+  const parsed = parseCourseUnitPlannedPeriods(courseUnitId, periods, idx).filter(
     (p): p is ParsedPlannedPeriod => p !== null
   )
   parsed.sort((a, b) => comparePeriodKeysChronological(a.key, b.key))
@@ -130,11 +141,12 @@ describe('getCurrentAcademicSeason / getCurrentSeasonStartKey', () => {
 })
 
 describe('parsePlannedPeriods', () => {
+  const idx = periodIndex(true)
   const selections = loadSelections()
   const distinct = distinctPlannedPeriodStrings(selections)
 
   it.each(distinct)('parses fixture string %#', (s) => {
-    const p = parsePlannedPeriods(s)
+    const p = parsePlannedPeriods(s, undefined, idx)
     expect(p).not.toBeNull()
     const fromKey = parsePeriodKey(p!.key)
     expect(fromKey.year).toBe(p!.year)
@@ -143,35 +155,34 @@ describe('parsePlannedPeriods', () => {
   })
 
   it('returns null for empty / invalid input', () => {
-    expect(parsePlannedPeriods(undefined)).toBeNull()
-    expect(parsePlannedPeriods('')).toBeNull()
-    expect(parsePlannedPeriods('aalto/2025/2/0')).toBeNull()
-    expect(parsePlannedPeriods('aalto/2025/0/0')).toBeNull()
-    expect(parsePlannedPeriods('aalto/2025/1/9')).toBeNull()
-    expect(parsePlannedPeriods('short')).toBeNull()
+    expect(parsePlannedPeriods(undefined, undefined, idx)).toBeNull()
+    expect(parsePlannedPeriods('', undefined, idx)).toBeNull()
+    expect(parsePlannedPeriods('aalto/2025/2/0', undefined, idx)).toBeNull()
+    expect(parsePlannedPeriods('aalto-university-root-id/2025/0/0', undefined, idx)).toMatchObject({
+      season: 'Summer',
+      period: 'Summer',
+      year: 2025,
+    })
+    expect(parsePlannedPeriods('aalto/2025/1/9', undefined, idx)).toBeNull()
+    expect(parsePlannedPeriods('short', undefined, idx)).toBeNull()
+    expect(parsePlannedPeriods('aalto-university-root-id/2025/0/1', undefined, null)).toBeNull()
   })
 
-  it('trims path segments for parsing but keeps the original string in plannedPeriod', () => {
-    const spaced = parsePlannedPeriods('root/ 2025 / 0 / 1 ')
-    const compact = parsePlannedPeriods('root/2025/0/1')
+  it('normalizes locator segments for lookup', () => {
+    const spaced = parsePlannedPeriods('aalto-university-root-id/ 2025 / 0 / 1 ', undefined, idx)
+    const compact = parsePlannedPeriods('aalto-university-root-id/2025/0/1', undefined, idx)
     expect(spaced).toMatchObject({
       year: 2025,
       season: 'Fall',
       period: 'I',
       key: '2025-1-00',
     })
-    expect(compact).toMatchObject({
-      year: 2025,
-      season: 'Fall',
-      period: 'I',
-      key: '2025-1-00',
-    })
-    expect(spaced?.plannedPeriod).toBe('root/ 2025 / 0 / 1 ')
-    expect(compact?.plannedPeriod).toBe('root/2025/0/1')
+    expect(compact).toEqual(spaced)
+    expect(spaced?.plannedPeriod).toBe('aalto-university-root-id/2025/0/1')
   })
 
-  it('matches explicit expectations for each encoding', () => {
-    expect(parsePlannedPeriods('aalto-university-root-id/2025/0/1')).toMatchObject({
+  it('matches study-years-backed expectations', () => {
+    expect(parsePlannedPeriods('aalto-university-root-id/2025/0/1', undefined, idx)).toMatchObject({
       year: 2025,
       season: 'Fall',
       period: 'I',
@@ -179,7 +190,7 @@ describe('parsePlannedPeriods', () => {
       plannedPeriod: 'aalto-university-root-id/2025/0/1',
     })
     expect(
-      parsePlannedPeriods('aalto-university-root-id/2025/0/1', 'aalto-CU-1150973104-20240801')
+      parsePlannedPeriods('aalto-university-root-id/2025/0/1', 'aalto-CU-1150973104-20240801', idx)
     ).toMatchObject({
       year: 2025,
       season: 'Fall',
@@ -187,19 +198,19 @@ describe('parsePlannedPeriods', () => {
       key: '2025-1-00',
       plannedPeriod: 'aalto-university-root-id/2025/0/1',
     })
-    expect(parsePlannedPeriods('aalto-university-root-id/2025/0/2')).toMatchObject({
+    expect(parsePlannedPeriods('aalto-university-root-id/2025/0/2', undefined, idx)).toMatchObject({
       period: 'II',
       key: '2025-1-01',
       plannedPeriod: 'aalto-university-root-id/2025/0/2',
     })
-    expect(parsePlannedPeriods('aalto-university-root-id/2026/1/0')).toMatchObject({
+    expect(parsePlannedPeriods('aalto-university-root-id/2026/1/0', undefined, idx)).toMatchObject({
       year: 2027,
       season: 'Spring',
       period: 'III',
       key: '2027-0-00',
       plannedPeriod: 'aalto-university-root-id/2026/1/0',
     })
-    expect(parsePlannedPeriods('aalto-university-root-id/2025/1/3')).toMatchObject({
+    expect(parsePlannedPeriods('aalto-university-root-id/2025/1/3', undefined, idx)).toMatchObject({
       season: 'Summer',
       period: 'Summer',
       key: '2026-2-00',
@@ -210,6 +221,7 @@ describe('parsePlannedPeriods', () => {
 
 describe('formatPlannedPeriodForSlot', () => {
   const root = 'aalto-university-root-id'
+  const idx = periodIndex(true)
 
   it.each([
     [2025, 'Fall' as const, 'I', 'aalto-university-root-id/2025/0/1'],
@@ -219,25 +231,21 @@ describe('formatPlannedPeriodForSlot', () => {
     [2027, 'Spring' as const, 'V', 'aalto-university-root-id/2026/1/2'],
     [2026, 'Summer' as const, 'Summer', 'aalto-university-root-id/2025/1/3'],
   ])('round-trips %# (%s %s %s)', (timelineYear, season, periodLabel, expectedPath) => {
-    const formatted = formatPlannedPeriodForSlot(root, timelineYear, season, periodLabel)
+    const formatted = formatPlannedPeriodForSlot(root, timelineYear, season, periodLabel, idx)
     expect(formatted).toBe(expectedPath)
-    const parsed = parsePlannedPeriods(formatted)
+    const parsed = parsePlannedPeriods(formatted, undefined, idx)
     expect(parsed).not.toBeNull()
-    const periodIndex = PERIODS_FOR_SEASON[season].indexOf(periodLabel)
+    const pi = PERIODS_FOR_SEASON[season].indexOf(periodLabel)
     expect(parsed).toMatchObject({
       year: timelineYear,
       season,
       period: periodLabel,
-      key: makePeriodKey(timelineYear, season, periodIndex),
+      key: makePeriodKey(timelineYear, season, pi),
     })
   })
 
-  it('uses custom root id', () => {
-    expect(formatPlannedPeriodForSlot('my-root', 2025, 'Fall', 'I')).toBe('my-root/2025/0/1')
-  })
-
-  it('throws for invalid period label', () => {
-    expect(() => formatPlannedPeriodForSlot(root, 2025, 'Fall', 'III')).toThrow(/Invalid period label/)
+  it('throws for unknown slot', () => {
+    expect(() => formatPlannedPeriodForSlot(root, 2099, 'Fall', 'I', idx)).toThrow(/Unknown slot/)
   })
 })
 
@@ -269,6 +277,7 @@ describe('iterateYearSeasonSlots', () => {
 
 describe('computeTimelineRange', () => {
   const spring2026 = new Date('2026-04-04T12:00:00Z')
+  const idx = periodIndex(true)
 
   it('empty selections starts at current season and extends for three calendar years', () => {
     const { start, end } = computeTimelineRange([], spring2026)
@@ -279,7 +288,7 @@ describe('computeTimelineRange', () => {
   it('when all planned keys are before now, end is not left before start (regression)', () => {
     const onlyPast = [
       {
-        parsedPlannedPeriods: [parsePlannedPeriods('aalto-university-root-id/2025/0/1')],
+        parsedPlannedPeriods: [parsePlannedPeriods('aalto-university-root-id/2025/0/1', undefined, idx)],
       },
     ]
     const { start, end } = computeTimelineRange(onlyPast, spring2026)
@@ -296,8 +305,8 @@ describe('computeTimelineRange', () => {
     const futureHeavy = [
       {
         parsedPlannedPeriods: [
-          parsePlannedPeriods('aalto-university-root-id/2026/1/0', 'x'),
-          parsePlannedPeriods('aalto-university-root-id/2026/1/1', 'x'),
+          parsePlannedPeriods('aalto-university-root-id/2026/1/0', 'x', idx),
+          parsePlannedPeriods('aalto-university-root-id/2026/1/1', 'x', idx),
         ],
       },
     ]
@@ -308,6 +317,9 @@ describe('computeTimelineRange', () => {
 
 describe('buildTimelineCards', () => {
   const spring2026 = new Date('2026-04-04T12:00:00Z')
+  const root = 'aalto-university-root-id'
+  const idx = periodIndex(true)
+  const idxNoSummer = periodIndex(false)
 
   it('places each course in cells for its parsed keys and sorts names case-insensitively', () => {
     const rows = loadSelections()
@@ -315,25 +327,25 @@ describe('buildTimelineCards', () => {
     const selections = rows.map((r) => ({
       id: r.courseUnitId,
       name: nameById.get(r.courseUnitId) ?? r.courseUnitId,
-      parsedPlannedPeriods: parseCourseUnitPlannedPeriods(r.courseUnitId, r.plannedPeriods),
+      parsedPlannedPeriods: parseCourseUnitPlannedPeriods(r.courseUnitId, r.plannedPeriods, idx),
     }))
 
     const { start, end } = computeTimelineRange(
       selections.map((s) => ({ parsedPlannedPeriods: s.parsedPlannedPeriods })),
       spring2026
     )
-    const visibleSlots = new Set(
-      iterateYearSeasonSlots(start, end).map((s) => `${s.year}-${s.season}`)
+    const visibleSlots = iterateYearSeasonSlots(start, end).filter(
+      (s) => idx.periodsByCard.has(`${s.year}|${s.season}`)
     )
 
-    const cards = buildTimelineCards(selections, spring2026)
-    expect(cards.length).toBe(visibleSlots.size)
+    const cards = buildTimelineCards(selections, spring2026, { periodIndex: idx })
+    expect(cards.length).toBe(visibleSlots.length)
 
     for (const sel of selections) {
       for (const p of sel.parsedPlannedPeriods) {
         if (!p) continue
         const slotKey = `${p.year}-${p.season}`
-        if (!visibleSlots.has(slotKey)) {
+        if (!visibleSlots.some((s) => `${s.year}-${s.season}` === slotKey)) {
           continue
         }
         const card = cards.find((c) => c.year === p.year && c.season === p.season)
@@ -353,11 +365,15 @@ describe('buildTimelineCards', () => {
       }
     }
 
-    const emptyPeriodRows = cards.flatMap((c) =>
-      c.periods.filter((r) => r.selections.length === 0)
+    const emptyCells = cards.flatMap((card) =>
+      card.periods
+        .filter((row) => row.selections.length === 0)
+        .map((row) => ({ card, row }))
     )
-    for (const row of emptyPeriodRows) {
-      expect(row.plannedPeriod).toBe('')
+    for (const { card, row } of emptyCells) {
+      expect(row.plannedPeriod).toBe(
+        formatPlannedPeriodForSlot(root, card.year, card.season, row.period, idx)
+      )
     }
 
     const filledPeriodRows = cards.flatMap((c) =>
@@ -384,12 +400,17 @@ describe('buildTimelineCards', () => {
       {
         id: 'a',
         name: 'Summer course',
-        parsedPlannedPeriods: parseCourseUnitPlannedPeriods('x', [
-          'aalto-university-root-id/2025/1/3',
-        ]),
+        parsedPlannedPeriods: parseCourseUnitPlannedPeriods(
+          'x',
+          ['aalto-university-root-id/2025/1/3'],
+          idxNoSummer
+        ),
       },
     ]
-    const cards = buildTimelineCards(selections, spring2026, { showSummer: false })
+    const cards = buildTimelineCards(selections, spring2026, {
+      showSummer: false,
+      periodIndex: idxNoSummer,
+    })
     expect(cards.some((c) => c.season === 'Summer')).toBe(false)
   })
 })
@@ -397,12 +418,13 @@ describe('buildTimelineCards', () => {
 describe('golden: courseNamesToRightPeriods matches selections', () => {
   const expected = loadExpectedLabels()
   const rows = loadSelections()
+  const idx = periodIndex(true)
 
   it.each(loadNameToId())('$name', ({ id, name }) => {
     const row = rows.find((r) => r.courseUnitId === id)
     expect(row).toBeDefined()
     expect(expected).toHaveProperty(name)
-    const got = formatJoinedFromPlannedStrings(id, row!.plannedPeriods)
+    const got = formatJoinedFromPlannedStrings(id, row!.plannedPeriods, idx)
     expect(got).toBe(expected[name])
   })
 })

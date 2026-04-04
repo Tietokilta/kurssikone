@@ -7,13 +7,20 @@ type Props = {
   periodKey: string
   /** Sisu `plannedPeriod` string for this timeline cell (same encoding as drop targets). */
   sourcePlannedPeriod: string
+  completed?: boolean
 }
 
-const TimelinePeriodCourseItem = ({ selection: s, periodKey, sourcePlannedPeriod }: Props) => {
-  const creditsForPeriod = s.plannedCredits / s.parsedPlannedPeriods.length
+const TimelinePeriodCourseItem = ({
+  selection: s,
+  periodKey,
+  sourcePlannedPeriod,
+  completed,
+}: Props) => {
+  const creditsForPeriod = s.plannedCredits / Math.max(1, s.parsedPlannedPeriods.filter(Boolean).length)
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: `${s.id}::${periodKey}`,
+    id: `${s.id}::${periodKey}::${completed ? 'c' : 'p'}`,
+    disabled: !!completed,
     data: { courseId: s.id, sourcePlannedPeriod, selectionIndex: s.selectionIndex },
   })
 
@@ -26,16 +33,27 @@ const TimelinePeriodCourseItem = ({ selection: s, periodKey, sourcePlannedPeriod
     <li
       ref={setNodeRef}
       style={style}
-      className={`bg-gray-300 flex touch-none ${isDragging ? 'cursor-grabbing opacity-60' : 'cursor-grab'}`}
-      {...listeners}
-      {...attributes}
+      className={`flex touch-none ${
+        completed
+          ? 'cursor-default bg-neutral-200/80 text-neutral-700'
+          : `bg-gray-300 ${isDragging ? 'cursor-grabbing opacity-60' : 'cursor-grab'}`
+      }`}
+      {...(completed ? {} : listeners)}
+      {...(completed ? {} : attributes)}
     >
-      <div className="py-2 px-1 bg-blue-500 text-center w-12 shrink-0 flex flex-col items-center justify-center">
+      <div
+        className={`flex w-12 shrink-0 flex-col items-center justify-center py-2 px-1 text-center ${
+          completed ? 'bg-neutral-500 text-white' : 'bg-blue-500'
+        }`}
+      >
         <i>{creditsForPeriod.toFixed(1)}</i>
         {s.creditsMax === s.creditsMin ? s.creditsMax : `${s.creditsMin}–${s.creditsMax}`}
       </div>
 
-      <div className="p-2">{s.name}</div>
+      <div className="min-w-0 flex-1 p-2">
+        {s.name}
+        {completed ? <span className="mt-0.5 block text-xs text-neutral-600">Completed</span> : null}
+      </div>
     </li>
   )
 }

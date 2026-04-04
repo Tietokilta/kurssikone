@@ -1,5 +1,7 @@
 /** @jest-environment node */
 
+import fs from 'fs'
+import path from 'path'
 import {
   addPlannedPeriodIfMissing,
   applyPlannedPeriodMove,
@@ -7,9 +9,18 @@ import {
   plannedPeriodKeysEqual,
   removePlannedPeriodForSlot,
 } from '../utils/planPeriodDrag'
-import type { SisuCourseUnitSelection, SisuStudyPlan } from '../utils/types'
+import { createPeriodIndex } from '../utils/studyYearPeriods'
+import type { SisuCourseUnitSelection, SisuStudyPlan, SisuStudyYear } from '../utils/types'
 
 const ROOT = 'aalto-university-root-id'
+
+function loadIndex(): ReturnType<typeof createPeriodIndex> {
+  const raw = fs.readFileSync(path.join(__dirname, 'data', 'studyYears.json'), 'utf8').replace(/^\uFEFF/, '')
+  const years = JSON.parse(raw) as SisuStudyYear[]
+  return createPeriodIndex(years, ROOT, true)
+}
+
+const index = loadIndex()
 
 function selection(periods: string[]): SisuCourseUnitSelection {
   return {
@@ -54,13 +65,13 @@ function studyPlan(courseUnitSelections: SisuCourseUnitSelection[], revision = 7
 describe('plannedPeriodKeysEqual', () => {
   it('treats identical strings as same slot', () => {
     const p = `${ROOT}/2025/0/1`
-    expect(plannedPeriodKeysEqual(p, p, selection([]).courseUnitId)).toBe(true)
+    expect(plannedPeriodKeysEqual(p, p, selection([]).courseUnitId, index)).toBe(true)
   })
 
   it('treats different Fall periods as different slots', () => {
     const a = `${ROOT}/2025/0/1`
     const b = `${ROOT}/2025/0/2`
-    expect(plannedPeriodKeysEqual(a, b, selection([]).courseUnitId)).toBe(false)
+    expect(plannedPeriodKeysEqual(a, b, selection([]).courseUnitId, index)).toBe(false)
   })
 })
 
@@ -69,12 +80,12 @@ describe('removePlannedPeriodForSlot', () => {
   const p1 = `${ROOT}/2025/0/1`
 
   it('removes by exact string', () => {
-    const out = removePlannedPeriodForSlot([p1, `${ROOT}/2025/0/2`], p1, cu)
+    const out = removePlannedPeriodForSlot([p1, `${ROOT}/2025/0/2`], p1, cu, index)
     expect(out).toEqual([`${ROOT}/2025/0/2`])
   })
 
   it('returns null when no period matches', () => {
-    expect(removePlannedPeriodForSlot([], p1, cu)).toBeNull()
+    expect(removePlannedPeriodForSlot([], p1, cu, index)).toBeNull()
   })
 })
 
@@ -84,11 +95,11 @@ describe('addPlannedPeriodIfMissing', () => {
   const p2 = `${ROOT}/2025/0/2`
 
   it('does not duplicate an existing period (exact or same slot)', () => {
-    expect(addPlannedPeriodIfMissing([p1], p1, cu)).toEqual([p1])
+    expect(addPlannedPeriodIfMissing([p1], p1, cu, index)).toEqual([p1])
   })
 
   it('appends new slot', () => {
-    expect(addPlannedPeriodIfMissing([p1], p2, cu)).toEqual([p1, p2])
+    expect(addPlannedPeriodIfMissing([p1], p2, cu, index)).toEqual([p1, p2])
   })
 })
 
@@ -98,13 +109,13 @@ describe('moveCourseUnitPlannedPeriod', () => {
   const row = selection([p1])
 
   it('moves from first to second period', () => {
-    const next = moveCourseUnitPlannedPeriod(row, p1, p2)
+    const next = moveCourseUnitPlannedPeriod(row, p1, p2, index)
     expect(next).not.toBeNull()
     expect(next!.plannedPeriods).toEqual([p2])
   })
 
   it('returns null when source is missing', () => {
-    expect(moveCourseUnitPlannedPeriod(row, `${ROOT}/2026/1/0`, p2)).toBeNull()
+    expect(moveCourseUnitPlannedPeriod(row, `${ROOT}/2099/1/0`, p2, index)).toBeNull()
   })
 })
 
@@ -114,12 +125,12 @@ describe('applyPlannedPeriodMove', () => {
   const plan = studyPlan([selection([p1])], 4)
 
   it('returns same_slot when source and target match', () => {
-    const r = applyPlannedPeriodMove(plan, 0, p1, p1)
+    const r = applyPlannedPeriodMove(plan, 0, p1, p1, index)
     expect(r).toEqual({ ok: false, reason: 'same_slot' })
   })
 
   it('bumps revision and updates row', () => {
-    const r = applyPlannedPeriodMove(plan, 0, p1, p2)
+    const r = applyPlannedPeriodMove(plan, 0, p1, p2, index)
     expect(r.ok).toBe(true)
     if (!r.ok) {
       return
@@ -131,12 +142,12 @@ describe('applyPlannedPeriodMove', () => {
   })
 
   it('returns invalid_index for out-of-range row', () => {
-    const r = applyPlannedPeriodMove(plan, 99, p1, p2)
+    const r = applyPlannedPeriodMove(plan, 99, p1, p2, index)
     expect(r).toEqual({ ok: false, reason: 'invalid_index' })
   })
 
   it('returns source_not_found when period not in row', () => {
-    const r = applyPlannedPeriodMove(plan, 0, `${ROOT}/2026/1/0`, p2)
+    const r = applyPlannedPeriodMove(plan, 0, `${ROOT}/2026/1/0`, p2, index)
     expect(r).toEqual({ ok: false, reason: 'source_not_found' })
   })
 })

@@ -5,6 +5,7 @@ import type {
   SisuAttainmentsResponse,
   SisuMyPlansResponse,
   SisuStudyPlan,
+  SisuStudyYearsResponse,
 } from './utils/types'
 
 const get = async (
@@ -40,6 +41,28 @@ export type FetchAttainmentsResult =
 /** `personId` matches `SisuStudyPlan.userId` from my-plans. */
 export const fetchAttainments = async (personId: string): Promise<FetchAttainmentsResult> => {
   return (await chrome.runtime.sendMessage({ type: 'fetchAttainments', personId })) as FetchAttainmentsResult
+}
+
+export type FetchStudyYearsResult =
+  | { ok: true; data: SisuStudyYearsResponse }
+  | { ok: false; error: 'no_sisu_token' }
+  | { ok: false; error: 'fetch_failed'; message?: string }
+
+/**
+ * `organisationId` must be the kori study-years org (Aalto: `aalto-university-root-id`), not the programme `rootId`.
+ * `firstYear` is required by kori (`int`); derive from attainments via `firstStudyYearFromAttainmentDates` in `./utils/inferSisuFirstStudyYear`.
+ */
+export const fetchStudyYears = async (
+  organisationId: string,
+  firstYear: number,
+  curriculumPeriodId?: string
+): Promise<FetchStudyYearsResult> => {
+  return (await chrome.runtime.sendMessage({
+    type: 'fetchStudyYears',
+    organisationId,
+    firstYear,
+    curriculumPeriodId,
+  })) as FetchStudyYearsResult
 }
 
 export type UpdateStudyPlanResult =

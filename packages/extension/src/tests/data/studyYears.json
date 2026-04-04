@@ -1,0 +1,1081 @@
+﻿[
+  {
+    "valid": { "startDate": "2020-08-01", "endDate": "2021-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2020-08-01", "endDate": "2021-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2020/0/0",
+            "valid": { "startDate": "2020-08-01", "endDate": "2020-08-31" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2020-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2020/0/1",
+            "valid": { "startDate": "2020-08-31", "endDate": "2020-10-26" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2020-08-31"
+          },
+          {
+            "locator": "aalto-university-root-id/2020/0/2",
+            "valid": { "startDate": "2020-10-26", "endDate": "2021-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2020-10-26"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2021-01-01", "endDate": "2021-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2020/1/0",
+            "valid": { "startDate": "2021-01-01", "endDate": "2021-03-01" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2021-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2020/1/1",
+            "valid": { "startDate": "2021-03-01", "endDate": "2021-04-19" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2021-03-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2020/1/2",
+            "valid": { "startDate": "2021-04-19", "endDate": "2021-06-05" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2021-04-19"
+          },
+          {
+            "locator": "aalto-university-root-id/2020/1/3",
+            "valid": { "startDate": "2021-06-05", "endDate": "2021-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2021-06-05"
+          }
+        ]
+      }
+    ],
+    "name": "2020â€“2021",
+    "startYear": 2020
+  },
+  {
+    "valid": { "startDate": "2021-08-01", "endDate": "2022-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2021-08-01", "endDate": "2022-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2021/0/0",
+            "valid": { "startDate": "2021-08-01", "endDate": "2021-09-13" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2021-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2021/0/1",
+            "valid": { "startDate": "2021-09-13", "endDate": "2021-11-01" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2021-09-13"
+          },
+          {
+            "locator": "aalto-university-root-id/2021/0/2",
+            "valid": { "startDate": "2021-11-01", "endDate": "2022-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2021-11-01"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2022-01-01", "endDate": "2022-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2021/1/0",
+            "valid": { "startDate": "2022-01-01", "endDate": "2022-02-28" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2022-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2021/1/1",
+            "valid": { "startDate": "2022-02-28", "endDate": "2022-04-19" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2022-02-28"
+          },
+          {
+            "locator": "aalto-university-root-id/2021/1/2",
+            "valid": { "startDate": "2022-04-19", "endDate": "2022-06-06" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2022-04-19"
+          },
+          {
+            "locator": "aalto-university-root-id/2021/1/3",
+            "valid": { "startDate": "2022-06-06", "endDate": "2022-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2022-06-06"
+          }
+        ]
+      }
+    ],
+    "name": "2021â€“2022",
+    "startYear": 2021
+  },
+  {
+    "valid": { "startDate": "2022-08-01", "endDate": "2023-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2022-08-01", "endDate": "2023-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2022/0/0",
+            "valid": { "startDate": "2022-08-01", "endDate": "2022-09-05" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2022-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2022/0/1",
+            "valid": { "startDate": "2022-09-05", "endDate": "2022-10-24" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2022-09-05"
+          },
+          {
+            "locator": "aalto-university-root-id/2022/0/2",
+            "valid": { "startDate": "2022-10-24", "endDate": "2023-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2022-10-24"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2023-01-01", "endDate": "2023-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2022/1/0",
+            "valid": { "startDate": "2023-01-01", "endDate": "2023-02-27" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2023-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2022/1/1",
+            "valid": { "startDate": "2023-02-27", "endDate": "2023-04-24" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2023-02-27"
+          },
+          {
+            "locator": "aalto-university-root-id/2022/1/2",
+            "valid": { "startDate": "2023-04-24", "endDate": "2023-06-12" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2023-04-24"
+          },
+          {
+            "locator": "aalto-university-root-id/2022/1/3",
+            "valid": { "startDate": "2023-06-12", "endDate": "2023-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2023-06-12"
+          }
+        ]
+      }
+    ],
+    "name": "2022â€“2023",
+    "startYear": 2022
+  },
+  {
+    "valid": { "startDate": "2023-08-01", "endDate": "2024-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2023-08-01", "endDate": "2024-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2023/0/0",
+            "valid": { "startDate": "2023-08-01", "endDate": "2023-09-04" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2023-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2023/0/1",
+            "valid": { "startDate": "2023-09-04", "endDate": "2023-10-23" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2023-09-04"
+          },
+          {
+            "locator": "aalto-university-root-id/2023/0/2",
+            "valid": { "startDate": "2023-10-23", "endDate": "2024-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2023-10-23"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2024-01-01", "endDate": "2024-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2023/1/0",
+            "valid": { "startDate": "2024-01-01", "endDate": "2024-02-26" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2024-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2023/1/1",
+            "valid": { "startDate": "2024-02-26", "endDate": "2024-04-22" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2024-02-26"
+          },
+          {
+            "locator": "aalto-university-root-id/2023/1/2",
+            "valid": { "startDate": "2024-04-22", "endDate": "2024-06-10" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2024-04-22"
+          },
+          {
+            "locator": "aalto-university-root-id/2023/1/3",
+            "valid": { "startDate": "2024-06-10", "endDate": "2024-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2024-06-10"
+          }
+        ]
+      }
+    ],
+    "name": "2023â€“2024",
+    "startYear": 2023
+  },
+  {
+    "valid": { "startDate": "2024-08-01", "endDate": "2025-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2024-08-01", "endDate": "2025-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2024/0/0",
+            "valid": { "startDate": "2024-08-01", "endDate": "2024-09-02" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2024-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2024/0/1",
+            "valid": { "startDate": "2024-09-02", "endDate": "2024-10-21" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2024-09-02"
+          },
+          {
+            "locator": "aalto-university-root-id/2024/0/2",
+            "valid": { "startDate": "2024-10-21", "endDate": "2025-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2024-10-21"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2025-01-01", "endDate": "2025-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2024/1/0",
+            "valid": { "startDate": "2025-01-01", "endDate": "2025-02-24" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2025-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2024/1/1",
+            "valid": { "startDate": "2025-02-24", "endDate": "2025-04-14" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2025-02-24"
+          },
+          {
+            "locator": "aalto-university-root-id/2024/1/2",
+            "valid": { "startDate": "2025-04-14", "endDate": "2025-06-07" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2025-04-14"
+          },
+          {
+            "locator": "aalto-university-root-id/2024/1/3",
+            "valid": { "startDate": "2025-06-07", "endDate": "2025-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2025-06-07"
+          }
+        ]
+      }
+    ],
+    "name": "2024â€“2025",
+    "startYear": 2024
+  },
+  {
+    "valid": { "startDate": "2025-08-01", "endDate": "2026-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2025-08-01", "endDate": "2026-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2025/0/0",
+            "valid": { "startDate": "2025-08-01", "endDate": "2025-09-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2025-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2025/0/1",
+            "valid": { "startDate": "2025-09-01", "endDate": "2025-10-20" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2025-09-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2025/0/2",
+            "valid": { "startDate": "2025-10-20", "endDate": "2026-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2025-10-20"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2026-01-01", "endDate": "2026-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2025/1/0",
+            "valid": { "startDate": "2026-01-01", "endDate": "2026-02-23" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2026-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2025/1/1",
+            "valid": { "startDate": "2026-02-23", "endDate": "2026-04-20" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2026-02-23"
+          },
+          {
+            "locator": "aalto-university-root-id/2025/1/2",
+            "valid": { "startDate": "2026-04-20", "endDate": "2026-06-06" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2026-04-20"
+          },
+          {
+            "locator": "aalto-university-root-id/2025/1/3",
+            "valid": { "startDate": "2026-06-06", "endDate": "2026-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2026-06-06"
+          }
+        ]
+      }
+    ],
+    "name": "2025â€“2026",
+    "startYear": 2025
+  },
+  {
+    "valid": { "startDate": "2026-08-01", "endDate": "2027-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2026-08-01", "endDate": "2027-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2026/0/0",
+            "valid": { "startDate": "2026-08-01", "endDate": "2026-08-31" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2026-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2026/0/1",
+            "valid": { "startDate": "2026-08-31", "endDate": "2026-10-19" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2026-08-31"
+          },
+          {
+            "locator": "aalto-university-root-id/2026/0/2",
+            "valid": { "startDate": "2026-10-19", "endDate": "2027-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2026-10-19"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2027-01-01", "endDate": "2027-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2026/1/0",
+            "valid": { "startDate": "2027-01-01", "endDate": "2027-03-01" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2027-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2026/1/1",
+            "valid": { "startDate": "2027-03-01", "endDate": "2027-04-26" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2027-03-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2026/1/2",
+            "valid": { "startDate": "2027-04-26", "endDate": "2027-06-14" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2027-04-26"
+          },
+          {
+            "locator": "aalto-university-root-id/2026/1/3",
+            "valid": { "startDate": "2027-06-14", "endDate": "2027-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2027-06-14"
+          }
+        ]
+      }
+    ],
+    "name": "2026â€“2027",
+    "startYear": 2026
+  },
+  {
+    "valid": { "startDate": "2027-08-01", "endDate": "2028-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2027-08-01", "endDate": "2028-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2027/0/0",
+            "valid": { "startDate": "2027-08-01", "endDate": "2027-09-06" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2027-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2027/0/1",
+            "valid": { "startDate": "2027-09-06", "endDate": "2027-10-25" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2027-09-06"
+          },
+          {
+            "locator": "aalto-university-root-id/2027/0/2",
+            "valid": { "startDate": "2027-10-25", "endDate": "2028-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2027-10-25"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2028-01-01", "endDate": "2028-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2027/1/0",
+            "valid": { "startDate": "2028-01-01", "endDate": "2028-02-28" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2028-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2027/1/1",
+            "valid": { "startDate": "2028-02-28", "endDate": "2028-04-24" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2028-02-28"
+          },
+          {
+            "locator": "aalto-university-root-id/2027/1/2",
+            "valid": { "startDate": "2028-04-24", "endDate": "2028-06-12" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2028-04-24"
+          },
+          {
+            "locator": "aalto-university-root-id/2027/1/3",
+            "valid": { "startDate": "2028-06-12", "endDate": "2028-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2028-06-12"
+          }
+        ]
+      }
+    ],
+    "name": "2027â€“2028",
+    "startYear": 2027
+  },
+  {
+    "valid": { "startDate": "2028-08-01", "endDate": "2029-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2028-08-01", "endDate": "2029-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2028/0/0",
+            "valid": { "startDate": "2028-08-01", "endDate": "2028-09-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2028-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2028/0/1",
+            "valid": { "startDate": "2028-09-01", "endDate": "2028-10-28" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2028-09-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2028/0/2",
+            "valid": { "startDate": "2028-10-28", "endDate": "2029-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2028-10-28"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2029-01-01", "endDate": "2029-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2028/1/0",
+            "valid": { "startDate": "2029-01-01", "endDate": "2029-02-24" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2029-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2028/1/1",
+            "valid": { "startDate": "2029-02-24", "endDate": "2029-04-13" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2029-02-24"
+          },
+          {
+            "locator": "aalto-university-root-id/2028/1/2",
+            "valid": { "startDate": "2029-04-13", "endDate": "2029-06-01" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2029-04-13"
+          },
+          {
+            "locator": "aalto-university-root-id/2028/1/3",
+            "valid": { "startDate": "2029-06-01", "endDate": "2029-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2029-06-01"
+          }
+        ]
+      }
+    ],
+    "name": "2028â€“2029",
+    "startYear": 2028
+  },
+  {
+    "valid": { "startDate": "2029-08-01", "endDate": "2030-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2029-08-01", "endDate": "2030-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2029/0/0",
+            "valid": { "startDate": "2029-08-01", "endDate": "2029-09-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2029-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2029/0/1",
+            "valid": { "startDate": "2029-09-01", "endDate": "2029-10-28" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2029-09-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2029/0/2",
+            "valid": { "startDate": "2029-10-28", "endDate": "2030-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2029-10-28"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2030-01-01", "endDate": "2030-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2029/1/0",
+            "valid": { "startDate": "2030-01-01", "endDate": "2030-02-24" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2030-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2029/1/1",
+            "valid": { "startDate": "2030-02-24", "endDate": "2030-04-13" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2030-02-24"
+          },
+          {
+            "locator": "aalto-university-root-id/2029/1/2",
+            "valid": { "startDate": "2030-04-13", "endDate": "2030-06-01" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2030-04-13"
+          },
+          {
+            "locator": "aalto-university-root-id/2029/1/3",
+            "valid": { "startDate": "2030-06-01", "endDate": "2030-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2030-06-01"
+          }
+        ]
+      }
+    ],
+    "name": "2029â€“2030",
+    "startYear": 2029
+  },
+  {
+    "valid": { "startDate": "2030-08-01", "endDate": "2031-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2030-08-01", "endDate": "2031-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2030/0/0",
+            "valid": { "startDate": "2030-08-01", "endDate": "2030-09-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2030-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2030/0/1",
+            "valid": { "startDate": "2030-09-01", "endDate": "2030-10-28" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2030-09-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2030/0/2",
+            "valid": { "startDate": "2030-10-28", "endDate": "2031-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2030-10-28"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2031-01-01", "endDate": "2031-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2030/1/0",
+            "valid": { "startDate": "2031-01-01", "endDate": "2031-02-24" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2031-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2030/1/1",
+            "valid": { "startDate": "2031-02-24", "endDate": "2031-04-13" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2031-02-24"
+          },
+          {
+            "locator": "aalto-university-root-id/2030/1/2",
+            "valid": { "startDate": "2031-04-13", "endDate": "2031-06-01" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2031-04-13"
+          },
+          {
+            "locator": "aalto-university-root-id/2030/1/3",
+            "valid": { "startDate": "2031-06-01", "endDate": "2031-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2031-06-01"
+          }
+        ]
+      }
+    ],
+    "name": "2030â€“2031",
+    "startYear": 2030
+  },
+  {
+    "valid": { "startDate": "2031-08-01", "endDate": "2032-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2031-08-01", "endDate": "2032-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2031/0/0",
+            "valid": { "startDate": "2031-08-01", "endDate": "2031-09-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2031-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2031/0/1",
+            "valid": { "startDate": "2031-09-01", "endDate": "2031-10-28" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2031-09-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2031/0/2",
+            "valid": { "startDate": "2031-10-28", "endDate": "2032-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2031-10-28"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2032-01-01", "endDate": "2032-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2031/1/0",
+            "valid": { "startDate": "2032-01-01", "endDate": "2032-02-24" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2032-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2031/1/1",
+            "valid": { "startDate": "2032-02-24", "endDate": "2032-04-13" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2032-02-24"
+          },
+          {
+            "locator": "aalto-university-root-id/2031/1/2",
+            "valid": { "startDate": "2032-04-13", "endDate": "2032-06-01" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2032-04-13"
+          },
+          {
+            "locator": "aalto-university-root-id/2031/1/3",
+            "valid": { "startDate": "2032-06-01", "endDate": "2032-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2032-06-01"
+          }
+        ]
+      }
+    ],
+    "name": "2031â€“2032",
+    "startYear": 2031
+  },
+  {
+    "valid": { "startDate": "2032-08-01", "endDate": "2033-08-01" },
+    "org": "aalto-university-root-id",
+    "studyTerms": [
+      {
+        "valid": { "startDate": "2032-08-01", "endDate": "2033-01-01" },
+        "name": { "en": "autumn", "fi": "syksy", "sv": "hÃ¶sten" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2032/0/0",
+            "valid": { "startDate": "2032-08-01", "endDate": "2032-09-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2032-08-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2032/0/1",
+            "valid": { "startDate": "2032-09-01", "endDate": "2032-10-28" },
+            "name": { "fi": "I" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2032-09-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2032/0/2",
+            "valid": { "startDate": "2032-10-28", "endDate": "2033-01-01" },
+            "name": { "fi": "II" },
+            "size": 3,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2032-10-28"
+          }
+        ]
+      },
+      {
+        "valid": { "startDate": "2033-01-01", "endDate": "2033-08-01" },
+        "name": { "en": "spring", "fi": "kevÃ¤t", "sv": "vÃ¥ren" },
+        "studyPeriods": [
+          {
+            "locator": "aalto-university-root-id/2032/1/0",
+            "valid": { "startDate": "2033-01-01", "endDate": "2033-02-24" },
+            "name": { "fi": "III" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2033-01-01"
+          },
+          {
+            "locator": "aalto-university-root-id/2032/1/1",
+            "valid": { "startDate": "2033-02-24", "endDate": "2033-04-13" },
+            "name": { "fi": "IV" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2033-02-24"
+          },
+          {
+            "locator": "aalto-university-root-id/2032/1/2",
+            "valid": { "startDate": "2033-04-13", "endDate": "2033-06-01" },
+            "name": { "fi": "V" },
+            "size": 2,
+            "visibleByDefault": true,
+            "includedInTargetCreditsCalculation": true,
+            "startDate": "2033-04-13"
+          },
+          {
+            "locator": "aalto-university-root-id/2032/1/3",
+            "valid": { "startDate": "2033-06-01", "endDate": "2033-08-01" },
+            "name": { "en": "Summer", "fi": "KesÃ¤", "sv": "Sommaren" },
+            "size": 1,
+            "visibleByDefault": false,
+            "includedInTargetCreditsCalculation": false,
+            "startDate": "2033-06-01"
+          }
+        ]
+      }
+    ],
+    "name": "2032â€“2033",
+    "startYear": 2032
+  }
+]
