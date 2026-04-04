@@ -108,7 +108,11 @@ function buildParsedCourseUnitSelections(
       creditsMin,
       creditsMax,
       plannedCredits,
-      parsedPlannedPeriods: parseCourseUnitPlannedPeriods(s.courseUnitId, s.plannedPeriods, periodIndex),
+      parsedPlannedPeriods: parseCourseUnitPlannedPeriods(
+        s.courseUnitId,
+        s.plannedPeriods,
+        periodIndex
+      ),
       rawData: s,
       selectionIndex,
     }
@@ -226,6 +230,7 @@ const TimelinePage = ({ planId }: Props) => {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [showSummer, setShowSummer] = useState(true)
+  const [showPastPeriods, setShowPastPeriods] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -265,9 +270,13 @@ const TimelinePage = ({ planId }: Props) => {
   const timelineCards = useMemo(
     () =>
       timelineRows
-        ? buildTimelineCards(timelineRows, undefined, { showSummer, periodIndex })
+        ? buildTimelineCards(timelineRows, undefined, {
+            showSummer,
+            periodIndex,
+            showPastPeriods,
+          })
         : [],
-    [timelineRows, showSummer, periodIndex]
+    [timelineRows, showSummer, periodIndex, showPastPeriods]
   )
 
   const sisuRootId = useMemo(
@@ -366,8 +375,7 @@ const TimelinePage = ({ planId }: Props) => {
       if (!plansResult.ok) {
         console.error('[Kurssikompassi/Timeline]', 'Study plans fetch failed', {
           error: plansResult.error,
-          message:
-            plansResult.error === 'fetch_failed' ? plansResult.message : undefined,
+          message: plansResult.error === 'fetch_failed' ? plansResult.message : undefined,
         })
         if (plansResult.error === 'no_sisu_token') {
           setError('Could not get Sisu auth')
@@ -414,8 +422,7 @@ const TimelinePage = ({ planId }: Props) => {
       } else {
         console.warn('[Kurssikompassi/Timeline]', 'Study years fetch failed', {
           error: studyYearsResult.error,
-          message:
-            studyYearsResult.error === 'fetch_failed' ? studyYearsResult.message : undefined,
+          message: studyYearsResult.error === 'fetch_failed' ? studyYearsResult.message : undefined,
           organisationId: DEFAULT_SISU_ROOT_ID,
           firstYear,
         })
@@ -469,15 +476,26 @@ const TimelinePage = ({ planId }: Props) => {
       {isSaving ? <div className="text-sm text-neutral-600">Saving plan…</div> : null}
       {saveError ? <div className="text-sm text-red-600">{saveError}</div> : null}
       {studyYearsWarning ? <div className="text-sm text-amber-700">{studyYearsWarning}</div> : null}
-      <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-700">
-        <input
-          type="checkbox"
-          className="size-4 rounded border-neutral-300"
-          checked={showSummer}
-          onChange={(e) => setShowSummer(e.target.checked)}
-        />
-        Show summer periods
-      </label>
+      <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-700">
+        <label className="flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            className="size-4 rounded border-neutral-300"
+            checked={showPastPeriods}
+            onChange={(e) => setShowPastPeriods(e.target.checked)}
+          />
+          Show past periods
+        </label>
+        <label className="flex cursor-pointer items-center gap-2">
+          <input
+            type="checkbox"
+            className="size-4 rounded border-neutral-300"
+            checked={showSummer}
+            onChange={(e) => setShowSummer(e.target.checked)}
+          />
+          Show summer periods
+        </label>
+      </div>
 
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         {timelineCards.map((card) => (

@@ -36,7 +36,10 @@ export interface StudyPeriodIndex {
 }
 
 /** Replace the first locator segment with `organisationRoot` (same year/term/period tail). */
-export function rewriteLocatorOrganisationRoot(locator: string, organisationRoot: string): string | null {
+export function rewriteLocatorOrganisationRoot(
+  locator: string,
+  organisationRoot: string
+): string | null {
   const parts = normalizeStudyLocator(locator).split('/').filter(Boolean)
   if (parts.length < 2) {
     return null
@@ -194,7 +197,9 @@ export function formatPlannedPeriodForSlot(
   periodLabel: string,
   index: StudyPeriodIndex
 ): string {
-  const hit = index.periodsByCard.get(`${timelineYear}|${season}`)?.find((c) => c.label === periodLabel)
+  const hit = index.periodsByCard
+    .get(`${timelineYear}|${season}`)
+    ?.find((c) => c.label === periodLabel)
   if (!hit) {
     throw new Error(`Unknown slot ${timelineYear} ${season} ${periodLabel}`)
   }
@@ -223,10 +228,20 @@ function collectAllPeriodKeys(
   return keys
 }
 
+export type ComputeTimelineRangeOptions = {
+  /**
+   * When true (default), the range begins at the earliest course or attainment period.
+   * When false, the range does not start before the current academic season (e.g. Spring 2026).
+   */
+  showPastPeriods?: boolean
+}
+
 export function computeTimelineRange(
   selections: { parsedPlannedPeriods: (ParsedPlannedPeriod | null)[] }[],
-  now: Date = new Date()
+  now: Date = new Date(),
+  options?: ComputeTimelineRangeOptions
 ): { start: YearSeason; end: YearSeason } {
+  const showPast = options?.showPastPeriods !== false
   const nowStartKey = getCurrentSeasonStartKey(now)
   const allKeys = collectAllPeriodKeys(selections)
 
@@ -240,9 +255,14 @@ export function computeTimelineRange(
     allKeys.sort(comparePeriodKeysChronological)
     const dataMinKey = allKeys[0]
     const dataMaxKey = allKeys[allKeys.length - 1]
-    rangeStartKey =
-      comparePeriodKeysChronological(dataMinKey, nowStartKey) < 0 ? nowStartKey : dataMinKey
-    rangeEndKey = dataMaxKey
+    rangeStartKey = showPast
+      ? dataMinKey
+      : comparePeriodKeysChronological(dataMinKey, nowStartKey) < 0
+        ? nowStartKey
+        : dataMinKey
+    // Extend through at least the current season when all data lies in the past.
+    rangeEndKey =
+      comparePeriodKeysChronological(dataMaxKey, nowStartKey) < 0 ? nowStartKey : dataMaxKey
   }
 
   if (comparePeriodKeysChronological(rangeEndKey, rangeStartKey) < 0) {
@@ -290,6 +310,8 @@ export type BuildTimelineCardsOptions = {
   showSummer?: boolean
   /** From kori study-years; missing or empty → no cards. */
   periodIndex?: StudyPeriodIndex | null
+  /** Passed to {@link computeTimelineRange}; default true (show history). */
+  showPastPeriods?: boolean
 }
 
 function mergeCellSelections<T extends { id: string; completed?: boolean }>(items: T[]): T[] {
@@ -307,12 +329,10 @@ function mergeCellSelections<T extends { id: string; completed?: boolean }>(item
 
 export function buildTimelineCards<
   T extends { id: string; name: string; parsedPlannedPeriods: (ParsedPlannedPeriod | null)[] },
->(
-  selections: T[],
-  now: Date = new Date(),
-  options?: BuildTimelineCardsOptions
-): TimelineCard<T>[] {
-  const { start, end } = computeTimelineRange(selections, now)
+>(selections: T[], now: Date = new Date(), options?: BuildTimelineCardsOptions): TimelineCard<T>[] {
+  const { start, end } = computeTimelineRange(selections, now, {
+    showPastPeriods: options?.showPastPeriods,
+  })
   const slots = iterateYearSeasonSlots(start, end)
   const showSummer = options?.showSummer !== false
   const visibleSlots = showSummer ? slots : slots.filter((slot) => slot.season !== 'Summer')
@@ -323,53 +343,56 @@ export function buildTimelineCards<
 
   return visibleSlots
     .map((slot) => {
-    const ck = `${slot.year}|${slot.season}`
-    const indexedCols = index.periodsByCard.get(ck)
-    if (!indexedCols?.length) {
-      return null
-    }
-    const columnDefs = indexedCols.map((c) => ({
-      label: c.label,
-      periodKey: c.periodKey,
-      plannedPeriod: c.locator,
-    }))
-
-    const periods: TimelinePeriod<T>[] = columnDefs.map((col) => {
-      const raw: T[] = []
-      const seen = new Set<string>()
-      for (const sel of selections) {
-        const match = sel.parsedPlannedPeriods.some(
-          (p) =>
-            p !== null &&
-            p.year === slot.year &&
-            p.season === slot.season &&
-            p.period === col.label
-        )
-        if (match && !seen.has(sel.id)) {
-          seen.add(sel.id)
-          raw.push(sel)
-        }
+      const ck = `${slot.year}|${slot.season}`
+      const indexedCols = index.periodsByCard.get(ck)
+      if (!indexedCols?.length) {
+        return null
       }
-      const inCell = mergeCellSelections(raw)
-      inCell.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-      const firstMatch = inCell[0]?.parsedPlannedPeriods.find(
-        (pp) =>
-          pp !== null && pp.year === slot.year && pp.season === slot.season && pp.period === col.label
-      )
+      const columnDefs = indexedCols.map((c) => ({
+        label: c.label,
+        periodKey: c.periodKey,
+        plannedPeriod: c.locator,
+      }))
+
+      const periods: TimelinePeriod<T>[] = columnDefs.map((col) => {
+        const raw: T[] = []
+        const seen = new Set<string>()
+        for (const sel of selections) {
+          const match = sel.parsedPlannedPeriods.some(
+            (p) =>
+              p !== null &&
+              p.year === slot.year &&
+              p.season === slot.season &&
+              p.period === col.label
+          )
+          if (match && !seen.has(sel.id)) {
+            seen.add(sel.id)
+            raw.push(sel)
+          }
+        }
+        const inCell = mergeCellSelections(raw)
+        inCell.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+        const firstMatch = inCell[0]?.parsedPlannedPeriods.find(
+          (pp) =>
+            pp !== null &&
+            pp.year === slot.year &&
+            pp.season === slot.season &&
+            pp.period === col.label
+        )
+        return {
+          period: col.label,
+          periodKey: col.periodKey,
+          selections: inCell,
+          plannedPeriod: firstMatch?.plannedPeriod ?? col.plannedPeriod,
+        }
+      })
+
       return {
-        period: col.label,
-        periodKey: col.periodKey,
-        selections: inCell,
-        plannedPeriod: firstMatch?.plannedPeriod ?? col.plannedPeriod,
+        year: slot.year,
+        season: slot.season,
+        cardKey: yearSeasonSortKey(slot),
+        periods,
       }
     })
-
-    return {
-      year: slot.year,
-      season: slot.season,
-      cardKey: yearSeasonSortKey(slot),
-      periods,
-    }
-  })
     .filter((c): c is TimelineCard<T> => c !== null)
 }

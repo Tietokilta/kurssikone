@@ -285,13 +285,13 @@ describe('computeTimelineRange', () => {
     expect(end).toEqual({ year: 2028, season: 'Spring' })
   })
 
-  it('when all planned keys are before now, end is not left before start (regression)', () => {
+  it('when showPastPeriods is false and all keys are before now, start is current season (regression)', () => {
     const onlyPast = [
       {
         parsedPlannedPeriods: [parsePlannedPeriods('aalto-university-root-id/2025/0/1', undefined, idx)],
       },
     ]
-    const { start, end } = computeTimelineRange(onlyPast, spring2026)
+    const { start, end } = computeTimelineRange(onlyPast, spring2026, { showPastPeriods: false })
     expect(start).toEqual({ year: 2026, season: 'Spring' })
     expect(
       comparePeriodKeysChronological(seasonStartKey(start), seasonStartKey(end))
@@ -299,6 +299,16 @@ describe('computeTimelineRange', () => {
     const slots = iterateYearSeasonSlots(start, end)
     expect(slots.length).toBeGreaterThan(0)
     expect(end).toEqual({ year: 2028, season: 'Spring' })
+  })
+
+  it('when showPastPeriods is true, range includes earliest data before current season', () => {
+    const onlyPast = [
+      {
+        parsedPlannedPeriods: [parsePlannedPeriods('aalto-university-root-id/2025/0/1', undefined, idx)],
+      },
+    ]
+    const { start } = computeTimelineRange(onlyPast, spring2026)
+    expect(start).toEqual({ year: 2025, season: 'Fall' })
   })
 
   it('uses data min when it is not before current season start', () => {
