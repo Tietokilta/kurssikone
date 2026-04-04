@@ -410,11 +410,7 @@ const TimelinePage = ({ planId }: Props) => {
       const fromAtt = firstStudyYearFromAttainmentDates(attData)
       const firstYear = fromAtt ?? defaultFirstStudyYearWhenNoAttainments()
 
-      const studyYearsResult = await fetchStudyYears(
-        DEFAULT_SISU_ROOT_ID,
-        firstYear,
-        plan.curriculumPeriodId
-      )
+      const studyYearsResult = await fetchStudyYears(DEFAULT_SISU_ROOT_ID, firstYear)
       if (cancelled) return
 
       if (studyYearsResult.ok) {

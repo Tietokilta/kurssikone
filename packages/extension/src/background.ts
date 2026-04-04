@@ -1,35 +1,16 @@
 /**
  * Standalone `tsc` compiles this file to `background.js` without webpack; keep it free of
  * `import`/`export` so output is a plain script (no `exports` in the extension background).
- * Same algorithm as `utils/inferSisuFirstStudyYear.ts` (keep in sync).
  */
-const ROOT_DATE_SUFFIX = /-(\d{4})-\d{2}-\d{2}$/
-
 function academicYearStartCalendarYear(now: Date): number {
   const y = now.getFullYear()
   const month = now.getMonth() + 1
   return month >= 8 ? y : y - 1
 }
 
-function inferFirstYearForKoriStudyYearsBg(plan: {
-  rootId?: string | null
-  curriculumPeriodId?: string | null
-}): number {
-  const root = plan.rootId?.trim() ?? ''
-  const fromRoot = root.match(ROOT_DATE_SUFFIX)
-  if (fromRoot) {
-    const y = parseInt(fromRoot[1], 10)
-    if (y >= 1990 && y <= 2100) return y
-  }
-
-  const cp = plan.curriculumPeriodId?.trim() ?? ''
-  const fromCp = cp.match(/\b(20\d{2})\b/)
-  if (fromCp) {
-    const y = parseInt(fromCp[1], 10)
-    if (y >= 1990 && y <= 2100) return y
-  }
-
-  const academicStart = academicYearStartCalendarYear(new Date())
+/** Matches `defaultFirstStudyYearWhenNoAttainments` in `utils/inferSisuFirstStudyYear.ts`. */
+function defaultFirstStudyYearBg(now = new Date()): number {
+  const academicStart = academicYearStartCalendarYear(now)
   return Math.max(1990, academicStart - 10)
 }
 
@@ -86,7 +67,6 @@ const post = async (pathParts: string[], body: { [key: string]: any }) => {
 const del = async (pathParts: string[], body: { [key: string]: any }) => {
   let url = `${host}/${pathParts.join('/')}`
 
-  console.log(body)
   await fetch(url, {
     method: 'DELETE',
     headers: {
@@ -121,16 +101,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         : 'aalto-university-root-id'
     const fy = request.firstYear
     const firstYear =
-      typeof fy === 'number' &&
-      Number.isInteger(fy) &&
-      fy >= 1990 &&
-      fy <= 2100
+      typeof fy === 'number' && Number.isInteger(fy) && fy >= 1990 && fy <= 2100
         ? fy
-        : inferFirstYearForKoriStudyYearsBg({
-            rootId: organisationId,
-            curriculumPeriodId:
-              typeof request.curriculumPeriodId === 'string' ? request.curriculumPeriodId : '',
-          })
+        : defaultFirstStudyYearBg()
     dedupeSisuFetch(`sisu:study-years:${organisationId}:${firstYear}`, () =>
       fetchStudyYearsFromSisu(organisationId, firstYear)
     ).then((res) => sendResponse(res))

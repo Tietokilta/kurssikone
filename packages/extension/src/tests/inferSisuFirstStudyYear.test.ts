@@ -1,7 +1,6 @@
 import {
   defaultFirstStudyYearWhenNoAttainments,
   firstStudyYearFromAttainmentDates,
-  inferFirstYearForKoriStudyYears,
 } from '../utils/inferSisuFirstStudyYear'
 import type { SisuCourseUnitAttainment } from '../utils/types'
 
@@ -70,22 +69,3 @@ describe('defaultFirstStudyYearWhenNoAttainments', () => {
   })
 })
 
-describe('inferFirstYearForKoriStudyYears', () => {
-  it('reads calendar year from trailing date on programme root id', () => {
-    expect(
-      inferFirstYearForKoriStudyYears({
-        rootId: 'aalto-EDU-203002-2016-08-01',
-        curriculumPeriodId: '',
-      })
-    ).toBe(2016)
-  })
-
-  it('reads first 20xx year from curriculumPeriodId when root has no date', () => {
-    expect(
-      inferFirstYearForKoriStudyYears({
-        rootId: 'aalto-university-root-id',
-        curriculumPeriodId: 'foo-2020-bar',
-      })
-    ).toBe(2020)
-  })
-})

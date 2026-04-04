@@ -50,18 +50,16 @@ export type FetchStudyYearsResult =
 
 /**
  * `organisationId` must be the kori study-years org (Aalto: `aalto-university-root-id`), not the programme `rootId`.
- * `firstYear` is required by kori (`int`); derive from attainments via `firstStudyYearFromAttainmentDates` in `./utils/inferSisuFirstStudyYear`.
+ * `firstYear` is required by kori (`int`); the timeline derives it from attainments (`firstStudyYearFromAttainmentDates`) or `defaultFirstStudyYearWhenNoAttainments`.
  */
 export const fetchStudyYears = async (
   organisationId: string,
-  firstYear: number,
-  curriculumPeriodId?: string
+  firstYear: number
 ): Promise<FetchStudyYearsResult> => {
   return (await chrome.runtime.sendMessage({
     type: 'fetchStudyYears',
     organisationId,
     firstYear,
-    curriculumPeriodId,
   })) as FetchStudyYearsResult
 }
 

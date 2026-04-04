@@ -36,7 +36,7 @@ export interface StudyPeriodIndex {
 }
 
 /** Replace the first locator segment with `organisationRoot` (same year/term/period tail). */
-export function rewriteLocatorOrganisationRoot(
+function rewriteLocatorOrganisationRoot(
   locator: string,
   organisationRoot: string
 ): string | null {
