@@ -37,5 +37,9 @@ npm run lint --prefix packages/extension
 ## Tests
 
 ```bash
+# All packages (extension runs unit tests only; no Puppeteer)
 npm run test
+
+# Extension browser E2E (Puppeteer, live Sisu + API) — run separately when needed
+npm run test:e2e
 ```

@@ -19,7 +19,7 @@ const shadowStyles = styles
   )
 
 const createShadowRoot = (hostElement: HTMLElement): ShadowRoot => {
-  const shadow = hostElement.attachShadow({ mode: 'closed' })
+  const shadow = hostElement.attachShadow({ mode: 'open' })
 
   const styleElement = document.createElement('style')
   styleElement.textContent = shadowStyles

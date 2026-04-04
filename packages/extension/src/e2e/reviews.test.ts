@@ -1,8 +1,44 @@
 import 'expect-puppeteer'
+import { setDefaultOptions } from 'expect-puppeteer'
 import type { Page } from 'puppeteer'
 
 jest.retryTimes(1)
-jest.setTimeout(15_000)
+/** E2E hits live Sisu + localhost API; allow time for navigation and shadow-root rendering. */
+jest.setTimeout(120_000)
+setDefaultOptions({ timeout: 45_000 })
+
+async function resetTestingBackend(): Promise<void> {
+  try {
+    const res = await fetch('http://localhost:3001/api/testing/reset', { method: 'POST' })
+    if (!res.ok) {
+      throw new Error(
+        res.status === 404
+          ? '404 (is ALLOW_RESET=true set for the backend?)'
+          : `HTTP ${res.status}`
+      )
+    }
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : String(e)
+    throw new Error(
+      `Reviews E2E needs the API at http://localhost:3001 with /api/testing/reset (${detail}). ` +
+        'Start: docker compose -f packages/backend/docker-compose.yml up -d'
+    )
+  }
+}
+
+async function waitForCourseReviewPanelReady(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const t = document.querySelector('#review-root-host')?.shadowRoot?.textContent ?? ''
+      return (
+        t.includes('Quality') ||
+        t.includes('Course code not found') ||
+        t.includes('Error:')
+      )
+    },
+    { timeout: 45_000 }
+  )
+}
 
 /** Course review UI lives under this host; pierce with Puppeteer's >>> combinator. */
 const COURSE_REVIEW = '#review-root-host >>>'
@@ -95,26 +131,28 @@ async function expectSearchResultReviewText(page: Page, condensedNeedle: string)
   )
 }
 
-// Skipped temporarily — re-enable when review E2E is stable again.
-describe.skip('Reviews', () => {
+describe('Reviews', () => {
   beforeEach(async () => {
-    await page.setViewport({ width: 1920, height: 1080 })
-    await page.goto('https://sisu.aalto.fi/student/courseunit/aalto-CU-1150973070-20240801')
-    await fetch('http://localhost:3001/api/testing/reset', { method: 'POST' })
+    await resetTestingBackend()
 
-    // @ts-ignore
     const workerTarget = await browser.waitForTarget(
-      (target: any) => target.type() === 'service_worker' && target.url().endsWith('background.js')
+      (target) => target.type() === 'service_worker' && target.url().endsWith('background.js'),
+      { timeout: 60_000 }
     )
-
     const worker = await workerTarget.worker()
+    await worker?.evaluate(() => chrome.storage.sync.clear())
+    await worker?.evaluate(() => chrome.storage.local.clear())
 
-    worker?.evaluate(() => chrome.storage.sync.clear())
-    worker?.evaluate(() => chrome.storage.local.clear())
+    await page.setViewport({ width: 1920, height: 1080 })
+    await page.goto('https://sisu.aalto.fi/student/courseunit/aalto-CU-1150973070-20240801', {
+      waitUntil: 'domcontentloaded',
+      timeout: 90_000,
+    })
   })
 
-  it('Should contain correct data when empty"', async () => {
+  it('Should contain correct data when empty', async () => {
     await expect(page).toClick('li', { text: 'Reviews' })
+    await waitForCourseReviewPanelReady(page)
     await expect(page).toMatchTextContent('Quality', { traverseShadowRoots: true })
     await expect(page).toMatchTextContent('0.0', { traverseShadowRoots: true })
     await expect(page).toMatchTextContent('Workload', { traverseShadowRoots: true })
@@ -122,7 +160,7 @@ describe.skip('Reviews', () => {
     await expect(page).toMatchTextContent('0 Reviews', { traverseShadowRoots: true })
   })
 
-  it('Should have correct tab behaviour"', async () => {
+  it('Should have correct tab behaviour', async () => {
     await expect(page).toMatchElement('li.active', { text: 'Esite' })
     await expect(page).toMatchElement('li:not(.active)', { text: 'Reviews' })
 
@@ -135,8 +173,9 @@ describe.skip('Reviews', () => {
     await expect(page).toMatchElement('li:not(.active)', { text: 'Reviews' })
   })
 
-  it('Should be able to register a new user"', async () => {
+  it('Should be able to register a new user', async () => {
     await expect(page).toClick('li', { text: 'Reviews' })
+    await waitForCourseReviewPanelReady(page)
     await clickInCourseReviewShadow(page, '+ Write a Review')
 
     await expect(page).toMatchTextContent('- Cancel', { traverseShadowRoots: true })
@@ -152,8 +191,8 @@ describe.skip('Reviews', () => {
     await expect(page).toMatchTextContent('Publish review', { traverseShadowRoots: true })
   })
 
-  it('Should be able to register as an old user"', async () => {
-    await fetch('http://localhost:3001/api/users', {
+  it('Should be able to register as an old user', async () => {
+    const userRes = await fetch('http://localhost:3001/api/users', {
       method: 'POST',
       body: JSON.stringify({
         id: '3',
@@ -161,8 +200,12 @@ describe.skip('Reviews', () => {
       }),
       headers: { 'Content-Type': 'application/json' },
     })
+    if (!userRes.ok) {
+      throw new Error(`Seed user failed: HTTP ${userRes.status}`)
+    }
 
     await expect(page).toClick('li', { text: 'Reviews' })
+    await waitForCourseReviewPanelReady(page)
     await clickInCourseReviewShadow(page, '+ Write a Review')
 
     await expect(page).toMatchTextContent('- Cancel', { traverseShadowRoots: true })
@@ -180,8 +223,9 @@ describe.skip('Reviews', () => {
     await expect(page).not.toMatchTextContent('- Cancel', { traverseShadowRoots: true })
   })
 
-  it('Should be able to make a review, edit it and delete it"', async () => {
+  it('Should be able to make a review, edit it and delete it', async () => {
     await expect(page).toClick('li', { text: 'Reviews' })
+    await waitForCourseReviewPanelReady(page)
     await clickInCourseReviewShadow(page, '+ Write a Review')
 
     await expect(page).toMatchTextContent('- Cancel', { traverseShadowRoots: true })
@@ -249,8 +293,8 @@ describe.skip('Reviews', () => {
     await expect(page).not.toMatchTextContent('- Cancel', { traverseShadowRoots: true })
   })
 
-  it('Course list should show averages"', async () => {
-    await fetch('http://localhost:3001/api/users', {
+  it('Course list should show averages', async () => {
+    const userRes = await fetch('http://localhost:3001/api/users', {
       method: 'POST',
       body: JSON.stringify({
         id: '3',
@@ -258,8 +302,11 @@ describe.skip('Reviews', () => {
       }),
       headers: { 'Content-Type': 'application/json' },
     })
+    if (!userRes.ok) {
+      throw new Error(`Seed user failed: HTTP ${userRes.status}`)
+    }
 
-    await fetch('http://localhost:3001/api/reviews', {
+    const reviewRes = await fetch('http://localhost:3001/api/reviews', {
       method: 'POST',
       body: JSON.stringify({
         otherInfo: 'test',
@@ -272,8 +319,14 @@ describe.skip('Reviews', () => {
       }),
       headers: { 'Content-Type': 'application/json' },
     })
+    if (!reviewRes.ok) {
+      throw new Error(`Seed review failed: HTTP ${reviewRes.status}`)
+    }
 
-    await page.goto('https://sisu.aalto.fi/student/search/main')
+    await page.goto('https://sisu.aalto.fi/student/search/main', {
+      waitUntil: 'domcontentloaded',
+      timeout: 90_000,
+    })
 
     await expect(page).toFill('#full-text-query-input', 'Ohjelmointi 1')
 

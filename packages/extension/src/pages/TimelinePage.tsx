@@ -106,16 +106,17 @@ const TimelinePage = ({ planId }: Props) => {
           <h2 className="mb-2 text-sm font-medium text-neutral-900">
             {card.season} {card.year}
           </h2>
-          <ul className="space-y-2">
-            {card.periods.map((row) => (
-              <li key={row.periodKey} className="flex gap-3 text-sm">
-                <span className="w-14 shrink-0 text-neutral-500">{row.period}</span>
+
+          <ul className="space-y-2 flex gap-8">
+            {card.periods.map((p) => (
+              <li key={p.periodKey} className="flex flex-col gap-3 text-sm">
+                <span className="w-14 shrink-0 text-neutral-500">{p.period}</span>
                 <div className="min-w-0 flex-1 text-neutral-800">
-                  {row.selections.length === 0 ? (
+                  {p.selections.length === 0 ? (
                     <span className="text-neutral-400">—</span>
                   ) : (
                     <ul className="space-y-0.5">
-                      {row.selections.map((s) => (
+                      {p.selections.map((s) => (
                         <li key={s.id}>{s.name}</li>
                       ))}
                     </ul>

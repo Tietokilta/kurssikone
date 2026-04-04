@@ -20,15 +20,6 @@ export type ParsedPlannedPeriod = {
   key: string
 }
 
-/**
- * Some course units encode Fall II as path segment `1` in the last component (`.../0/1`) where Sisu otherwise means Fall I.
- * Units that span both Fall periods still use `1` + `2` for I + II.
- */
-const COURSE_UNITS_FALL_PERIOD_ONE_MEANS_SECOND_PERIOD = new Set<string>([
-  'aalto-CU-1150973104-20240801',
-  'aalto-CU-1150972837-20240801',
-])
-
 /** Spring before Fall in the same calendar year; periods ordered by index within the season. */
 export function makePeriodKey(year: number, season: Season, periodIndex: number): string {
   const s = season === 'Fall' ? 1 : 0
@@ -137,11 +128,7 @@ export function parsePlannedPeriods(
               ? 'Summer'
               : null
   } else {
-    if (courseUnitId && COURSE_UNITS_FALL_PERIOD_ONE_MEANS_SECOND_PERIOD.has(courseUnitId) && periodPart === '1') {
-      period = 'II'
-    } else {
-      period = periodPart === '1' ? 'I' : periodPart === '2' ? 'II' : null
-    }
+    period = periodPart === '1' ? 'I' : periodPart === '2' ? 'II' : null
   }
 
   if (!period) {
@@ -233,7 +220,7 @@ export function iterateYearSeasonSlots(start: YearSeason, end: YearSeason): Year
   return out
 }
 
-export type TimelinePeriodRow<T = { id: string; name: string }> = {
+export type TimelinePeriod<T = { id: string; name: string }> = {
   period: string
   periodKey: string
   selections: T[]
@@ -243,7 +230,7 @@ export type TimelineCard<T = { id: string; name: string }> = {
   year: number
   season: Season
   cardKey: string
-  periods: TimelinePeriodRow<T>[]
+  periods: TimelinePeriod<T>[]
 }
 
 export function buildTimelineCards<
@@ -253,7 +240,7 @@ export function buildTimelineCards<
   const slots = iterateYearSeasonSlots(start, end)
 
   return slots.map((slot) => {
-    const periods: TimelinePeriodRow<T>[] = PERIODS_FOR_SEASON[slot.season].map(
+    const periods: TimelinePeriod<T>[] = PERIODS_FOR_SEASON[slot.season].map(
       (periodLabel, periodIndex) => {
         const periodKey = makePeriodKey(slot.year, slot.season, periodIndex)
         const inCell: T[] = []

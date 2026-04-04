@@ -25,7 +25,10 @@ function loadJson<T>(file: string): T {
 
 /** Strip BOM / zero-width space and trim, matching real export quirks in nameToId.csv */
 function normalizeCsvField(s: string): string {
-  return s.replace(/^\uFEFF+/, '').replace(/\u200B/g, '').trim()
+  return s
+    .replace(/^\uFEFF+/, '')
+    .replace(/\u200B/g, '')
+    .trim()
 }
 
 function loadNameToId(): { id: string; name: string }[] {
@@ -136,9 +139,7 @@ describe('parsePlannedPeriods', () => {
   })
 
   it('trims path segments', () => {
-    expect(parsePlannedPeriods('root/ 2025 / 0 / 1 ')).toEqual(
-      parsePlannedPeriods('root/2025/0/1')
-    )
+    expect(parsePlannedPeriods('root/ 2025 / 0 / 1 ')).toEqual(parsePlannedPeriods('root/2025/0/1'))
   })
 
   it('matches explicit expectations for each encoding', () => {
@@ -149,15 +150,12 @@ describe('parsePlannedPeriods', () => {
       key: '2025-1-00',
     })
     expect(
-      parsePlannedPeriods(
-        'aalto-university-root-id/2025/0/1',
-        'aalto-CU-1150973104-20240801'
-      )
+      parsePlannedPeriods('aalto-university-root-id/2025/0/1', 'aalto-CU-1150973104-20240801')
     ).toMatchObject({
       year: 2025,
       season: 'Fall',
-      period: 'II',
-      key: '2025-1-01',
+      period: 'I',
+      key: '2025-1-00',
     })
     expect(parsePlannedPeriods('aalto-university-root-id/2025/0/2')).toMatchObject({
       period: 'II',
@@ -269,7 +267,9 @@ describe('buildTimelineCards', () => {
     for (const card of cards) {
       for (const row of card.periods) {
         const names = row.selections.map((s) => s.name)
-        const sorted = [...names].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+        const sorted = [...names].sort((a, b) =>
+          a.localeCompare(b, undefined, { sensitivity: 'base' })
+        )
         expect(names).toEqual(sorted)
       }
     }

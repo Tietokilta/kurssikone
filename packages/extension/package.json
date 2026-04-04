@@ -72,7 +72,8 @@
     "bruh": "tsc --skipLibCheck \background.ts --outDir /home/otju/git/sisu-course-reviewer/build",
     "make-release": "node scripts/build.js && node scripts/make-release.js",
     "lint": "eslint src && tsc --noEmit",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "test:e2e": "jest --runInBand --config jest.config.e2e.ts"
   },
   "eslintConfig": {
     "extends": [
