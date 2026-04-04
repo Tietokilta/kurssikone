@@ -85,12 +85,17 @@ const TimelinePage = ({ planId }: Props) => {
           course.code ||
           s.courseUnitId
 
+        const creditsMin = course.creditsMin || 0
+        const creditsMax = course.creditsMax || 0
+        const plannedCredits =
+          creditsMax === creditsMin ? creditsMax : Math.round((creditsMax + creditsMin) / 2) // TODO: Make feature where user can specify their planned credits
+
         return {
           id: s.courseUnitId,
           name: name,
-          creditsMin: course.creditsMin || 0,
-          creditsMax: course.creditsMax || 0,
-          plannedCredits: ((course.creditsMax || 0) + (course.creditsMin || 0)) / 2, // TODO: Make feature where user can specify their planned credits
+          creditsMin,
+          creditsMax,
+          plannedCredits: plannedCredits,
           parsedPlannedPeriods: parseCourseUnitPlannedPeriods(s.courseUnitId, s.plannedPeriods),
           rawData: s,
         }
@@ -146,9 +151,17 @@ const TimelinePage = ({ planId }: Props) => {
                   ) : (
                     <ul className="flex flex-col gap-1">
                       {p.selections.map((s) => {
+                        const credits = s.plannedCredits
+                        const creditsForPeriod = credits / s.parsedPlannedPeriods.length
+
                         return (
-                          <li key={s.id} className="bg-gray-300 flex">
-                            <div className="py-2 px-1 bg-blue-500 text-center w-12 shrink-0 flex items-center justify-center">
+                          <li
+                            key={s.id}
+                            className="bg-gray-300 flex"
+                            style={{ minHeight: creditsForPeriod * 20 }}
+                          >
+                            <div className="py-2 px-1 bg-blue-500 text-center w-12 shrink-0 flex flex-col items-center justify-center">
+                              <i>{creditsForPeriod.toFixed(1)}</i>
                               {s.creditsMax === s.creditsMin
                                 ? s.creditsMax
                                 : `${s.creditsMin}–${s.creditsMax}`}
