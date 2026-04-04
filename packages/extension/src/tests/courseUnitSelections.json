@@ -1,0 +1,202 @@
+{
+  "courseUnitSelections": [
+    {
+      "courseUnitId": "aalto-CU-1150973104-20240801",
+      "parentModuleId": "otm-af3c6949-621b-48df-9ee6-ad48cae92753",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": ["aalto-university-root-id/2025/0/1"],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973256-20240801",
+      "parentModuleId": "otm-26cf518e-1154-4a35-8a9e-ef52d348bf57",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": ["aalto-university-root-id/2026/0/1", "aalto-university-root-id/2026/0/2"],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150970845-20240801",
+      "parentModuleId": "otm-a1e2e3a3-a4e9-43cc-8a87-e898e21de3ac",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": ["aalto-university-root-id/2025/1/0"],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150972046-20240801",
+      "parentModuleId": "otm-a1e2e3a3-a4e9-43cc-8a87-e898e21de3ac",
+      "completionMethodId": null,
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": [],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973089-20240801",
+      "parentModuleId": "otm-26cf518e-1154-4a35-8a9e-ef52d348bf57",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": ["aalto-university-root-id/2026/0/1", "aalto-university-root-id/2026/0/2"],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150972133-20240801",
+      "parentModuleId": "otm-a1e2e3a3-a4e9-43cc-8a87-e898e21de3ac",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": [
+        "aalto-university-root-id/2026/1/0",
+        "aalto-university-root-id/2026/1/1",
+        "aalto-university-root-id/2026/1/2"
+      ],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973108-20240801",
+      "parentModuleId": "otm-af3c6949-621b-48df-9ee6-ad48cae92753",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": [],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973102-20240801",
+      "parentModuleId": "otm-a1e2e3a3-a4e9-43cc-8a87-e898e21de3ac",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": [
+        "aalto-university-root-id/2025/1/2",
+        "aalto-university-root-id/2026/1/0",
+        "aalto-university-root-id/2026/1/1",
+        "aalto-university-root-id/2026/1/2"
+      ],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973234-20240801",
+      "parentModuleId": "otm-d871a72e-af0d-414b-a597-be371b22a729",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": ["aalto-university-root-id/2026/0/1", "aalto-university-root-id/2026/0/2"],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973069-20240801",
+      "parentModuleId": "otm-a1e2e3a3-a4e9-43cc-8a87-e898e21de3ac",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": [
+        "aalto-university-root-id/2025/1/0",
+        "aalto-university-root-id/2025/1/1",
+        "aalto-university-root-id/2025/1/2"
+      ],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973094-20240801",
+      "parentModuleId": "otm-af3c6949-621b-48df-9ee6-ad48cae92753",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": ["aalto-university-root-id/2025/1/2"],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973061-20240801",
+      "parentModuleId": "otm-00ca2229-00ae-49f1-bfa4-e41bee9581bb",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": [
+        "aalto-university-root-id/2025/1/2",
+        "aalto-university-root-id/2025/1/3",
+        "aalto-university-root-id/2026/0/1",
+        "aalto-university-root-id/2026/0/2"
+      ],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973107-20240801",
+      "parentModuleId": "otm-a1e2e3a3-a4e9-43cc-8a87-e898e21de3ac",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": ["aalto-university-root-id/2025/0/2"],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150972837-20240801",
+      "parentModuleId": "otm-26cf518e-1154-4a35-8a9e-ef52d348bf57",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": ["aalto-university-root-id/2025/0/1"],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150972852-20240801",
+      "parentModuleId": "otm-00ca2229-00ae-49f1-bfa4-e41bee9581bb",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": [],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973116-20240801",
+      "parentModuleId": "otm-d871a72e-af0d-414b-a597-be371b22a729",
+      "completionMethodId": null,
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": [],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973090-20240801",
+      "parentModuleId": "otm-26cf518e-1154-4a35-8a9e-ef52d348bf57",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": ["aalto-university-root-id/2025/1/0", "aalto-university-root-id/2025/1/1"],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150973121-20240801",
+      "parentModuleId": "otm-af3c6949-621b-48df-9ee6-ad48cae92753",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": [
+        "aalto-university-root-id/2025/1/0",
+        "aalto-university-root-id/2025/1/1",
+        "aalto-university-root-id/2025/1/2"
+      ],
+      "gradeRaiseAttempt": null
+    },
+    {
+      "courseUnitId": "aalto-CU-1150972851-20240801",
+      "parentModuleId": "otm-af3c6949-621b-48df-9ee6-ad48cae92753",
+      "completionMethodId": "cm-20240801-0",
+      "substitutedBy": [],
+      "substituteFor": [],
+      "plannedPeriods": [
+        "aalto-university-root-id/2025/0/1",
+        "aalto-university-root-id/2025/0/2",
+        "aalto-university-root-id/2025/1/0",
+        "aalto-university-root-id/2025/1/1"
+      ],
+      "gradeRaiseAttempt": null
+    }
+  ]
+}
