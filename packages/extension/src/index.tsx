@@ -4,6 +4,7 @@ import styles from './index.css?inline'
 import CoursePage from './pages/CoursePage'
 import SearchResultPage from './pages/SearchResultPage'
 import { waitForElement } from './utils/waitForElement'
+import TimelinePage from './pages/TimelinePage'
 
 console.log('[Kurssikompassi] Extension loaded successfully')
 
@@ -41,15 +42,35 @@ let observer = new MutationObserver((mutations) => {
 
       const isSearchResult = cy === 'student-courseunit-search-resultrow'
 
+      const isTimelinePage = node.nodeName === 'APP-TIMELINE'
+
       if ((isModal || isAppCourseUnitInfo) && once) {
         once = false
         handleCoursePage(isModal)
       } else if (isSearchResult) {
         handleSearchResult(node)
+      } else if (isTimelinePage) {
+        handleTimeline(node)
       }
     }
   })
 })
+
+const handleTimeline = (node: Node) => {
+  const timelineBody = node as HTMLElement
+
+  const shadowHost = document.createElement('div')
+  shadowHost.setAttribute('class', 'kurssikompassi-shadow-host')
+  timelineBody?.prepend(shadowHost)
+
+  const shadow = createShadowRoot(shadowHost)
+  const reactRoot = document.createElement('div')
+  shadow.appendChild(reactRoot)
+
+  //const courseCode = searchResultBody.querySelector('.courseunit-code')?.textContent || ''
+  const root = ReactDOM.createRoot(reactRoot)
+  root.render(<TimelinePage planId={'test'} />)
+}
 
 const handleSearchResult = (node: Node) => {
   const searchResultBody = node as HTMLElement
