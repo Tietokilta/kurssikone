@@ -67,6 +67,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'fetchStudyPlans') {
     fetchStudyPlansFromSisu().then((res) => sendResponse(res))
   }
+  if (request.type === 'fetchAttainments') {
+    fetchAttainmentsFromSisu(request.personId).then((res) => sendResponse(res))
+  }
   if (request.type === 'updateStudyPlan') {
     putStudyPlanToSisu(request.planId, request.plan).then((res) => sendResponse(res))
   }
@@ -119,6 +122,33 @@ async function fetchStudyPlansFromSisu(): Promise<FetchStudyPlansResult> {
     }
     const data = (await response.json()) as import('./utils/types').SisuMyPlansResponse
 
+    return { ok: true, data }
+  } catch (err) {
+    console.error(err)
+    return { ok: false, error: 'fetch_failed', message: String(err) }
+  }
+}
+
+type FetchAttainmentsResult =
+  | { ok: true; data: import('./utils/types').SisuAttainmentsResponse }
+  | { ok: false; error: 'no_sisu_token' }
+  | { ok: false; error: 'fetch_failed'; message?: string }
+
+async function fetchAttainmentsFromSisu(personId: string): Promise<FetchAttainmentsResult> {
+  if (!sisuAuthToken) {
+    return { ok: false, error: 'no_sisu_token' }
+  }
+
+  try {
+    const url = new URL('https://sisu.aalto.fi/ori/api/attainments')
+    url.searchParams.set('personId', personId)
+    const response = await fetch(url.toString(), {
+      headers: { Authorization: sisuAuthToken },
+    })
+    if (!response.ok) {
+      return { ok: false, error: 'fetch_failed', message: response.statusText }
+    }
+    const data = (await response.json()) as import('./utils/types').SisuAttainmentsResponse
     return { ok: true, data }
   } catch (err) {
     console.error(err)

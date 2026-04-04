@@ -1,7 +1,11 @@
 import { Course, NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikompassi/shared'
 import hashIt from 'hash-it'
 
-import type { SisuMyPlansResponse, SisuStudyPlan } from './utils/types'
+import type {
+  SisuAttainmentsResponse,
+  SisuMyPlansResponse,
+  SisuStudyPlan,
+} from './utils/types'
 
 const get = async (
   pathParts: string[],
@@ -26,6 +30,16 @@ export type FetchStudyPlansResult =
 
 export const fetchStudyPlans = async (): Promise<FetchStudyPlansResult> => {
   return (await chrome.runtime.sendMessage({ type: 'fetchStudyPlans' })) as FetchStudyPlansResult
+}
+
+export type FetchAttainmentsResult =
+  | { ok: true; data: SisuAttainmentsResponse }
+  | { ok: false; error: 'no_sisu_token' }
+  | { ok: false; error: 'fetch_failed'; message?: string }
+
+/** `personId` matches `SisuStudyPlan.userId` from my-plans. */
+export const fetchAttainments = async (personId: string): Promise<FetchAttainmentsResult> => {
+  return (await chrome.runtime.sendMessage({ type: 'fetchAttainments', personId })) as FetchAttainmentsResult
 }
 
 export type UpdateStudyPlanResult =

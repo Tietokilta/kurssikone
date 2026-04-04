@@ -7,7 +7,7 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { fetchStudyPlans, getCoursesByIds, updateStudyPlan } from '../requestHandlers'
+import { fetchAttainments, fetchStudyPlans, getCoursesByIds, updateStudyPlan } from '../requestHandlers'
 import { applyPlannedPeriodMove } from '../utils/planPeriodDrag'
 import { SisuCourseUnitSelection, SisuStudyPlan } from '../utils/types'
 import {
@@ -253,9 +253,18 @@ const TimelinePage = ({ planId }: Props) => {
 
       const selections = plan.courseUnitSelections
       const ids = [...new Set(selections.map((s) => s.courseUnitId))]
-      const courses = await getCoursesByIds(ids)
+      const [courses, attainmentsResult] = await Promise.all([
+        getCoursesByIds(ids),
+        fetchAttainments(plan.userId),
+      ])
 
       if (cancelled) return
+
+      if (attainmentsResult.ok) {
+        console.log('Sisu attainments', attainmentsResult.data)
+      } else {
+        console.warn('Failed to fetch Sisu attainments', attainmentsResult)
+      }
 
       const nextCourseData: Record<string, Course> = {}
 
