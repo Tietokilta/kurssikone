@@ -5,6 +5,7 @@ import path from 'path'
 import type { ParsedPlannedPeriod, Season, YearSeason } from '../utils/parsePlannedPeriods'
 import {
   buildTimelineCards,
+  comparePeriodKeysChronological,
   computeTimelineRange,
   getCurrentAcademicSeason,
   getCurrentSeasonStartKey,
@@ -65,7 +66,7 @@ function formatJoinedFromPlannedStrings(courseUnitId: string, periods: string[])
   const parsed = parseCourseUnitPlannedPeriods(courseUnitId, periods).filter(
     (p): p is ParsedPlannedPeriod => p !== null
   )
-  parsed.sort((a, b) => a.key.localeCompare(b.key))
+  parsed.sort((a, b) => comparePeriodKeysChronological(a.key, b.key))
   return parsed.map(formatParsedPeriod).join(', ')
 }
 
@@ -82,7 +83,8 @@ function distinctPlannedPeriodStrings(selections: SelectionRow[]): string[] {
 describe('makePeriodKey / parsePeriodKey / yearSeasonFromKey', () => {
   const cases: { year: number; season: Season; periodIndex: number }[] = [
     { year: 2025, season: 'Spring', periodIndex: 0 },
-    { year: 2025, season: 'Spring', periodIndex: 3 },
+    { year: 2025, season: 'Spring', periodIndex: 2 },
+    { year: 2025, season: 'Summer', periodIndex: 0 },
     { year: 2025, season: 'Fall', periodIndex: 0 },
     { year: 2025, season: 'Fall', periodIndex: 1 },
     { year: 2030, season: 'Fall', periodIndex: 0 },
@@ -92,6 +94,15 @@ describe('makePeriodKey / parsePeriodKey / yearSeasonFromKey', () => {
     const key = makePeriodKey(year, season, periodIndex)
     expect(parsePeriodKey(key)).toEqual({ year, season, periodIndex })
     expect(yearSeasonFromKey(key)).toEqual({ year, season })
+  })
+
+  it('normalizes legacy Spring index 3 keys to Summer', () => {
+    expect(parsePeriodKey('2025-0-03')).toEqual({
+      year: 2025,
+      season: 'Summer',
+      periodIndex: 0,
+    })
+    expect(yearSeasonFromKey('2025-0-03')).toEqual({ year: 2025, season: 'Summer' })
   })
 
   it('throws on invalid key', () => {
@@ -187,8 +198,9 @@ describe('parsePlannedPeriods', () => {
       plannedPeriod: 'aalto-university-root-id/2026/1/0',
     })
     expect(parsePlannedPeriods('aalto-university-root-id/2025/1/3')).toMatchObject({
+      season: 'Summer',
       period: 'Summer',
-      key: '2026-0-03',
+      key: '2026-2-00',
       plannedPeriod: 'aalto-university-root-id/2025/1/3',
     })
   })
@@ -206,6 +218,16 @@ describe('iterateYearSeasonSlots', () => {
     expect(iterateYearSeasonSlots(start, end)).toEqual([
       { year: 2025, season: 'Fall' },
       { year: 2026, season: 'Spring' },
+    ])
+  })
+
+  it('inserts Summer between Spring and Fall in the same calendar year', () => {
+    const start: YearSeason = { year: 2026, season: 'Spring' }
+    const end: YearSeason = { year: 2026, season: 'Fall' }
+    expect(iterateYearSeasonSlots(start, end)).toEqual([
+      { year: 2026, season: 'Spring' },
+      { year: 2026, season: 'Summer' },
+      { year: 2026, season: 'Fall' },
     ])
   })
 })
@@ -227,7 +249,9 @@ describe('computeTimelineRange', () => {
     ]
     const { start, end } = computeTimelineRange(onlyPast, spring2026)
     expect(start).toEqual({ year: 2026, season: 'Spring' })
-    expect(seasonStartKey(start).localeCompare(seasonStartKey(end))).toBeLessThanOrEqual(0)
+    expect(
+      comparePeriodKeysChronological(seasonStartKey(start), seasonStartKey(end))
+    ).toBeLessThanOrEqual(0)
     const slots = iterateYearSeasonSlots(start, end)
     expect(slots.length).toBeGreaterThan(0)
     expect(end).toEqual({ year: 2028, season: 'Spring' })
@@ -318,6 +342,20 @@ describe('buildTimelineCards', () => {
       )
       expect(firstParsed?.plannedPeriod).toBe(row.plannedPeriod)
     }
+  })
+
+  it('omits summer semester cards when showSummer is false', () => {
+    const selections = [
+      {
+        id: 'a',
+        name: 'Summer course',
+        parsedPlannedPeriods: parseCourseUnitPlannedPeriods('x', [
+          'aalto-university-root-id/2025/1/3',
+        ]),
+      },
+    ]
+    const cards = buildTimelineCards(selections, spring2026, { showSummer: false })
+    expect(cards.some((c) => c.season === 'Summer')).toBe(false)
   })
 })
 

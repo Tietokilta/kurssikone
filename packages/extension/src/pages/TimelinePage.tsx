@@ -23,10 +23,14 @@ const TimelinePage = ({ planId }: Props) => {
     ParsedCourseUnitSelection[] | null
   >(null)
   const [error, setError] = useState<string | null>(null)
+  const [showSummer, setShowSummer] = useState(true)
 
   const timelineCards = useMemo(
-    () => (courseUnitSelections ? buildTimelineCards(courseUnitSelections) : []),
-    [courseUnitSelections]
+    () =>
+      courseUnitSelections
+        ? buildTimelineCards(courseUnitSelections, undefined, { showSummer })
+        : [],
+    [courseUnitSelections, showSummer]
   )
 
   useEffect(() => {
@@ -112,6 +116,16 @@ const TimelinePage = ({ planId }: Props) => {
 
   return (
     <div className="space-y-3 p-3">
+      <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-700">
+        <input
+          type="checkbox"
+          className="size-4 rounded border-neutral-300"
+          checked={showSummer}
+          onChange={(e) => setShowSummer(e.target.checked)}
+        />
+        Show summer periods
+      </label>
+
       {timelineCards.map((card) => (
         <section
           key={card.cardKey}

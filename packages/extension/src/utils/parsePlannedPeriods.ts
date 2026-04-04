@@ -1,11 +1,12 @@
-export type Season = 'Spring' | 'Fall'
+export type Season = 'Spring' | 'Summer' | 'Fall'
 
 export type YearSeason = { year: number; season: Season }
 
 /** Chronological period labels within each season (Sisu / Finnish-style ordering). */
 export const PERIODS_FOR_SEASON: Record<Season, readonly string[]> = {
   Fall: ['I', 'II'],
-  Spring: ['III', 'IV', 'V', 'Summer'],
+  Spring: ['III', 'IV', 'V'],
+  Summer: ['Summer'],
 }
 
 /**
@@ -22,9 +23,12 @@ export type ParsedPlannedPeriod = {
   plannedPeriod: string
 }
 
-/** Spring before Fall in the same calendar year; periods ordered by index within the season. */
+/**
+ * Period keys: Spring = 0, Fall = 1, Summer = 2 (middle segment).
+ * Legacy keys used `Spring` index 3 for summer; `parsePeriodKey` normalizes those to Summer.
+ */
 export function makePeriodKey(year: number, season: Season, periodIndex: number): string {
-  const s = season === 'Fall' ? 1 : 0
+  const s = season === 'Fall' ? 1 : season === 'Summer' ? 2 : 0
   return `${year}-${s}-${String(periodIndex).padStart(2, '0')}`
 }
 
@@ -36,7 +40,18 @@ export function parsePeriodKey(key: string): { year: number; season: Season; per
   const year = Number(parts[0])
   const s = Number(parts[1])
   const periodIndex = Number(parts[2])
-  const season: Season = s === 1 ? 'Fall' : 'Spring'
+  let season: Season
+  if (s === 1) {
+    season = 'Fall'
+  } else if (s === 2) {
+    season = 'Summer'
+  } else {
+    season = 'Spring'
+  }
+  // Pre–Summer-season encoding: fourth Spring slot was summer
+  if (season === 'Spring' && periodIndex === 3) {
+    return { year, season: 'Summer', periodIndex: 0 }
+  }
   return { year, season, periodIndex }
 }
 
@@ -45,17 +60,44 @@ export function yearSeasonFromKey(key: string): YearSeason {
   return { year: p.year, season: p.season }
 }
 
-function seasonTier(season: Season): number {
-  return season === 'Spring' ? 0 : 1
+/**
+ * Raw period keys are not chronologically ordered lexically (e.g. Fall uses `…-1-…` but Summer uses `…-2-…`).
+ * Use this for min/max over keys and any stable chronological ordering.
+ */
+export function comparePeriodKeysChronological(a: string, b: string): number {
+  const pa = parsePeriodKey(a)
+  const pb = parsePeriodKey(b)
+  if (pa.year !== pb.year) {
+    return pa.year - pb.year
+  }
+  const ta = seasonTier(pa.season)
+  const tb = seasonTier(pb.season)
+  if (ta !== tb) {
+    return ta - tb
+  }
+  return pa.periodIndex - pb.periodIndex
 }
 
-/** Spring Y, then Fall Y, then Spring Y+1, … */
+function seasonTier(season: Season): number {
+  if (season === 'Spring') {
+    return 0
+  }
+  if (season === 'Summer') {
+    return 1
+  }
+  return 2
+}
+
+/** Spring Y → Summer Y → Fall Y → Spring Y+1 (calendar-year order). */
 function yearSeasonSortKey(ys: YearSeason): string {
   return `${ys.year}-${seasonTier(ys.season)}`
 }
 
 function nextSeason(ys: YearSeason): YearSeason {
   if (ys.season === 'Spring') {
+    return { year: ys.year, season: 'Summer' }
+  }
+  if (ys.season === 'Summer') {
     return { year: ys.year, season: 'Fall' }
   }
   return { year: ys.year + 1, season: 'Spring' }
@@ -118,6 +160,8 @@ export function parsePlannedPeriods(
 
   let period: string | null = null
 
+  let timelineSeason: Season = season
+
   if (season === 'Spring') {
     period =
       periodPart === '0'
@@ -129,6 +173,9 @@ export function parsePlannedPeriods(
             : periodPart === '3'
               ? 'Summer'
               : null
+    if (period === 'Summer') {
+      timelineSeason = 'Summer'
+    }
   } else {
     period = periodPart === '1' ? 'I' : periodPart === '2' ? 'II' : null
   }
@@ -137,16 +184,16 @@ export function parsePlannedPeriods(
     return null
   }
 
-  const periods = PERIODS_FOR_SEASON[season] as readonly string[]
+  const periods = PERIODS_FOR_SEASON[timelineSeason] as readonly string[]
   const periodIndex = periods.indexOf(period)
   if (periodIndex < 0) {
     return null
   }
 
   const timelineYear = season === 'Spring' ? pathYear + 1 : pathYear
-  const key = makePeriodKey(timelineYear, season, periodIndex)
+  const key = makePeriodKey(timelineYear, timelineSeason, periodIndex)
 
-  return { season, year: timelineYear, period, key, plannedPeriod }
+  return { season: timelineSeason, year: timelineYear, period, key, plannedPeriod }
 }
 
 export function parseCourseUnitPlannedPeriods(
@@ -188,14 +235,15 @@ export function computeTimelineRange(
     rangeStartKey = nowStartKey
     rangeEndKey = nowStartKey
   } else {
-    allKeys.sort((a, b) => a.localeCompare(b))
+    allKeys.sort(comparePeriodKeysChronological)
     const dataMinKey = allKeys[0]
     const dataMaxKey = allKeys[allKeys.length - 1]
-    rangeStartKey = dataMinKey < nowStartKey ? nowStartKey : dataMinKey
+    rangeStartKey =
+      comparePeriodKeysChronological(dataMinKey, nowStartKey) < 0 ? nowStartKey : dataMinKey
     rangeEndKey = dataMaxKey
   }
 
-  if (rangeEndKey.localeCompare(rangeStartKey) < 0) {
+  if (comparePeriodKeysChronological(rangeEndKey, rangeStartKey) < 0) {
     rangeEndKey = rangeStartKey
   }
 
@@ -237,13 +285,24 @@ export type TimelineCard<T = { id: string; name: string }> = {
   periods: TimelinePeriod<T>[]
 }
 
+export type BuildTimelineCardsOptions = {
+  /** When false, summer semester columns are omitted from the grid. Default true. */
+  showSummer?: boolean
+}
+
 export function buildTimelineCards<
   T extends { id: string; name: string; parsedPlannedPeriods: (ParsedPlannedPeriod | null)[] },
->(selections: T[], now: Date = new Date()): TimelineCard<T>[] {
+>(
+  selections: T[],
+  now: Date = new Date(),
+  options?: BuildTimelineCardsOptions
+): TimelineCard<T>[] {
   const { start, end } = computeTimelineRange(selections, now)
   const slots = iterateYearSeasonSlots(start, end)
+  const visibleSlots =
+    options?.showSummer === false ? slots.filter((slot) => slot.season !== 'Summer') : slots
 
-  return slots.map((slot) => {
+  return visibleSlots.map((slot) => {
     const periods: TimelinePeriod<T>[] = PERIODS_FOR_SEASON[slot.season].map(
       (periodLabel, periodIndex) => {
         const periodKey = makePeriodKey(slot.year, slot.season, periodIndex)
