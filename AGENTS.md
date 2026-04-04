@@ -20,11 +20,6 @@ npm install
 
 # Run all services (web, extension, backend)
 npm run dev
-
-# Run individual packages
-npm run dev --prefix packages/web
-npm run dev --prefix packages/extension
-docker compose -f packages/backend/docker-compose.yml up
 ```
 
 ## Linting
@@ -37,4 +32,10 @@ npm run lint
 npm run lint --prefix packages/web
 npm run lint --prefix packages/backend
 npm run lint --prefix packages/extension
+```
+
+## Tests
+
+```bash
+npm run test
 ```

@@ -1,3 +1,5 @@
+import type { SisuMyPlansResponse } from './sisuMyPlans'
+
 const IS_PRODUCTION = false
 
 const host = IS_PRODUCTION
@@ -64,6 +66,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'delete') {
     del(request.pathParts, request.body).then((res) => sendResponse(res))
   }
+  if (request.type === 'fetchStudyPlans') {
+    fetchStudyPlansFromSisu().then((res) => sendResponse(res))
+  }
   return true
 })
 
@@ -84,7 +89,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
           sisuAuthToken = header.value
           console.log('Got auth token for Sisu')
 
-          fetchStudyPlans()
+          void fetchStudyPlansFromSisu()
           break
         }
       }
@@ -94,17 +99,29 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
   ['requestHeaders']
 )
 
-async function fetchStudyPlans() {
-  if (!sisuAuthToken) return
+type FetchStudyPlansResult =
+  | { ok: true; data: SisuMyPlansResponse }
+  | { ok: false; error: 'no_sisu_token' }
+  | { ok: false; error: 'fetch_failed'; message?: string }
+
+async function fetchStudyPlansFromSisu(): Promise<FetchStudyPlansResult> {
+  if (!sisuAuthToken) {
+    return { ok: false, error: 'no_sisu_token' }
+  }
 
   try {
-    let response = await fetch('https://sisu.aalto.fi/osuva/api/my-plans', {
+    const response = await fetch('https://sisu.aalto.fi/osuva/api/my-plans', {
       headers: { Authorization: sisuAuthToken },
     })
-    let data = await response.json()
+    if (!response.ok) {
+      return { ok: false, error: 'fetch_failed', message: response.statusText }
+    }
+    const data = (await response.json()) as SisuMyPlansResponse
 
     console.log('DATA ACQUIRED', data)
+    return { ok: true, data }
   } catch (err) {
     console.error(err)
+    return { ok: false, error: 'fetch_failed', message: String(err) }
   }
 }
