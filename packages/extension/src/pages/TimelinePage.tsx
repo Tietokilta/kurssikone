@@ -46,13 +46,21 @@ const parsePlannedPeriods = (plannedPeriod: string | undefined) => {
 
     return { season, year, period }
   }
+
+  return null
+}
+
+type ParsedCourseUnitSelection = {
+  id: string
+  name: string
+  parsedPlannedPeriods: ReturnType<typeof parsePlannedPeriods>[]
+  rawData: SisuCourseUnitSelection
 }
 
 const TimelinePage = ({ planId }: Props) => {
   const [courseUnitSelections, setCourseUnitSelections] = useState<
-    SisuCourseUnitSelection[] | null
+    ParsedCourseUnitSelection[] | null
   >(null)
-  const [nameByUnitId, setNameByUnitId] = useState<Record<string, string> | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -61,13 +69,11 @@ const TimelinePage = ({ planId }: Props) => {
     if (!planId) {
       setError('Could not read plan id from URL')
       setCourseUnitSelections(null)
-      setNameByUnitId(null)
       return
     }
 
     setError(null)
     setCourseUnitSelections(null)
-    setNameByUnitId(null)
 
     void (async () => {
       const result = await fetchStudyPlans()
@@ -103,8 +109,14 @@ const TimelinePage = ({ planId }: Props) => {
         names[c.id] = label
       }
 
-      setCourseUnitSelections(selections)
-      setNameByUnitId(names)
+      const parsedSelections: ParsedCourseUnitSelection[] = selections.map((s) => ({
+        id: s.courseUnitId,
+        name: names[s.courseUnitId] || s.courseUnitId,
+        parsedPlannedPeriods: s.plannedPeriods.map(parsePlannedPeriods),
+        rawData: s,
+      }))
+
+      setCourseUnitSelections(parsedSelections)
     })()
 
     return () => {
@@ -116,17 +128,16 @@ const TimelinePage = ({ planId }: Props) => {
     return <div>{error}</div>
   }
 
-  if (courseUnitSelections === null || nameByUnitId === null) {
+  if (courseUnitSelections === null) {
     return <div>Loading…</div>
   }
 
   return (
     <ul>
       {courseUnitSelections.map((selection) => (
-        <li key={selection.courseUnitId}>
-          {nameByUnitId[selection.courseUnitId]}{' '}
-          {selection.plannedPeriods
-            .map(parsePlannedPeriods)
+        <li key={selection.id}>
+          {selection.name}
+          {selection.parsedPlannedPeriods
             .map((p) => `(${p?.season} ${p?.year} ${p?.period})`)
             .join(' ')}
         </li>
