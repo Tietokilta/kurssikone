@@ -66,3 +66,45 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   return true
 })
+
+const filter = {
+  urls: ['https://sisu.aalto.fi/*'],
+}
+
+console.log('Background script running...')
+
+let sisuAuthToken: string | undefined = undefined
+
+chrome.webRequest.onBeforeSendHeaders.addListener(
+  function (details) {
+    // Only steal the token if we don't have it yet
+    if (!sisuAuthToken) {
+      for (let header of details.requestHeaders || []) {
+        if (header.name.toLowerCase() === 'authorization') {
+          sisuAuthToken = header.value
+          console.log('Got auth token for Sisu')
+
+          fetchStudyPlans()
+          break
+        }
+      }
+    }
+  },
+  filter,
+  ['requestHeaders']
+)
+
+async function fetchStudyPlans() {
+  if (!sisuAuthToken) return
+
+  try {
+    let response = await fetch('https://sisu.aalto.fi/osuva/api/my-plans', {
+      headers: { Authorization: sisuAuthToken },
+    })
+    let data = await response.json()
+
+    console.log('DATA ACQUIRED', data)
+  } catch (err) {
+    console.error(err)
+  }
+}

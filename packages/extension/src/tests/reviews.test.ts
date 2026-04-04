@@ -1,4 +1,102 @@
+import 'expect-puppeteer'
+import type { Page } from 'puppeteer'
+
 jest.retryTimes(3)
+jest.setTimeout(120_000)
+
+/** Course review UI lives under this host; pierce with Puppeteer's >>> combinator. */
+const COURSE_REVIEW = '#review-root-host >>>'
+
+function courseReviewPText(label: string): string {
+  return `${COURSE_REVIEW} ::-p-text(${JSON.stringify(label)})`
+}
+
+async function clickInCourseReviewShadow(page: Page, label: string): Promise<void> {
+  await page.locator(courseReviewPText(label)).click()
+}
+
+async function clickDeleteReviewInCourseShadow(page: Page): Promise<void> {
+  await page.waitForFunction(
+    () => {
+      const sr = document.querySelector('#review-root-host')?.shadowRoot
+      if (!sr) {
+        return false
+      }
+      return [...sr.querySelectorAll('button')].some((b) =>
+        (b.textContent || '').includes('Delete review')
+      )
+    },
+    { timeout: 30_000 }
+  )
+  await page.evaluate(() => {
+    const sr = document.querySelector('#review-root-host')?.shadowRoot
+    for (const b of sr?.querySelectorAll('button') ?? []) {
+      if ((b as HTMLButtonElement).textContent?.includes('Delete review')) {
+        ;(b as HTMLButtonElement).click()
+        return
+      }
+    }
+    throw new Error('Delete review button not found after wait')
+  })
+}
+
+/**
+ * `locator.fill()` often times out on fields inside shadow roots (visibility / actionability).
+ * The review form is uncontrolled; submit reads DOM values, so setting .value + events is enough.
+ */
+async function fillInCourseReviewShadow(
+  page: Page,
+  selector: string,
+  value: string
+): Promise<void> {
+  await page.waitForFunction(
+    (sel) => {
+      const sr = document.querySelector('#review-root-host')?.shadowRoot
+      return Boolean(sr?.querySelector(sel))
+    },
+    { timeout: 30_000 },
+    selector
+  )
+  await page.evaluate(
+    (sel, val) => {
+      const sr = document.querySelector('#review-root-host')?.shadowRoot
+      const el = sr?.querySelector(sel) as HTMLTextAreaElement | HTMLInputElement | null
+      if (!el) {
+        throw new Error(`fillInCourseReviewShadow: missing ${sel}`)
+      }
+      el.focus()
+      el.value = val
+      el.dispatchEvent(new Event('input', { bubbles: true }))
+      el.dispatchEvent(new Event('change', { bubbles: true }))
+    },
+    selector,
+    value
+  )
+}
+
+async function submitCourseReviewForm(page: Page): Promise<void> {
+  await page.locator(`${COURSE_REVIEW} form button[type="submit"]`).click()
+}
+
+/** Search hits mount only a plain div in shadow (no `.review-root` class — that is course-page only). */
+async function expectSearchResultReviewText(page: Page, condensedNeedle: string): Promise<void> {
+  await page.waitForFunction(
+    (sub: string) => {
+      const n = (s: string) => s.replace(/\s+/g, '')
+      const target = n(sub)
+      for (const h of document.querySelectorAll('.kurssikompassi-shadow-host')) {
+        const panel = h.shadowRoot?.querySelector('div')
+        const t = panel?.textContent ?? ''
+        if (n(t).includes(target)) {
+          return true
+        }
+      }
+      return false
+    },
+    { timeout: 30_000 },
+    condensedNeedle
+  )
+}
 
 describe('Reviews', () => {
   beforeEach(async () => {
@@ -13,17 +111,17 @@ describe('Reviews', () => {
 
     const worker = await workerTarget.worker()
 
-    worker.evaluate(() => chrome.storage.sync.clear())
-    worker.evaluate(() => chrome.storage.local.clear())
+    worker?.evaluate(() => chrome.storage.sync.clear())
+    worker?.evaluate(() => chrome.storage.local.clear())
   })
 
   it('Should contain correct data when empty"', async () => {
     await expect(page).toClick('li', { text: 'Reviews' })
-    await expect(page).toMatchTextContent('Quality')
-    await expect(page).toMatchTextContent('0.0')
-    await expect(page).toMatchTextContent('Workload')
-    await expect(page).toMatchTextContent('+ Write a Review')
-    await expect(page).toMatchTextContent('0 Reviews')
+    await expect(page).toMatchTextContent('Quality', { traverseShadowRoots: true })
+    await expect(page).toMatchTextContent('0.0', { traverseShadowRoots: true })
+    await expect(page).toMatchTextContent('Workload', { traverseShadowRoots: true })
+    await expect(page).toMatchTextContent('+ Write a Review', { traverseShadowRoots: true })
+    await expect(page).toMatchTextContent('0 Reviews', { traverseShadowRoots: true })
   })
 
   it('Should have correct tab behaviour"', async () => {
@@ -41,17 +139,19 @@ describe('Reviews', () => {
 
   it('Should be able to register a new user"', async () => {
     await expect(page).toClick('li', { text: 'Reviews' })
-    await expect(page).toClick('button', { text: '+ Write a Review' })
+    await clickInCourseReviewShadow(page, '+ Write a Review')
 
-    await expect(page).toMatchTextContent('- Cancel')
+    await expect(page).toMatchTextContent('- Cancel', { traverseShadowRoots: true })
 
-    await expect(page).toMatchTextContent('Looks like this is your first time making a review!')
+    await expect(page).toMatchTextContent('Looks like this is your first time making a review!', {
+      traverseShadowRoots: true,
+    })
 
-    await expect(page).toMatchTextContent('Your user ID is:')
+    await expect(page).toMatchTextContent('Your user ID is:', { traverseShadowRoots: true })
 
-    await expect(page).toClick('button', { text: 'Understood, I have saved my user ID' })
+    await clickInCourseReviewShadow(page, 'Understood, I have saved my user ID')
 
-    await expect(page).toMatchTextContent('Publish review')
+    await expect(page).toMatchTextContent('Publish review', { traverseShadowRoots: true })
   })
 
   it('Should be able to register as an old user"', async () => {
@@ -65,88 +165,90 @@ describe('Reviews', () => {
     })
 
     await expect(page).toClick('li', { text: 'Reviews' })
-    await expect(page).toClick('button', { text: '+ Write a Review' })
+    await clickInCourseReviewShadow(page, '+ Write a Review')
 
-    await expect(page).toMatchTextContent('- Cancel')
+    await expect(page).toMatchTextContent('- Cancel', { traverseShadowRoots: true })
 
-    await expect(page).toMatchTextContent('Looks like this is your first time making a review!')
+    await expect(page).toMatchTextContent('Looks like this is your first time making a review!', {
+      traverseShadowRoots: true,
+    })
 
-    await expect(page).toMatchTextContent('Your user ID is:')
+    await expect(page).toMatchTextContent('Your user ID is:', { traverseShadowRoots: true })
 
-    await expect(page).toFill('input[placeholder="Paste your user ID here"]', '3')
+    await fillInCourseReviewShadow(page, 'input[placeholder="Paste your user ID here"]', '3')
 
-    await expect(page).toClick('button', { text: 'Submit' })
+    await clickInCourseReviewShadow(page, 'Submit')
 
-    await expect(page).not.toMatchTextContent('- Cancel')
+    await expect(page).not.toMatchTextContent('- Cancel', { traverseShadowRoots: true })
   })
 
   it('Should be able to make a review, edit it and delete it"', async () => {
     await expect(page).toClick('li', { text: 'Reviews' })
-    await expect(page).toClick('button', { text: '+ Write a Review' })
+    await clickInCourseReviewShadow(page, '+ Write a Review')
 
-    await expect(page).toMatchTextContent('- Cancel')
-    await expect(page).toClick('button', { text: 'Understood, I have saved my user ID' })
+    await expect(page).toMatchTextContent('- Cancel', { traverseShadowRoots: true })
+    await clickInCourseReviewShadow(page, 'Understood, I have saved my user ID')
 
-    await expect(page).toMatchTextContent('- Cancel')
-    await expect(page).toFill('textarea[name="otherInfo"]', 'Test review content')
+    await expect(page).toMatchTextContent('- Cancel', { traverseShadowRoots: true })
+    await fillInCourseReviewShadow(page, 'textarea[name="otherInfo"]', 'Test review content')
 
-    await expect(page).toClick('button', { text: 'Publish review' })
-    await expect(page).not.toMatchTextContent('- Cancel')
+    await submitCourseReviewForm(page)
+    await expect(page).not.toMatchTextContent('- Cancel', { traverseShadowRoots: true })
 
-    await expect(page).toMatchTextContent('Your review:')
-    await expect(page).toMatchTextContent('Test review content')
+    await expect(page).toMatchTextContent('Your review:', { traverseShadowRoots: true })
+    await expect(page).toMatchTextContent('Test review content', { traverseShadowRoots: true })
 
-    await expect(page).toMatchTextContent('3')
-    await expect(page).toMatchTextContent('3.0')
+    await expect(page).toMatchTextContent('3', { traverseShadowRoots: true })
+    await expect(page).toMatchTextContent('3.0', { traverseShadowRoots: true })
 
-    await expect(page).toMatchTextContent('1 Reviews')
+    await expect(page).toMatchTextContent('1 Reviews', { traverseShadowRoots: true })
 
-    await expect(page).toClick('button', { text: '+ Edit your review' })
+    await clickInCourseReviewShadow(page, '+ Edit your review')
 
-    await expect(page).toMatchTextContent('- Cancel')
+    await expect(page).toMatchTextContent('- Cancel', { traverseShadowRoots: true })
 
-    await expect(page).toFill('textarea[name="otherInfo"]', 'Test another content')
+    await fillInCourseReviewShadow(page, 'textarea[name="otherInfo"]', 'Test another content')
 
-    await expect(page).toClick('button', { text: 'Publish edit' })
+    await submitCourseReviewForm(page)
 
-    await expect(page).not.toMatchTextContent('- Cancel')
+    await expect(page).not.toMatchTextContent('- Cancel', { traverseShadowRoots: true })
 
-    await expect(page).toMatchTextContent('Your review:')
-    await expect(page).toMatchTextContent('Test another content')
+    await expect(page).toMatchTextContent('Your review:', { traverseShadowRoots: true })
+    await expect(page).toMatchTextContent('Test another content', { traverseShadowRoots: true })
 
-    await expect(page).toMatchTextContent('3')
-    await expect(page).toMatchTextContent('3.0')
+    await expect(page).toMatchTextContent('3', { traverseShadowRoots: true })
+    await expect(page).toMatchTextContent('3.0', { traverseShadowRoots: true })
 
-    await expect(page).toMatchTextContent('1 Reviews')
+    await expect(page).toMatchTextContent('1 Reviews', { traverseShadowRoots: true })
 
-    await expect(page).toClick('button', { text: '+ Edit your review' })
+    await clickInCourseReviewShadow(page, '+ Edit your review')
 
-    await expect(page).toMatchTextContent('- Cancel')
+    await expect(page).toMatchTextContent('- Cancel', { traverseShadowRoots: true })
 
     const dialog = await expect(page).toDisplayDialog(async () => {
-      await expect(page).toClick('button', { text: 'Delete review' })
+      await clickDeleteReviewInCourseShadow(page)
     })
 
     expect(dialog.message()).toBe('Are you sure you want to delete your review?')
 
     dialog.dismiss()
 
-    await expect(page).toMatchTextContent('- Cancel')
+    await expect(page).toMatchTextContent('- Cancel', { traverseShadowRoots: true })
 
     const dialogAgain = await expect(page).toDisplayDialog(async () => {
-      await expect(page).toClick('button', { text: 'Delete review' })
+      await clickDeleteReviewInCourseShadow(page)
     })
 
     expect(dialogAgain.message()).toBe('Are you sure you want to delete your review?')
 
     dialogAgain.accept()
 
-    await expect(page).toMatchTextContent('0')
-    await expect(page).toMatchTextContent('0.0')
+    await expect(page).toMatchTextContent('0', { traverseShadowRoots: true })
+    await expect(page).toMatchTextContent('0.0', { traverseShadowRoots: true })
 
-    await expect(page).toMatchTextContent('0 Reviews')
+    await expect(page).toMatchTextContent('0 Reviews', { traverseShadowRoots: true })
 
-    await expect(page).not.toMatchTextContent('- Cancel')
+    await expect(page).not.toMatchTextContent('- Cancel', { traverseShadowRoots: true })
   })
 
   it('Course list should show averages"', async () => {
@@ -175,20 +277,18 @@ describe('Reviews', () => {
 
     await page.goto('https://sisu.aalto.fi/student/search/main')
 
-    await expect(page).toFill('#search-main-university-input', 'Ohjelmointi 1')
+    await expect(page).toFill('#full-text-query-input', 'Ohjelmointi 1')
 
     await expect(page).toClick('button', { text: 'Hae' })
 
-    await expect(page).toMatchTextContent('FITech 101: Johdatus ohjelmointiin (2 op)')
-    await expect(page).toMatchTextContent('Ohjelmointi 1 (5 op)')
-
-    await expect(page).toMatchTextContent('4 hakutulosta')
-
-    await expect(page).toMatchElement('.review-root', {
-      text: 'Quality0.0Workload0.0',
+    await expect(page).toMatchTextContent('FITech 101: Johdatus ohjelmointiin (2 op)', {
+      traverseShadowRoots: true,
     })
-    await expect(page).toMatchElement('.review-root', {
-      text: 'Quality1.0Workload3.0',
-    })
+    await expect(page).toMatchTextContent('Ohjelmointi 1 (5 op)', { traverseShadowRoots: true })
+
+    await expect(page).toMatchTextContent('4 hakutulosta', { traverseShadowRoots: true })
+
+    await expectSearchResultReviewText(page, 'Quality0.0Workload0.0')
+    await expectSearchResultReviewText(page, 'Quality1.0Workload3.0')
   })
 })
