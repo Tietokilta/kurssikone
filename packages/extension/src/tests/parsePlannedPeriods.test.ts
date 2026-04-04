@@ -138,8 +138,23 @@ describe('parsePlannedPeriods', () => {
     expect(parsePlannedPeriods('short')).toBeNull()
   })
 
-  it('trims path segments', () => {
-    expect(parsePlannedPeriods('root/ 2025 / 0 / 1 ')).toEqual(parsePlannedPeriods('root/2025/0/1'))
+  it('trims path segments for parsing but keeps the original string in plannedPeriod', () => {
+    const spaced = parsePlannedPeriods('root/ 2025 / 0 / 1 ')
+    const compact = parsePlannedPeriods('root/2025/0/1')
+    expect(spaced).toMatchObject({
+      year: 2025,
+      season: 'Fall',
+      period: 'I',
+      key: '2025-1-00',
+    })
+    expect(compact).toMatchObject({
+      year: 2025,
+      season: 'Fall',
+      period: 'I',
+      key: '2025-1-00',
+    })
+    expect(spaced?.plannedPeriod).toBe('root/ 2025 / 0 / 1 ')
+    expect(compact?.plannedPeriod).toBe('root/2025/0/1')
   })
 
   it('matches explicit expectations for each encoding', () => {
@@ -148,6 +163,7 @@ describe('parsePlannedPeriods', () => {
       season: 'Fall',
       period: 'I',
       key: '2025-1-00',
+      plannedPeriod: 'aalto-university-root-id/2025/0/1',
     })
     expect(
       parsePlannedPeriods('aalto-university-root-id/2025/0/1', 'aalto-CU-1150973104-20240801')
@@ -156,20 +172,24 @@ describe('parsePlannedPeriods', () => {
       season: 'Fall',
       period: 'I',
       key: '2025-1-00',
+      plannedPeriod: 'aalto-university-root-id/2025/0/1',
     })
     expect(parsePlannedPeriods('aalto-university-root-id/2025/0/2')).toMatchObject({
       period: 'II',
       key: '2025-1-01',
+      plannedPeriod: 'aalto-university-root-id/2025/0/2',
     })
     expect(parsePlannedPeriods('aalto-university-root-id/2026/1/0')).toMatchObject({
       year: 2027,
       season: 'Spring',
       period: 'III',
       key: '2027-0-00',
+      plannedPeriod: 'aalto-university-root-id/2026/1/0',
     })
     expect(parsePlannedPeriods('aalto-university-root-id/2025/1/3')).toMatchObject({
       period: 'Summer',
       key: '2026-0-03',
+      plannedPeriod: 'aalto-university-root-id/2025/1/3',
     })
   })
 })
@@ -272,6 +292,31 @@ describe('buildTimelineCards', () => {
         )
         expect(names).toEqual(sorted)
       }
+    }
+
+    const emptyPeriodRows = cards.flatMap((c) =>
+      c.periods.filter((r) => r.selections.length === 0)
+    )
+    for (const row of emptyPeriodRows) {
+      expect(row.plannedPeriod).toBe('')
+    }
+
+    const filledPeriodRows = cards.flatMap((c) =>
+      c.periods
+        .filter((r) => r.selections.length > 0)
+        .map((row) => ({ card: c, row }))
+    )
+    for (const { card, row } of filledPeriodRows) {
+      expect(row.plannedPeriod.length).toBeGreaterThan(0)
+      const first = row.selections[0]
+      const firstParsed = first.parsedPlannedPeriods.find(
+        (pp) =>
+          pp !== null &&
+          pp.year === card.year &&
+          pp.season === card.season &&
+          pp.period === row.period
+      )
+      expect(firstParsed?.plannedPeriod).toBe(row.plannedPeriod)
     }
   })
 })

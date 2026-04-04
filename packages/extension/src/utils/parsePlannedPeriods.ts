@@ -18,6 +18,8 @@ export type ParsedPlannedPeriod = {
   year: number
   period: string
   key: string
+  /** Original Sisu `plannedPeriods` entry (full path string as received). */
+  plannedPeriod: string
 }
 
 /** Spring before Fall in the same calendar year; periods ordered by index within the season. */
@@ -144,7 +146,7 @@ export function parsePlannedPeriods(
   const timelineYear = season === 'Spring' ? pathYear + 1 : pathYear
   const key = makePeriodKey(timelineYear, season, periodIndex)
 
-  return { season, year: timelineYear, period, key }
+  return { season, year: timelineYear, period, key, plannedPeriod }
 }
 
 export function parseCourseUnitPlannedPeriods(
@@ -222,6 +224,8 @@ export function iterateYearSeasonSlots(start: YearSeason, end: YearSeason): Year
 
 export type TimelinePeriod<T = { id: string; name: string }> = {
   period: string
+  /** Representative original `plannedPeriods` string for this slot (first in-cell selection). */
+  plannedPeriod: string
   periodKey: string
   selections: T[]
 }
@@ -259,7 +263,19 @@ export function buildTimelineCards<
           }
         }
         inCell.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-        return { period: periodLabel, periodKey, selections: inCell }
+        const firstMatch = inCell[0]?.parsedPlannedPeriods.find(
+          (pp) =>
+            pp !== null &&
+            pp.year === slot.year &&
+            pp.season === slot.season &&
+            pp.period === periodLabel
+        )
+        return {
+          period: periodLabel,
+          periodKey,
+          selections: inCell,
+          plannedPeriod: firstMatch?.plannedPeriod ?? '',
+        }
       }
     )
     return {

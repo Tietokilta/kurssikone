@@ -116,9 +116,13 @@ const TimelinePage = ({ planId }: Props) => {
                     <span className="text-neutral-400">—</span>
                   ) : (
                     <ul className="space-y-0.5">
-                      {p.selections.map((s) => (
-                        <li key={s.id}>{s.name}</li>
-                      ))}
+                      {p.selections.map((s) => {
+                        return (
+                          <li key={s.id}>
+                            {s.name} {p.plannedPeriod}
+                          </li>
+                        )
+                      })}
                     </ul>
                   )}
                 </div>
