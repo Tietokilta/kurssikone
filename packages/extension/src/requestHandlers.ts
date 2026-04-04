@@ -1,7 +1,7 @@
 import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikompassi/shared'
 import hashIt from 'hash-it'
 
-import type { SisuMyPlansResponse } from './sisuMyPlans'
+import type { SisuMyPlansResponse } from './utils/types'
 
 const get = async (
   pathParts: string[],
@@ -18,17 +18,6 @@ const post = async (pathParts: string[], body: { [key: string]: any }) => {
 const del = async (pathParts: string[], body: { [key: string]: any }) => {
   await chrome.runtime.sendMessage({ type: 'delete', pathParts, body })
 }
-
-export type {
-  SisuAssessmentItemSelection,
-  SisuCourseUnitSelection,
-  SisuCustomStudyDraft,
-  SisuModuleSelection,
-  SisuMyPlansResponse,
-  SisuStudyPlan,
-  SisuStudyPlanMetadata,
-  SisuTimelineNote,
-} from './sisuMyPlans'
 
 /** Result of asking the background worker to call Sisu `my-plans` (requires captured Sisu auth). */
 export type FetchStudyPlansResult =

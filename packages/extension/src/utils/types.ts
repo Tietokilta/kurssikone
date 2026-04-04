@@ -1,7 +1,3 @@
-/**
- * Types for Sisu Osuva `GET /osuva/api/my-plans`
- */
-
 export interface SisuStudyPlanMetadata {
   revision: number
   createdBy: string

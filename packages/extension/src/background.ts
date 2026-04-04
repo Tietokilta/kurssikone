@@ -1,5 +1,3 @@
-import type { SisuMyPlansResponse } from './sisuMyPlans'
-
 const IS_PRODUCTION = false
 
 const host = IS_PRODUCTION
@@ -100,7 +98,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 )
 
 type FetchStudyPlansResult =
-  | { ok: true; data: SisuMyPlansResponse }
+  | { ok: true; data: import('./utils/types').SisuMyPlansResponse }
   | { ok: false; error: 'no_sisu_token' }
   | { ok: false; error: 'fetch_failed'; message?: string }
 
@@ -116,9 +114,8 @@ async function fetchStudyPlansFromSisu(): Promise<FetchStudyPlansResult> {
     if (!response.ok) {
       return { ok: false, error: 'fetch_failed', message: response.statusText }
     }
-    const data = (await response.json()) as SisuMyPlansResponse
+    const data = (await response.json()) as import('./utils/types').SisuMyPlansResponse
 
-    console.log('DATA ACQUIRED', data)
     return { ok: true, data }
   } catch (err) {
     console.error(err)
