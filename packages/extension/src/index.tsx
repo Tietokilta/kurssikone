@@ -56,6 +56,12 @@ let observer = new MutationObserver((mutations) => {
   })
 })
 
+/** Sisu plan URLs look like `/student/plan/otm-…/timing`. */
+const getPlanIdFromPageUrl = (): string => {
+  const match = window.location.pathname.match(/\/student\/plan\/([^/]+)/)
+  return match?.[1] ?? ''
+}
+
 const handleTimeline = (node: Node) => {
   const timelineBody = node as HTMLElement
 
@@ -67,9 +73,9 @@ const handleTimeline = (node: Node) => {
   const reactRoot = document.createElement('div')
   shadow.appendChild(reactRoot)
 
-  //const courseCode = searchResultBody.querySelector('.courseunit-code')?.textContent || ''
+  const planId = getPlanIdFromPageUrl()
   const root = ReactDOM.createRoot(reactRoot)
-  root.render(<TimelinePage planId={'test'} />)
+  root.render(<TimelinePage planId={planId} />)
 }
 
 const handleSearchResult = (node: Node) => {
