@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { fetchStudyPlans, getCoursesByIds } from '../requestHandlers'
 import { SisuCourseUnitSelection } from '../utils/types'
 import { buildTimelineCards, parseCourseUnitPlannedPeriods } from '../utils/parsePlannedPeriods'
+import { Course } from '@kurssikompassi/shared/src/types'
 
 type Props = {
   planId: string
@@ -10,6 +11,9 @@ type Props = {
 type ParsedCourseUnitSelection = {
   id: string
   name: string
+  creditsMin: number
+  creditsMax: number
+  plannedCredits: number
   parsedPlannedPeriods: ReturnType<typeof parseCourseUnitPlannedPeriods>
   rawData: SisuCourseUnitSelection
 }
@@ -62,21 +66,31 @@ const TimelinePage = ({ planId }: Props) => {
 
       if (cancelled) return
 
-      const names: Record<string, string> = {}
+      const courseData: Record<string, Course> = {}
 
       for (const c of courses) {
-        const label =
-          (c.nameEn && c.nameEn.trim()) || (c.nameFi && c.nameFi.trim()) || c.code || c.id
-
-        names[c.id] = label
+        courseData[c.id] = c
       }
 
-      const parsedSelections: ParsedCourseUnitSelection[] = selections.map((s) => ({
-        id: s.courseUnitId,
-        name: names[s.courseUnitId] || s.courseUnitId,
-        parsedPlannedPeriods: parseCourseUnitPlannedPeriods(s.courseUnitId, s.plannedPeriods),
-        rawData: s,
-      }))
+      const parsedSelections: ParsedCourseUnitSelection[] = selections.map((s) => {
+        const course = courseData[s.courseUnitId]
+
+        const name =
+          (course.nameEn && course.nameEn.trim()) ||
+          (course.nameFi && course.nameFi.trim()) ||
+          course.code ||
+          s.courseUnitId
+
+        return {
+          id: s.courseUnitId,
+          name: name,
+          creditsMin: course.creditsMin || 0,
+          creditsMax: course.creditsMax || 0,
+          plannedCredits: ((course.creditsMax || 0) + (course.creditsMin || 0)) / 2, // TODO: Make feature where user can specify their planned credits
+          parsedPlannedPeriods: parseCourseUnitPlannedPeriods(s.courseUnitId, s.plannedPeriods),
+          rawData: s,
+        }
+      })
 
       console.log('Parsed course unit selections:', parsedSelections)
 
@@ -118,8 +132,14 @@ const TimelinePage = ({ planId }: Props) => {
                     <ul className="space-y-0.5">
                       {p.selections.map((s) => {
                         return (
-                          <li key={s.id}>
-                            {s.name} {p.plannedPeriod}
+                          <li key={s.id} className="bg-gray-300 flex">
+                            <div className="py-2 px-1 bg-blue-500 text-center w-12 shrink-0 flex items-center justify-center">
+                              {s.creditsMax === s.creditsMin
+                                ? s.creditsMax
+                                : `${s.creditsMin}–${s.creditsMax}`}
+                            </div>
+
+                            <div className="p-2">{s.name}</div>
                           </li>
                         )
                       })}
