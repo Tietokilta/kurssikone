@@ -6,6 +6,48 @@ type Props = {
   planId: string
 }
 
+const parsePlannedPeriods = (plannedPeriod: string | undefined) => {
+  if (!plannedPeriod) {
+    return null
+  }
+
+  const [_, year, seasonPart, periodPart] = plannedPeriod.split('/')
+  const season = seasonPart === '1' ? 'Spring' : seasonPart === '0' ? 'Fall' : null
+
+  if (!season || !year) {
+    return null
+  }
+
+  if (season === 'Spring') {
+    const period =
+      periodPart === '0'
+        ? 'III'
+        : periodPart === '1'
+          ? 'IV'
+          : periodPart === '2'
+            ? 'V'
+            : periodPart === '3'
+              ? 'Summer'
+              : null
+
+    if (!period) {
+      return null
+    }
+
+    return { season, year, period }
+  }
+
+  if (season === 'Fall') {
+    const period = periodPart === '1' ? 'I' : periodPart === '2' ? 'II' : null
+
+    if (!period) {
+      return null
+    }
+
+    return { season, year, period }
+  }
+}
+
 const TimelinePage = ({ planId }: Props) => {
   const [courseUnitSelections, setCourseUnitSelections] = useState<
     SisuCourseUnitSelection[] | null
@@ -81,7 +123,13 @@ const TimelinePage = ({ planId }: Props) => {
   return (
     <ul>
       {courseUnitSelections.map((selection) => (
-        <li key={selection.courseUnitId}>{nameByUnitId[selection.courseUnitId]}</li>
+        <li key={selection.courseUnitId}>
+          {nameByUnitId[selection.courseUnitId]}{' '}
+          {selection.plannedPeriods
+            .map(parsePlannedPeriods)
+            .map((p) => `(${p?.season} ${p?.year} ${p?.period})`)
+            .join(' ')}
+        </li>
       ))}
     </ul>
   )
