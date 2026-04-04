@@ -4,6 +4,7 @@ import {
   ReviewAverages,
   ReviewsAndCount,
   CoursesResponse,
+  CoursesByIdsResponse,
   Course,
   CourseListSortBy,
   ListSortOrder,
@@ -149,6 +150,17 @@ export const getCourses = async (
     ...result,
     courses: result.courses.map((c) => normalizeCourseRecord(c as unknown as Record<string, unknown>)),
   }
+}
+
+export const getCoursesByIds = async (ids: string[]): Promise<Course[]> => {
+  const unique = [...new Set(ids.filter(Boolean))]
+  if (unique.length === 0) return []
+
+  const result = (await get(['courses'], {
+    ids: unique.join(','),
+  })) as CoursesByIdsResponse | null
+  if (!result?.courses) return []
+  return result.courses.map((c) => normalizeCourseRecord(c as unknown as Record<string, unknown>))
 }
 
 export const getCourseByCode = async (

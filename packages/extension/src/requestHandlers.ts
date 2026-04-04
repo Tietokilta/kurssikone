@@ -1,4 +1,4 @@
-import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikompassi/shared'
+import { Course, NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikompassi/shared'
 import hashIt from 'hash-it'
 
 import type { SisuMyPlansResponse } from './utils/types'
@@ -19,7 +19,6 @@ const del = async (pathParts: string[], body: { [key: string]: any }) => {
   await chrome.runtime.sendMessage({ type: 'delete', pathParts, body })
 }
 
-/** Result of asking the background worker to call Sisu `my-plans` (requires captured Sisu auth). */
 export type FetchStudyPlansResult =
   | { ok: true; data: SisuMyPlansResponse }
   | { ok: false; error: 'no_sisu_token' }
@@ -27,6 +26,15 @@ export type FetchStudyPlansResult =
 
 export const fetchStudyPlans = async (): Promise<FetchStudyPlansResult> => {
   return (await chrome.runtime.sendMessage({ type: 'fetchStudyPlans' })) as FetchStudyPlansResult
+}
+
+export const getCoursesByIds = async (ids: string[]): Promise<Course[]> => {
+  const unique = [...new Set(ids.filter(Boolean))]
+  if (unique.length === 0) return []
+
+  const json = await get(['courses'], { ids: unique.join(',') })
+  if (!json || !Array.isArray(json.courses)) return []
+  return json.courses as Course[]
 }
 
 export const getReviewsForCourseExcludingUserReview = async (

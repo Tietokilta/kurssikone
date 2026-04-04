@@ -37,9 +37,52 @@ function buildCourseListOrder(sortBy: SortBy, sortOrder: SortOrder): OrderItem[]
   }
 }
 
+const MAX_IDS_PER_REQUEST = 100
+
+function parseIdsQuery(raw: unknown): string[] {
+  if (raw == null) return []
+  const parts: string[] = []
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (typeof item === 'string') parts.push(...item.split(','))
+    }
+  } else if (typeof raw === 'string') {
+    parts.push(...raw.split(','))
+  }
+  const trimmed = parts.map((s) => s.trim()).filter(Boolean)
+  return [...new Set(trimmed)].slice(0, MAX_IDS_PER_REQUEST)
+}
+
+function parseIdsFromRequestUrl(req: express.Request): string[] | null {
+  const q = req.originalUrl.indexOf('?')
+  if (q === -1) return null
+  const sp = new URLSearchParams(req.originalUrl.slice(q + 1))
+  if (!sp.has('ids')) return null
+  const chunks = sp.getAll('ids').flatMap((s) => s.split(','))
+  return parseIdsQuery(chunks)
+}
+
 router.get('/', async (req, res) => {
-  const { search, limit = '50', offset = '0', sortBy: sortByParam, sortOrder: sortOrderParam } =
-    req.query
+  const idsFromUrl = parseIdsFromRequestUrl(req)
+
+  if (idsFromUrl !== null) {
+    if (idsFromUrl.length === 0) {
+      return res.json({ courses: [] })
+    }
+
+    const courses = await Course.findAll({
+      where: { id: { [Op.in]: idsFromUrl } },
+    })
+    return res.json({ courses })
+  }
+
+  const {
+    search,
+    limit = '50',
+    offset = '0',
+    sortBy: sortByParam,
+    sortOrder: sortOrderParam,
+  } = req.query
 
   const limitNum = Math.min(parseInt(limit as string, 10) || 50, 100)
   const offsetNum = parseInt(offset as string, 10) || 0
@@ -78,6 +121,17 @@ router.get('/', async (req, res) => {
   })
 })
 
+router.get('/:code/realisations', async (req, res) => {
+  const { code } = req.params
+
+  const realisations = await CourseRealisation.findAll({
+    where: { code },
+    order: [['startDate', 'DESC']],
+  })
+
+  res.json(realisations)
+})
+
 router.get('/:code', async (req, res) => {
   const { code } = req.params
 
@@ -92,17 +146,6 @@ router.get('/:code', async (req, res) => {
   }
 
   return res.json(courses)
-})
-
-router.get('/:code/realisations', async (req, res) => {
-  const { code } = req.params
-
-  const realisations = await CourseRealisation.findAll({
-    where: { code },
-    order: [['startDate', 'DESC']],
-  })
-
-  res.json(realisations)
 })
 
 router.post('/sync', async (req, res) => {

@@ -77,3 +77,7 @@ export type CoursesResponse = {
   limit: number
   offset: number
 }
+
+export type CoursesByIdsResponse = {
+  courses: Course[]
+}
