@@ -14,7 +14,7 @@ const TimelinePeriodCourseItem = ({ selection: s, periodKey, sourcePlannedPeriod
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `${s.id}::${periodKey}`,
-    data: { courseId: s.id, sourcePlannedPeriod },
+    data: { courseId: s.id, sourcePlannedPeriod, selectionIndex: s.selectionIndex },
   })
 
   const style = {

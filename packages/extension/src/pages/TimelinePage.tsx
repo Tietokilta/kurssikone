@@ -7,8 +7,9 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { fetchStudyPlans, getCoursesByIds } from '../requestHandlers'
-import { SisuCourseUnitSelection } from '../utils/types'
+import { fetchStudyPlans, getCoursesByIds, updateStudyPlan } from '../requestHandlers'
+import { applyPlannedPeriodMove } from '../utils/planPeriodDrag'
+import { SisuCourseUnitSelection, SisuStudyPlan } from '../utils/types'
 import {
   buildTimelineCards,
   formatPlannedPeriodForSlot,
@@ -31,6 +32,8 @@ export type ParsedCourseUnitSelection = {
   plannedCredits: number
   parsedPlannedPeriods: ReturnType<typeof parseCourseUnitPlannedPeriods>
   rawData: SisuCourseUnitSelection
+  /** Index into `SisuStudyPlan.courseUnitSelections` for PUT updates. */
+  selectionIndex: number
 }
 
 const DEFAULT_SISU_ROOT_ID = 'aalto-university-root-id'
@@ -45,6 +48,37 @@ function extractSisuRootId(selections: ParsedCourseUnitSelection[]): string {
     }
   }
   return DEFAULT_SISU_ROOT_ID
+}
+
+function buildParsedCourseUnitSelections(
+  selections: SisuCourseUnitSelection[],
+  courseData: Record<string, Course>
+): ParsedCourseUnitSelection[] {
+  return selections.map((s, selectionIndex) => {
+    const course = courseData[s.courseUnitId]
+
+    const name =
+      (course?.nameEn && course.nameEn.trim()) ||
+      (course?.nameFi && course.nameFi.trim()) ||
+      course?.code ||
+      s.courseUnitId
+
+    const creditsMin = course?.creditsMin || 0
+    const creditsMax = course?.creditsMax || 0
+    const plannedCredits =
+      creditsMax === creditsMin ? creditsMax : Math.round((creditsMax + creditsMin) / 2)
+
+    return {
+      id: s.courseUnitId,
+      name,
+      creditsMin,
+      creditsMax,
+      plannedCredits,
+      parsedPlannedPeriods: parseCourseUnitPlannedPeriods(s.courseUnitId, s.plannedPeriods),
+      rawData: s,
+      selectionIndex,
+    }
+  })
 }
 
 function TimelinePeriodColumn({
@@ -92,10 +126,11 @@ function TimelinePeriodColumn({
 }
 
 const TimelinePage = ({ planId }: Props) => {
-  const [courseUnitSelections, setCourseUnitSelections] = useState<
-    ParsedCourseUnitSelection[] | null
-  >(null)
+  const [fullPlan, setFullPlan] = useState<SisuStudyPlan | null>(null)
+  const [courseData, setCourseData] = useState<Record<string, Course>>({})
   const [error, setError] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
   const [showSummer, setShowSummer] = useState(true)
 
   const sensors = useSensors(
@@ -103,6 +138,13 @@ const TimelinePage = ({ planId }: Props) => {
       activationConstraint: { distance: 6 },
     })
   )
+
+  const courseUnitSelections = useMemo(() => {
+    if (!fullPlan) {
+      return null
+    }
+    return buildParsedCourseUnitSelections(fullPlan.courseUnitSelections, courseData)
+  }, [fullPlan, courseData])
 
   const timelineCards = useMemo(
     () =>
@@ -117,34 +159,78 @@ const TimelinePage = ({ planId }: Props) => {
     [courseUnitSelections]
   )
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event
-    if (!over) {
-      return
-    }
-    const courseId = active.data.current?.courseId
-    const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
-    const targetPlannedPeriod = over.data.current?.plannedPeriod
-    if (
-      typeof courseId === 'string' &&
-      typeof startPlannedPeriod === 'string' &&
-      typeof targetPlannedPeriod === 'string'
-    ) {
-      console.log(courseId, startPlannedPeriod, targetPlannedPeriod)
-    }
-  }, [])
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event
+      if (!over || !fullPlan) {
+        return
+      }
+      const selectionIndex = active.data.current?.selectionIndex
+      const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
+      const targetPlannedPeriod = over.data.current?.plannedPeriod
+      if (
+        typeof selectionIndex !== 'number' ||
+        typeof startPlannedPeriod !== 'string' ||
+        typeof targetPlannedPeriod !== 'string'
+      ) {
+        return
+      }
+
+      const applied = applyPlannedPeriodMove(
+        fullPlan,
+        selectionIndex,
+        startPlannedPeriod,
+        targetPlannedPeriod
+      )
+
+      if (!applied.ok) {
+        if (applied.reason === 'same_slot') {
+          return
+        }
+        if (applied.reason === 'source_not_found') {
+          setSaveError('Could not update plan (source period not found).')
+        } else {
+          setSaveError('Could not update plan.')
+        }
+        return
+      }
+
+      setSaveError(null)
+      setIsSaving(true)
+      const result = await updateStudyPlan(planId, applied.plan)
+      setIsSaving(false)
+
+      if (!result.ok) {
+        if (result.error === 'no_sisu_token') {
+          setSaveError('Could not get Sisu auth')
+        } else {
+          const statusPart = result.status != null ? ` (${result.status})` : ''
+          const raw = result.message ?? ''
+          const detail = raw.length > 200 ? `${raw.slice(0, 200)}…` : raw
+          setSaveError(detail ? `Save failed${statusPart}: ${detail}` : `Save failed${statusPart}`)
+        }
+        return
+      }
+
+      setFullPlan(applied.plan)
+    },
+    [fullPlan, planId]
+  )
 
   useEffect(() => {
     let cancelled = false
 
     if (!planId) {
       setError('Could not read plan id from URL')
-      setCourseUnitSelections(null)
+      setFullPlan(null)
+      setCourseData({})
       return
     }
 
     setError(null)
-    setCourseUnitSelections(null)
+    setSaveError(null)
+    setFullPlan(null)
+    setCourseData({})
 
     void (async () => {
       const result = await fetchStudyPlans()
@@ -171,40 +257,14 @@ const TimelinePage = ({ planId }: Props) => {
 
       if (cancelled) return
 
-      const courseData: Record<string, Course> = {}
+      const nextCourseData: Record<string, Course> = {}
 
       for (const c of courses) {
-        courseData[c.id] = c
+        nextCourseData[c.id] = c
       }
 
-      const parsedSelections: ParsedCourseUnitSelection[] = selections.map((s) => {
-        const course = courseData[s.courseUnitId]
-
-        const name =
-          (course.nameEn && course.nameEn.trim()) ||
-          (course.nameFi && course.nameFi.trim()) ||
-          course.code ||
-          s.courseUnitId
-
-        const creditsMin = course.creditsMin || 0
-        const creditsMax = course.creditsMax || 0
-        const plannedCredits =
-          creditsMax === creditsMin ? creditsMax : Math.round((creditsMax + creditsMin) / 2) // TODO: Make feature where user can specify their planned credits
-
-        return {
-          id: s.courseUnitId,
-          name: name,
-          creditsMin,
-          creditsMax,
-          plannedCredits: plannedCredits,
-          parsedPlannedPeriods: parseCourseUnitPlannedPeriods(s.courseUnitId, s.plannedPeriods),
-          rawData: s,
-        }
-      })
-
-      console.log('Parsed course unit selections:', parsedSelections)
-
-      setCourseUnitSelections(parsedSelections)
+      setFullPlan(plan)
+      setCourseData(nextCourseData)
     })()
 
     return () => {
@@ -222,6 +282,8 @@ const TimelinePage = ({ planId }: Props) => {
 
   return (
     <div className="space-y-3 p-3">
+      {isSaving ? <div className="text-sm text-neutral-600">Saving plan…</div> : null}
+      {saveError ? <div className="text-sm text-red-600">{saveError}</div> : null}
       <label className="flex cursor-pointer items-center gap-2 text-sm text-neutral-700">
         <input
           type="checkbox"

@@ -67,6 +67,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'fetchStudyPlans') {
     fetchStudyPlansFromSisu().then((res) => sendResponse(res))
   }
+  if (request.type === 'updateStudyPlan') {
+    putStudyPlanToSisu(request.planId, request.plan).then((res) => sendResponse(res))
+  }
   return true
 })
 
@@ -117,6 +120,52 @@ async function fetchStudyPlansFromSisu(): Promise<FetchStudyPlansResult> {
     const data = (await response.json()) as import('./utils/types').SisuMyPlansResponse
 
     return { ok: true, data }
+  } catch (err) {
+    console.error(err)
+    return { ok: false, error: 'fetch_failed', message: String(err) }
+  }
+}
+
+type UpdateStudyPlanResult =
+  | { ok: true }
+  | {
+      ok: false
+      error: 'no_sisu_token' | 'fetch_failed'
+      status?: number
+      message?: string
+    }
+
+async function putStudyPlanToSisu(
+  planId: string,
+  plan: import('./utils/types').SisuStudyPlan
+): Promise<UpdateStudyPlanResult> {
+  if (!sisuAuthToken) {
+    return { ok: false, error: 'no_sisu_token' }
+  }
+
+  try {
+    // Student-owned plans: use my-plans (GET already uses this). PUT /plans/{id} requires plan-admin.
+    const response = await fetch(
+      `https://sisu.aalto.fi/osuva/api/my-plans/${encodeURIComponent(planId)}`,
+      {
+        method: 'PUT',
+        headers: {
+          Authorization: sisuAuthToken,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(plan),
+      }
+    )
+    if (!response.ok) {
+      const text = await response.text()
+      return {
+        ok: false,
+        error: 'fetch_failed',
+        status: response.status,
+        message: text || response.statusText,
+      }
+    }
+    return { ok: true }
   } catch (err) {
     console.error(err)
     return { ok: false, error: 'fetch_failed', message: String(err) }
