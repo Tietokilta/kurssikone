@@ -2,8 +2,11 @@ import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
+  pointerWithin,
+  rectIntersection,
   useDraggable,
   useDroppable,
   useSensor,
@@ -17,7 +20,13 @@ import {
   getCoursesByIds,
   updateStudyPlan,
 } from '../requestHandlers'
-import { applyPlannedPeriodAdd, applyPlannedPeriodMove } from '../utils/planPeriodDrag'
+import {
+  applyPlannedPeriodAdd,
+  applyPlannedPeriodExtend,
+  applyPlannedPeriodMove,
+  applyPlannedPeriodUnschedule,
+  plannedPeriodKeysEqual,
+} from '../utils/planPeriodDrag'
 import {
   buildTimelineCards,
   formatPlannedPeriodForSlot,
@@ -61,6 +70,194 @@ export type ParsedCourseUnitSelection = {
 }
 
 const DEFAULT_SISU_ROOT_ID = 'aalto-university-root-id'
+
+const timelineCollisionDetection: CollisionDetection = (args) => {
+  const pointerHits = pointerWithin(args)
+  return pointerHits.length > 0 ? pointerHits : rectIntersection(args)
+}
+
+type TimelineActiveDragKind = 'none' | 'scheduled' | 'unscheduled'
+
+type TimelineDragRowSnapshot = {
+  courseUnitId: string
+  plannedPeriods: string[]
+}
+
+function columnAlreadyHasDraggedCourse(
+  columnPlannedPeriod: string,
+  periodIndex: StudyPeriodIndex | null,
+  row: TimelineDragRowSnapshot
+): boolean {
+  if (!periodIndex || !columnPlannedPeriod.trim()) {
+    return false
+  }
+  return row.plannedPeriods.some((p) =>
+    plannedPeriodKeysEqual(p, columnPlannedPeriod, row.courseUnitId, periodIndex)
+  )
+}
+
+function IconMoveToPeriod({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M5 12h14M13 5l7 7-7 7" />
+    </svg>
+  )
+}
+
+function IconExtendToPeriod({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <rect x="8" y="8" width="13" height="13" rx="1.5" />
+      <path d="M3 16V5a2 2 0 0 1 2-2h9" />
+    </svg>
+  )
+}
+
+function IconUnschedule({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6h12zM10 11v6M14 11v6" />
+    </svg>
+  )
+}
+
+function PeriodMoveDropZone({
+  periodKey,
+  plannedPeriod,
+  layout,
+}: {
+  periodKey: string
+  plannedPeriod: string
+  layout: 'half' | 'fill'
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `timeline-move-${periodKey}`,
+    data: { plannedPeriod, action: 'move' as const },
+  })
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-xs font-medium text-white backdrop-blur-sm [text-shadow:0_1px_2px_rgba(0,0,0,0.45)] ${
+        layout === 'half' ? 'min-h-0 flex-1' : 'min-h-full flex-1'
+      } bg-blue-600/28 ${isOver ? 'ring-2 ring-inset ring-white' : ''}`}
+    >
+      <IconMoveToPeriod className="size-5 shrink-0 opacity-95" />
+      <span>Move to period</span>
+    </div>
+  )
+}
+
+function PeriodExtendDropZone({
+  periodKey,
+  plannedPeriod,
+}: {
+  periodKey: string
+  plannedPeriod: string
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `timeline-extend-${periodKey}`,
+    data: { plannedPeriod, action: 'extend' as const },
+  })
+  return (
+    <div
+      ref={setNodeRef}
+      className={`flex min-h-0 flex-1 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-xs font-medium text-white backdrop-blur-sm [text-shadow:0_1px_2px_rgba(0,0,0,0.45)] bg-emerald-600/28 ${
+        isOver ? 'ring-2 ring-inset ring-white' : ''
+      }`}
+    >
+      <IconExtendToPeriod className="size-5 shrink-0 opacity-95" />
+      <span>Extend to period</span>
+    </div>
+  )
+}
+
+function PeriodColumnDropOverlays({
+  periodKey,
+  plannedPeriod,
+  dragKind,
+  periodIndex,
+  dragRow,
+}: {
+  periodKey: string
+  plannedPeriod: string
+  dragKind: TimelineActiveDragKind
+  periodIndex: StudyPeriodIndex | null
+  /** Active drag row from plan; used to hide columns where the course is already scheduled. */
+  dragRow: TimelineDragRowSnapshot | null
+}) {
+  if (dragKind === 'none' || !plannedPeriod.trim()) {
+    return null
+  }
+  if (dragRow && columnAlreadyHasDraggedCourse(plannedPeriod, periodIndex, dragRow)) {
+    return null
+  }
+  if (dragKind === 'unscheduled') {
+    return (
+      <div className="pointer-events-auto absolute inset-0 z-20 flex min-h-18">
+        <PeriodMoveDropZone periodKey={periodKey} plannedPeriod={plannedPeriod} layout="fill" />
+      </div>
+    )
+  }
+  return (
+    <div className="pointer-events-auto absolute inset-0 z-20 flex min-h-24 flex-col">
+      <PeriodMoveDropZone periodKey={periodKey} plannedPeriod={plannedPeriod} layout="half" />
+      <PeriodExtendDropZone periodKey={periodKey} plannedPeriod={plannedPeriod} />
+    </div>
+  )
+}
+
+function UnscheduleDropStrip() {
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'timeline-unschedule',
+    data: { action: 'unschedule' as const },
+  })
+  return (
+    <div
+      ref={setNodeRef}
+      role="region"
+      aria-label="Drop here to unschedule this course from its current period"
+      className={`fixed top-0 right-0 bottom-0 z-10900 flex w-29 flex-col items-center justify-center gap-3 border-l-2 border-red-900/60 bg-red-600/60 px-2 py-4 text-xs font-medium text-white backdrop-blur-sm [text-shadow:0_1px_2px_rgba(0,0,0,0.5)] shadow-[-6px_0_24px_rgba(0,0,0,0.18)] ${
+        isOver ? 'ring-2 ring-inset ring-white' : ''
+      }`}
+    >
+      <IconUnschedule className="size-6 shrink-0 opacity-95" />
+      <span className="text-center leading-tight [writing-mode:vertical-rl]">Unschedule</span>
+    </div>
+  )
+}
 
 function extractSisuRootId(selections: ParsedCourseUnitSelection[]): string {
   for (const s of selections) {
@@ -178,11 +375,15 @@ function TimelinePeriodColumn({
   period: p,
   sisuRootId,
   periodIndex,
+  activeDragKind,
+  dragRowSnapshot,
 }: {
   card: TimelineCard<ParsedCourseUnitSelection>
   period: TimelinePeriod<ParsedCourseUnitSelection>
   sisuRootId: string
   periodIndex: StudyPeriodIndex | null
+  activeDragKind: TimelineActiveDragKind
+  dragRowSnapshot: TimelineDragRowSnapshot | null
 }) {
   const resolvedPlannedPeriod =
     p.plannedPeriod ||
@@ -190,19 +391,11 @@ function TimelinePeriodColumn({
       ? formatPlannedPeriodForSlot(sisuRootId, card.year, card.season, p.period, periodIndex)
       : '')
 
-  const { setNodeRef, isOver } = useDroppable({
-    id: `drop-${p.periodKey}`,
-    data: { plannedPeriod: resolvedPlannedPeriod },
-  })
-
   return (
-    <li
-      ref={setNodeRef}
-      className={`flex flex-col gap-3 text-sm ${isOver ? 'rounded bg-neutral-50 ring-1 ring-neutral-300' : ''}`}
-    >
+    <li className="flex flex-col gap-3 text-sm">
       <span className="w-14 shrink-0 text-neutral-500">{p.period}</span>
 
-      <div className="min-h-8 min-w-0 flex-1 text-neutral-800">
+      <div className="relative min-h-8 min-w-0 flex-1 text-neutral-800">
         {p.selections.length === 0 ? (
           <span className="text-neutral-400">—</span>
         ) : (
@@ -218,6 +411,13 @@ function TimelinePeriodColumn({
             ))}
           </ul>
         )}
+        <PeriodColumnDropOverlays
+          periodKey={p.periodKey}
+          plannedPeriod={resolvedPlannedPeriod}
+          dragKind={activeDragKind}
+          periodIndex={periodIndex}
+          dragRow={dragRowSnapshot}
+        />
       </div>
     </li>
   )
@@ -278,6 +478,8 @@ const TimelinePage = ({ planId }: Props) => {
   const [unscheduledSidebarOpen, setUnscheduledSidebarOpen] = useState(false)
   const [unscheduledDragPreview, setUnscheduledDragPreview] =
     useState<ParsedCourseUnitSelection | null>(null)
+  const [activeDragKind, setActiveDragKind] = useState<TimelineActiveDragKind>('none')
+  const [activeDragSelectionIndex, setActiveDragSelectionIndex] = useState<number | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -352,58 +554,132 @@ const TimelinePage = ({ planId }: Props) => {
       .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
   }, [plannedSelections, completedCourseIds])
 
+  const timelineDragRowSnapshot = useMemo((): TimelineDragRowSnapshot | null => {
+    if (activeDragKind === 'none' || activeDragSelectionIndex === null || !fullPlan) {
+      return null
+    }
+    const row = fullPlan.courseUnitSelections[activeDragSelectionIndex]
+    if (!row) {
+      return null
+    }
+    return { courseUnitId: row.courseUnitId, plannedPeriods: row.plannedPeriods }
+  }, [activeDragKind, activeDragSelectionIndex, fullPlan])
+
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
-      if (event.active.data.current?.fromUnscheduled === true) {
-        const idx = event.active.data.current.selectionIndex
+      const d = event.active.data.current
+      const idx = d?.selectionIndex
+      const selIdx = typeof idx === 'number' && idx >= 0 ? idx : null
+
+      if (d?.fromUnscheduled === true) {
+        setActiveDragKind('unscheduled')
+        setActiveDragSelectionIndex(selIdx)
         if (typeof idx === 'number') {
           const sel = plannedSelections?.find((s) => s.selectionIndex === idx)
           setUnscheduledDragPreview(sel ?? null)
         }
+      } else if (typeof d?.sourcePlannedPeriod === 'string' && d.sourcePlannedPeriod.trim()) {
+        setActiveDragKind('scheduled')
+        setActiveDragSelectionIndex(selIdx)
+      } else {
+        setActiveDragKind('none')
+        setActiveDragSelectionIndex(null)
       }
     },
     [plannedSelections]
   )
 
+  const handleDragCancel = useCallback(() => {
+    setActiveDragKind('none')
+    setActiveDragSelectionIndex(null)
+    setUnscheduledDragPreview(null)
+  }, [])
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
+      setActiveDragKind('none')
+      setActiveDragSelectionIndex(null)
       setUnscheduledDragPreview(null)
       const { active, over } = event
-      if (!over || !fullPlan) {
+      if (!fullPlan || !periodIndex) {
         return
       }
-      const selectionIndex = active.data.current?.selectionIndex
-      const targetPlannedPeriod = over.data.current?.plannedPeriod
-      if (
-        typeof selectionIndex !== 'number' ||
-        selectionIndex < 0 ||
-        typeof targetPlannedPeriod !== 'string' ||
-        !targetPlannedPeriod.trim()
-      ) {
+      if (!over) {
         return
       }
 
-      if (!periodIndex) {
+      const selectionIndex = active.data.current?.selectionIndex
+      if (typeof selectionIndex !== 'number' || selectionIndex < 0) {
         return
       }
 
       const fromUnscheduled = active.data.current?.fromUnscheduled === true
+      const overData = over.data.current as
+        | { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' }
+        | undefined
+      const dropAction = overData?.action ?? 'move'
+      const targetPlannedPeriod = overData?.plannedPeriod
 
-      const applied = fromUnscheduled
-        ? applyPlannedPeriodAdd(fullPlan, selectionIndex, targetPlannedPeriod, periodIndex)
-        : (() => {
-            const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
-            if (typeof startPlannedPeriod !== 'string') {
-              return null
-            }
-            return applyPlannedPeriodMove(
-              fullPlan,
-              selectionIndex,
-              startPlannedPeriod,
-              targetPlannedPeriod,
-              periodIndex
-            )
-          })()
+      type Applied =
+        | ReturnType<typeof applyPlannedPeriodAdd>
+        | ReturnType<typeof applyPlannedPeriodMove>
+        | ReturnType<typeof applyPlannedPeriodExtend>
+        | ReturnType<typeof applyPlannedPeriodUnschedule>
+
+      let applied: Applied | null = null
+
+      if (dropAction === 'unschedule') {
+        if (fromUnscheduled) {
+          return
+        }
+        const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
+        if (typeof startPlannedPeriod !== 'string' || !startPlannedPeriod.trim()) {
+          return
+        }
+        applied = applyPlannedPeriodUnschedule(
+          fullPlan,
+          selectionIndex,
+          startPlannedPeriod,
+          periodIndex
+        )
+      } else if (dropAction === 'extend') {
+        if (fromUnscheduled) {
+          return
+        }
+        const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
+        if (typeof startPlannedPeriod !== 'string' || !startPlannedPeriod.trim()) {
+          return
+        }
+        if (typeof targetPlannedPeriod !== 'string' || !targetPlannedPeriod.trim()) {
+          return
+        }
+        applied = applyPlannedPeriodExtend(
+          fullPlan,
+          selectionIndex,
+          startPlannedPeriod,
+          targetPlannedPeriod,
+          periodIndex
+        )
+      } else {
+        if (typeof targetPlannedPeriod !== 'string' || !targetPlannedPeriod.trim()) {
+          return
+        }
+        applied = fromUnscheduled
+          ? applyPlannedPeriodAdd(fullPlan, selectionIndex, targetPlannedPeriod, periodIndex)
+          : (() => {
+              const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
+              if (typeof startPlannedPeriod !== 'string' || !startPlannedPeriod.trim()) {
+                return null
+              }
+              return applyPlannedPeriodMove(
+                fullPlan,
+                selectionIndex,
+                startPlannedPeriod,
+                targetPlannedPeriod,
+                periodIndex
+              )
+            })()
+      }
 
       if (applied === null) {
         return
@@ -417,6 +693,8 @@ const TimelinePage = ({ planId }: Props) => {
           setSaveError('Could not update plan (source period not found).')
         } else if (applied.reason === 'already_scheduled') {
           setSaveError('Could not schedule (course already has a planned period).')
+        } else if (applied.reason === 'invalid_index') {
+          setSaveError('Could not update plan.')
         } else {
           setSaveError('Could not update plan.')
         }
@@ -591,115 +869,126 @@ const TimelinePage = ({ planId }: Props) => {
         </label>
       </div>
 
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        {unscheduledSelections.length > 0 && (
-          <aside
-            className={`fixed left-0 z-1000 flex flex-col overflow-hidden bg-white shadow-lg transition-[width,top,transform,border-radius] duration-300 ease-out ${
-              unscheduledSidebarOpen
-                ? 'top-0 h-dvh w-64 translate-y-0 rounded-none border-r border-neutral-200'
-                : 'top-1/2 h-auto -translate-y-1/2 rounded-r-lg border border-neutral-200 border-l-0'
-            }`}
-          >
-            {unscheduledSidebarOpen ? (
-              <div className="kurssikompassi-unscheduled-open flex min-h-0 min-w-64 flex-1 flex-col">
-                <div className="flex shrink-0 items-center justify-between gap-1 border-b border-neutral-100 px-2 py-2">
-                  <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">
-                    Unscheduled
-                  </h2>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={timelineCollisionDetection}
+        onDragStart={handleDragStart}
+        onDragCancel={handleDragCancel}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="relative min-h-dvh">
+          {unscheduledSelections.length > 0 && (
+            <aside
+              className={`fixed left-0 z-1000 flex flex-col overflow-hidden bg-white shadow-lg transition-[width,top,transform,border-radius] duration-300 ease-out ${
+                unscheduledSidebarOpen
+                  ? 'top-0 h-dvh w-64 translate-y-0 rounded-none border-r border-neutral-200'
+                  : 'top-1/2 h-auto -translate-y-1/2 rounded-r-lg border border-neutral-200 border-l-0'
+              }`}
+            >
+              {unscheduledSidebarOpen ? (
+                <div className="kurssikompassi-unscheduled-open flex min-h-0 min-w-64 flex-1 flex-col">
+                  <div className="flex shrink-0 items-center justify-between gap-1 border-b border-neutral-100 px-2 py-2">
+                    <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">
+                      Unscheduled
+                    </h2>
 
-                  <button
-                    type="button"
-                    className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded border border-neutral-200 bg-white text-base leading-none text-neutral-600 hover:bg-neutral-50"
-                    onClick={() => setUnscheduledSidebarOpen(false)}
-                    aria-expanded
-                    aria-controls="kurssikompassi-unscheduled-panel"
-                    aria-label="Collapse unscheduled courses panel"
+                    <button
+                      type="button"
+                      className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded border border-neutral-200 bg-white text-base leading-none text-neutral-600 hover:bg-neutral-50"
+                      onClick={() => setUnscheduledSidebarOpen(false)}
+                      aria-expanded
+                      aria-controls="kurssikompassi-unscheduled-panel"
+                      aria-label="Collapse unscheduled courses panel"
+                    >
+                      <span aria-hidden>‹</span>
+                    </button>
+                  </div>
+                  <div
+                    id="kurssikompassi-unscheduled-panel"
+                    className="flex min-h-0 flex-1 flex-col px-3 pt-2 pb-3"
                   >
-                    <span aria-hidden>‹</span>
-                  </button>
-                </div>
-                <div
-                  id="kurssikompassi-unscheduled-panel"
-                  className="flex min-h-0 flex-1 flex-col px-3 pt-2 pb-3"
-                >
-                  <p className="mb-2 shrink-0 text-xs text-neutral-500">
-                    Drag a course onto a period column.
-                  </p>
-                  <div className="min-h-0 flex-1 overflow-y-auto">
-                    {unscheduledSelections.length === 0 ? (
-                      <p className="text-sm text-neutral-400">None</p>
-                    ) : (
-                      <ul className="flex flex-col gap-1 text-sm">
-                        {unscheduledSelections.map((s) => (
-                          <UnscheduledCourseItem key={s.selectionIndex} selection={s} />
-                        ))}
-                      </ul>
-                    )}
+                    <p className="mb-2 shrink-0 text-xs text-neutral-500">
+                      Drag a course onto a period column.
+                    </p>
+                    <div className="min-h-0 flex-1 overflow-y-auto">
+                      {unscheduledSelections.length === 0 ? (
+                        <p className="text-sm text-neutral-400">None</p>
+                      ) : (
+                        <ul className="flex flex-col gap-1 text-sm">
+                          {unscheduledSelections.map((s) => (
+                            <UnscheduledCourseItem key={s.selectionIndex} selection={s} />
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="flex w-full min-w-0 items-stretch overflow-hidden rounded-r-lg bg-neutral-50 text-lg leading-none text-neutral-700 hover:bg-neutral-100"
-                onClick={() => setUnscheduledSidebarOpen(true)}
-                aria-expanded={false}
-                aria-controls="kurssikompassi-unscheduled-panel"
-                aria-label="Expand unscheduled courses panel"
+              ) : (
+                <button
+                  type="button"
+                  className="flex w-full min-w-0 items-stretch overflow-hidden rounded-r-lg bg-neutral-50 text-lg leading-none text-neutral-700 hover:bg-neutral-100"
+                  onClick={() => setUnscheduledSidebarOpen(true)}
+                  aria-expanded={false}
+                  aria-controls="kurssikompassi-unscheduled-panel"
+                  aria-label="Expand unscheduled courses panel"
+                >
+                  <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2 py-6 px-1">
+                    <span className="text-[10px] font-medium tracking-wide text-neutral-500 uppercase [writing-mode:vertical-rl]">
+                      Unscheduled
+                    </span>
+                    <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">
+                      {unscheduledSelections.length}
+                    </span>
+                  </div>
+
+                  <div className="flex w-6 shrink-0 items-center justify-center border-l border-neutral-100">
+                    <span aria-hidden>›</span>
+                  </div>
+                </button>
+              )}
+            </aside>
+          )}
+
+          <div
+            className={`min-h-[70vh] min-w-0 flex flex-col space-y-3 transition-[padding-left] duration-300 ease-out ${
+              unscheduledSidebarOpen ? 'pl-48 2xl:pl-0' : 'pl-0'
+            }`}
+          >
+            {timelineCards.map((card) => (
+              <section
+                key={card.cardKey}
+                className="rounded border border-neutral-200 bg-white p-3 shadow-sm"
               >
-                <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2 py-6 px-1">
-                  <span className="text-[10px] font-medium tracking-wide text-neutral-500 uppercase [writing-mode:vertical-rl]">
-                    Unscheduled
-                  </span>
-                  <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">
-                    {unscheduledSelections.length}
-                  </span>
-                </div>
+                <h2 className="mb-2 text-sm font-medium text-neutral-900">
+                  {card.season} {card.year}
+                </h2>
 
-                <div className="flex w-6 shrink-0 items-center justify-center border-l border-neutral-100">
-                  <span aria-hidden>›</span>
-                </div>
-              </button>
-            )}
-          </aside>
-        )}
-
-        <div
-          className={`min-h-[70vh] min-w-0 flex flex-col space-y-3 transition-[padding-left] duration-300 ease-out ${
-            unscheduledSidebarOpen ? 'pl-48 2xl:pl-0' : 'pl-0'
-          }`}
-        >
-          {timelineCards.map((card) => (
-            <section
-              key={card.cardKey}
-              className="rounded border border-neutral-200 bg-white p-3 shadow-sm"
-            >
-              <h2 className="mb-2 text-sm font-medium text-neutral-900">
-                {card.season} {card.year}
-              </h2>
-
-              <ul
-                className="grid gap-4"
-                style={{ gridTemplateColumns: `repeat(${card.periods.length}, minmax(0, 1fr))` }}
-              >
-                {card.periods.map((p) => (
-                  <TimelinePeriodColumn
-                    key={p.periodKey}
-                    card={card}
-                    period={p}
-                    sisuRootId={sisuRootId}
-                    periodIndex={periodIndex}
-                  />
-                ))}
-              </ul>
-            </section>
-          ))}
+                <ul
+                  className="grid gap-4"
+                  style={{ gridTemplateColumns: `repeat(${card.periods.length}, minmax(0, 1fr))` }}
+                >
+                  {card.periods.map((p) => (
+                    <TimelinePeriodColumn
+                      key={p.periodKey}
+                      card={card}
+                      period={p}
+                      sisuRootId={sisuRootId}
+                      periodIndex={periodIndex}
+                      activeDragKind={activeDragKind}
+                      dragRowSnapshot={timelineDragRowSnapshot}
+                    />
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+          {activeDragKind === 'scheduled' ? <UnscheduleDropStrip /> : null}
+          <DragOverlay adjustScale={false} dropAnimation={null} zIndex={11000}>
+            {unscheduledDragPreview ? (
+              <UnscheduledCourseDragPreview selection={unscheduledDragPreview} />
+            ) : null}
+          </DragOverlay>
         </div>
-        <DragOverlay adjustScale={false} dropAnimation={null} zIndex={11000}>
-          {unscheduledDragPreview ? (
-            <UnscheduledCourseDragPreview selection={unscheduledDragPreview} />
-          ) : null}
-        </DragOverlay>
       </DndContext>
     </div>
   )

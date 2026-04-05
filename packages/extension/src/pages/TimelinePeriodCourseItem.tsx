@@ -21,7 +21,12 @@ const TimelinePeriodCourseItem = ({
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: `${s.id}::${periodKey}::${completed ? 'c' : 'p'}`,
     disabled: !!completed,
-    data: { courseId: s.id, sourcePlannedPeriod, selectionIndex: s.selectionIndex },
+    data: {
+      courseId: s.id,
+      periodKey,
+      sourcePlannedPeriod,
+      selectionIndex: s.selectionIndex,
+    },
   })
 
   const style = {

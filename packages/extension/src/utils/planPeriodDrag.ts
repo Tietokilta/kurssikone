@@ -128,6 +128,74 @@ export function applyPlannedPeriodMove(
   return { ok: true, plan: updated }
 }
 
+export type ApplyPlannedPeriodExtendResult =
+  | { ok: false; reason: 'same_slot' | 'invalid_index' }
+  | { ok: true; plan: SisuStudyPlan }
+
+export function applyPlannedPeriodExtend(
+  plan: SisuStudyPlan,
+  selectionIndex: number,
+  sourcePlannedPeriod: string,
+  targetPlannedPeriod: string,
+  index: StudyPeriodIndex
+): ApplyPlannedPeriodExtendResult {
+  const row = plan.courseUnitSelections[selectionIndex]
+  if (!row) {
+    return { ok: false, reason: 'invalid_index' }
+  }
+  if (plannedPeriodKeysEqual(sourcePlannedPeriod, targetPlannedPeriod, row.courseUnitId, index)) {
+    return { ok: false, reason: 'same_slot' }
+  }
+  const newPeriods = addPlannedPeriodIfMissing(
+    row.plannedPeriods,
+    targetPlannedPeriod,
+    row.courseUnitId,
+    index
+  )
+  if (newPeriods === row.plannedPeriods) {
+    return { ok: false, reason: 'same_slot' }
+  }
+  const updated = structuredClone(plan) as SisuStudyPlan
+  updated.courseUnitSelections[selectionIndex] = { ...row, plannedPeriods: newPeriods }
+  updated.metadata = {
+    ...updated.metadata,
+    revision: updated.metadata.revision + 1,
+  }
+  return { ok: true, plan: updated }
+}
+
+export type ApplyPlannedPeriodUnscheduleResult =
+  | { ok: false; reason: 'source_not_found' | 'invalid_index' }
+  | { ok: true; plan: SisuStudyPlan }
+
+export function applyPlannedPeriodUnschedule(
+  plan: SisuStudyPlan,
+  selectionIndex: number,
+  sourcePlannedPeriod: string,
+  index: StudyPeriodIndex
+): ApplyPlannedPeriodUnscheduleResult {
+  const row = plan.courseUnitSelections[selectionIndex]
+  if (!row) {
+    return { ok: false, reason: 'invalid_index' }
+  }
+  const nextPeriods = removePlannedPeriodForSlot(
+    row.plannedPeriods,
+    sourcePlannedPeriod,
+    row.courseUnitId,
+    index
+  )
+  if (nextPeriods === null) {
+    return { ok: false, reason: 'source_not_found' }
+  }
+  const updated = structuredClone(plan) as SisuStudyPlan
+  updated.courseUnitSelections[selectionIndex] = { ...row, plannedPeriods: nextPeriods }
+  updated.metadata = {
+    ...updated.metadata,
+    revision: updated.metadata.revision + 1,
+  }
+  return { ok: true, plan: updated }
+}
+
 export type ApplyPlannedPeriodAddResult =
   | { ok: false; reason: 'invalid_index' | 'already_scheduled' }
   | { ok: true; plan: SisuStudyPlan }

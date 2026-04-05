@@ -5,7 +5,9 @@ import path from 'path'
 import {
   addPlannedPeriodIfMissing,
   applyPlannedPeriodAdd,
+  applyPlannedPeriodExtend,
   applyPlannedPeriodMove,
+  applyPlannedPeriodUnschedule,
   moveCourseUnitPlannedPeriod,
   plannedPeriodKeysEqual,
   removePlannedPeriodForSlot,
@@ -180,5 +182,65 @@ describe('applyPlannedPeriodAdd', () => {
     const plan = studyPlan([selection([])], 4)
     const r = applyPlannedPeriodAdd(plan, 99, p1, index)
     expect(r).toEqual({ ok: false, reason: 'invalid_index' })
+  })
+})
+
+describe('applyPlannedPeriodExtend', () => {
+  const p1 = `${ROOT}/2025/0/1`
+  const p2 = `${ROOT}/2025/0/2`
+
+  it('adds a second period without removing the first', () => {
+    const plan = studyPlan([selection([p1])], 4)
+    const r = applyPlannedPeriodExtend(plan, 0, p1, p2, index)
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.metadata.revision).toBe(5)
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([p1, p2])
+  })
+
+  it('returns same_slot when source and target match', () => {
+    const plan = studyPlan([selection([p1])], 4)
+    const r = applyPlannedPeriodExtend(plan, 0, p1, p1, index)
+    expect(r).toEqual({ ok: false, reason: 'same_slot' })
+  })
+
+  it('returns same_slot when target period is already present', () => {
+    const plan = studyPlan([selection([p1, p2])], 4)
+    const r = applyPlannedPeriodExtend(plan, 0, p1, p2, index)
+    expect(r).toEqual({ ok: false, reason: 'same_slot' })
+  })
+})
+
+describe('applyPlannedPeriodUnschedule', () => {
+  const p1 = `${ROOT}/2025/0/1`
+  const p2 = `${ROOT}/2025/0/2`
+
+  it('removes one slot and leaves others', () => {
+    const plan = studyPlan([selection([p1, p2])], 4)
+    const r = applyPlannedPeriodUnschedule(plan, 0, p1, index)
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([p2])
+    expect(r.plan.metadata.revision).toBe(5)
+  })
+
+  it('unschedule last period yields empty array', () => {
+    const plan = studyPlan([selection([p1])], 4)
+    const r = applyPlannedPeriodUnschedule(plan, 0, p1, index)
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([])
+  })
+
+  it('returns source_not_found when period not in row', () => {
+    const plan = studyPlan([selection([p1])], 4)
+    const r = applyPlannedPeriodUnschedule(plan, 0, `${ROOT}/2099/1/0`, index)
+    expect(r).toEqual({ ok: false, reason: 'source_not_found' })
   })
 })
