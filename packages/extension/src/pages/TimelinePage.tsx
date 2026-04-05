@@ -170,9 +170,13 @@ function PeriodMoveDropZone({
   return (
     <div
       ref={setNodeRef}
-      className={`flex flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-xs font-medium text-white backdrop-blur-sm [text-shadow:0_1px_2px_rgba(0,0,0,0.45)] ${
+      className={`flex flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-xs font-medium text-white drop-shadow-sm transition-[background-color,box-shadow] duration-150 ease-out ${
         layout === 'half' ? 'min-h-0 flex-1' : 'min-h-full flex-1'
-      } bg-blue-600/28 ${isOver ? 'ring-2 ring-inset ring-white' : ''}`}
+      } ${
+        isOver
+          ? 'bg-blue-500/95 ring-4 ring-inset ring-white shadow-[0_0_0_1px_rgba(255,255,255,0.5),0_0_28px_rgba(59,130,246,0.75)]'
+          : 'bg-blue-600/50 ring-0 ring-transparent'
+      }`}
     >
       <IconMoveToPeriod className="size-5 shrink-0 opacity-95" />
       <span>Move to period</span>
@@ -194,8 +198,10 @@ function PeriodExtendDropZone({
   return (
     <div
       ref={setNodeRef}
-      className={`flex min-h-0 flex-1 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-xs font-medium text-white backdrop-blur-sm [text-shadow:0_1px_2px_rgba(0,0,0,0.45)] bg-emerald-600/28 ${
-        isOver ? 'ring-2 ring-inset ring-white' : ''
+      className={`flex min-h-0 flex-1 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-xs font-medium text-white drop-shadow-sm transition-[background-color,box-shadow] duration-150 ease-out ${
+        isOver
+          ? 'bg-emerald-500/95 ring-4 ring-inset ring-white shadow-[0_0_0_1px_rgba(255,255,255,0.5),0_0_28px_rgba(16,185,129,0.75)]'
+          : 'bg-emerald-600/50 ring-0 ring-transparent'
       }`}
     >
       <IconExtendToPeriod className="size-5 shrink-0 opacity-95" />
@@ -226,13 +232,13 @@ function PeriodColumnDropOverlays({
   }
   if (dragKind === 'unscheduled') {
     return (
-      <div className="pointer-events-auto absolute inset-0 z-20 flex min-h-18">
+      <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-20">
         <PeriodMoveDropZone periodKey={periodKey} plannedPeriod={plannedPeriod} layout="fill" />
       </div>
     )
   }
   return (
-    <div className="pointer-events-auto absolute inset-0 z-20 flex min-h-24 flex-col">
+    <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-24 flex-col">
       <PeriodMoveDropZone periodKey={periodKey} plannedPeriod={plannedPeriod} layout="half" />
       <PeriodExtendDropZone periodKey={periodKey} plannedPeriod={plannedPeriod} />
     </div>
@@ -249,8 +255,10 @@ function UnscheduleDropStrip() {
       ref={setNodeRef}
       role="region"
       aria-label="Drop here to unschedule this course from its current period"
-      className={`fixed top-0 right-0 bottom-0 z-10900 flex w-29 flex-col items-center justify-center gap-3 border-l-2 border-red-900/60 bg-red-600/60 px-2 py-4 text-xs font-medium text-white backdrop-blur-sm [text-shadow:0_1px_2px_rgba(0,0,0,0.5)] shadow-[-6px_0_24px_rgba(0,0,0,0.18)] ${
-        isOver ? 'ring-2 ring-inset ring-white' : ''
+      className={`fixed top-0 right-0 bottom-0 z-10 flex w-28 flex-col items-center justify-center gap-3 border-l-2 border-red-800 px-2 py-4 text-xs font-medium text-white drop-shadow-sm shadow-lg transition-[background-color,box-shadow] duration-150 ease-out ${
+        isOver
+          ? 'bg-red-500/95 ring-4 ring-inset ring-white shadow-[-12px_0_36px_rgba(239,68,68,0.65)]'
+          : 'bg-red-600/60 ring-0 ring-transparent'
       }`}
     >
       <IconUnschedule className="size-6 shrink-0 opacity-95" />
@@ -879,7 +887,7 @@ const TimelinePage = ({ planId }: Props) => {
         <div className="relative min-h-dvh">
           {unscheduledSelections.length > 0 && (
             <aside
-              className={`fixed left-0 z-1000 flex flex-col overflow-hidden bg-white shadow-lg transition-[width,top,transform,border-radius] duration-300 ease-out ${
+              className={`fixed left-0 z-50 flex flex-col overflow-hidden bg-white shadow-lg transition-[width,top,transform,border-radius] duration-300 ease-out ${
                 unscheduledSidebarOpen
                   ? 'top-0 h-dvh w-64 translate-y-0 rounded-none border-r border-neutral-200'
                   : 'top-1/2 h-auto -translate-y-1/2 rounded-r-lg border border-neutral-200 border-l-0'
@@ -950,7 +958,7 @@ const TimelinePage = ({ planId }: Props) => {
           )}
 
           <div
-            className={`min-h-[70vh] min-w-0 flex flex-col space-y-3 transition-[padding-left] duration-300 ease-out ${
+            className={`relative z-20 min-h-dvh min-w-0 flex flex-col space-y-3 transition-[padding-left] duration-300 ease-out ${
               unscheduledSidebarOpen ? 'pl-48 2xl:pl-0' : 'pl-0'
             }`}
           >
@@ -963,10 +971,7 @@ const TimelinePage = ({ planId }: Props) => {
                   {card.season} {card.year}
                 </h2>
 
-                <ul
-                  className="grid gap-4"
-                  style={{ gridTemplateColumns: `repeat(${card.periods.length}, minmax(0, 1fr))` }}
-                >
+                <ul className="grid gap-4 grid-cols-3">
                   {card.periods.map((p) => (
                     <TimelinePeriodColumn
                       key={p.periodKey}
