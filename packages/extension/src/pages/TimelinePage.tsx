@@ -278,6 +278,7 @@ const TimelinePage = ({ planId }: Props) => {
   const [isSaving, setIsSaving] = useState(false)
   const [showSummer, setShowSummer] = useState(true)
   const [showPastPeriods, setShowPastPeriods] = useState(false)
+  const [unscheduledSidebarOpen, setUnscheduledSidebarOpen] = useState(true)
   const [unscheduledDragPreview, setUnscheduledDragPreview] =
     useState<ParsedCourseUnitSelection | null>(null)
 
@@ -594,52 +595,102 @@ const TimelinePage = ({ planId }: Props) => {
       </div>
 
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div className="flex min-h-[70vh] items-stretch gap-3">
-          <aside className="flex w-64 shrink-0 flex-col rounded border border-neutral-200 bg-white p-3 shadow-sm">
-            <h2 className="mb-2 shrink-0 text-sm font-medium text-neutral-900">Unscheduled</h2>
-            <p className="mb-2 shrink-0 text-xs text-neutral-500">
-              Drag a course onto a period column.
-            </p>
-            <div className="min-h-0 flex-1 overflow-y-auto">
-              {unscheduledSelections.length === 0 ? (
-                <p className="text-sm text-neutral-400">None</p>
-              ) : (
-                <ul className="flex flex-col gap-1 text-sm">
-                  {unscheduledSelections.map((s) => (
-                    <UnscheduledCourseItem key={s.selectionIndex} selection={s} />
-                  ))}
-                </ul>
-              )}
-            </div>
-          </aside>
-
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-3">
-            {timelineCards.map((card) => (
-              <section
-                key={card.cardKey}
-                className="rounded border border-neutral-200 bg-white p-3 shadow-sm"
-              >
-                <h2 className="mb-2 text-sm font-medium text-neutral-900">
-                  {card.season} {card.year}
-                </h2>
-
-                <ul
-                  className="grid gap-4"
-                  style={{ gridTemplateColumns: `repeat(${card.periods.length}, minmax(0, 1fr))` }}
-                >
-                  {card.periods.map((p) => (
-                    <TimelinePeriodColumn
-                      key={p.periodKey}
-                      card={card}
-                      period={p}
-                      sisuRootId={sisuRootId}
-                      periodIndex={periodIndex}
-                    />
-                  ))}
-                </ul>
-              </section>
-            ))}
+        <aside
+          className={`fixed top-0 left-0 z-10000 flex h-dvh flex-col border-r border-neutral-200 bg-white shadow-lg transition-[width] duration-200 ease-out ${
+            unscheduledSidebarOpen ? 'w-64' : 'w-11'
+          }`}
+        >
+          <div
+            className={`flex shrink-0 items-center border-b border-neutral-100 py-2 ${
+              unscheduledSidebarOpen ? 'justify-between gap-1 px-2' : 'justify-center px-1'
+            }`}
+          >
+            {unscheduledSidebarOpen ? (
+              <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">
+                Unscheduled
+              </h2>
+            ) : null}
+            <button
+              type="button"
+              className="flex size-8 shrink-0 items-center justify-center rounded border border-neutral-200 bg-white text-base leading-none text-neutral-600 hover:bg-neutral-50"
+              onClick={() => setUnscheduledSidebarOpen((o) => !o)}
+              aria-expanded={unscheduledSidebarOpen}
+              aria-controls={
+                unscheduledSidebarOpen ? 'kurssikompassi-unscheduled-panel' : undefined
+              }
+              aria-label={
+                unscheduledSidebarOpen
+                  ? 'Collapse unscheduled courses panel'
+                  : 'Expand unscheduled courses panel'
+              }
+            >
+              <span aria-hidden>{unscheduledSidebarOpen ? '‹' : '›'}</span>
+            </button>
           </div>
+          {unscheduledSidebarOpen ? (
+            <div
+              id="kurssikompassi-unscheduled-panel"
+              className="flex min-h-0 flex-1 flex-col px-3 pt-2 pb-3"
+            >
+              <p className="mb-2 shrink-0 text-xs text-neutral-500">
+                Drag a course onto a period column.
+              </p>
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                {unscheduledSelections.length === 0 ? (
+                  <p className="text-sm text-neutral-400">None</p>
+                ) : (
+                  <ul className="flex flex-col gap-1 text-sm">
+                    {unscheduledSelections.map((s) => (
+                      <UnscheduledCourseItem key={s.selectionIndex} selection={s} />
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-1 flex-col items-center gap-2 py-3">
+              <span className="text-[10px] font-medium tracking-wide text-neutral-500 uppercase [writing-mode:vertical-rl]">
+                Unscheduled
+              </span>
+              {unscheduledSelections.length > 0 ? (
+                <span className="rounded-full bg-blue-600 px-2 py-0.5 text-xs font-medium text-white">
+                  {unscheduledSelections.length}
+                </span>
+              ) : null}
+            </div>
+          )}
+        </aside>
+
+        <div
+          className={`min-h-[70vh] min-w-0 flex flex-col space-y-3 transition-[padding-left] duration-200 ease-out ${
+            unscheduledSidebarOpen ? 'pl-67' : 'pl-14'
+          }`}
+        >
+          {timelineCards.map((card) => (
+            <section
+              key={card.cardKey}
+              className="rounded border border-neutral-200 bg-white p-3 shadow-sm"
+            >
+              <h2 className="mb-2 text-sm font-medium text-neutral-900">
+                {card.season} {card.year}
+              </h2>
+
+              <ul
+                className="grid gap-4"
+                style={{ gridTemplateColumns: `repeat(${card.periods.length}, minmax(0, 1fr))` }}
+              >
+                {card.periods.map((p) => (
+                  <TimelinePeriodColumn
+                    key={p.periodKey}
+                    card={card}
+                    period={p}
+                    sisuRootId={sisuRootId}
+                    periodIndex={periodIndex}
+                  />
+                ))}
+              </ul>
+            </section>
+          ))}
         </div>
         <DragOverlay adjustScale={false} dropAnimation={null}>
           {unscheduledDragPreview ? (
