@@ -127,3 +127,35 @@ export function applyPlannedPeriodMove(
   }
   return { ok: true, plan: updated }
 }
+
+export type ApplyPlannedPeriodAddResult =
+  | { ok: false; reason: 'invalid_index' | 'already_scheduled' }
+  | { ok: true; plan: SisuStudyPlan }
+
+export function applyPlannedPeriodAdd(
+  plan: SisuStudyPlan,
+  selectionIndex: number,
+  targetPlannedPeriod: string,
+  index: StudyPeriodIndex
+): ApplyPlannedPeriodAddResult {
+  const row = plan.courseUnitSelections[selectionIndex]
+  if (!row) {
+    return { ok: false, reason: 'invalid_index' }
+  }
+  if (row.plannedPeriods.length > 0) {
+    return { ok: false, reason: 'already_scheduled' }
+  }
+  const newPeriods = addPlannedPeriodIfMissing(
+    row.plannedPeriods,
+    targetPlannedPeriod,
+    row.courseUnitId,
+    index
+  )
+  const updated = structuredClone(plan) as SisuStudyPlan
+  updated.courseUnitSelections[selectionIndex] = { ...row, plannedPeriods: newPeriods }
+  updated.metadata = {
+    ...updated.metadata,
+    revision: updated.metadata.revision + 1,
+  }
+  return { ok: true, plan: updated }
+}

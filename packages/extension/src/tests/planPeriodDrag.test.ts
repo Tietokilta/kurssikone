@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import {
   addPlannedPeriodIfMissing,
+  applyPlannedPeriodAdd,
   applyPlannedPeriodMove,
   moveCourseUnitPlannedPeriod,
   plannedPeriodKeysEqual,
@@ -149,5 +150,35 @@ describe('applyPlannedPeriodMove', () => {
   it('returns source_not_found when period not in row', () => {
     const r = applyPlannedPeriodMove(plan, 0, `${ROOT}/2026/1/0`, p2, index)
     expect(r).toEqual({ ok: false, reason: 'source_not_found' })
+  })
+})
+
+describe('applyPlannedPeriodAdd', () => {
+  const p1 = `${ROOT}/2025/0/1`
+  const p2 = `${ROOT}/2025/0/2`
+
+  it('adds first planned period and bumps revision', () => {
+    const plan = studyPlan([selection([])], 4)
+    const r = applyPlannedPeriodAdd(plan, 0, p1, index)
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.metadata.revision).toBe(5)
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([p1])
+    expect(plan.metadata.revision).toBe(4)
+    expect(plan.courseUnitSelections[0].plannedPeriods).toEqual([])
+  })
+
+  it('returns already_scheduled when row has periods', () => {
+    const plan = studyPlan([selection([p1])], 4)
+    const r = applyPlannedPeriodAdd(plan, 0, p2, index)
+    expect(r).toEqual({ ok: false, reason: 'already_scheduled' })
+  })
+
+  it('returns invalid_index for out-of-range row', () => {
+    const plan = studyPlan([selection([])], 4)
+    const r = applyPlannedPeriodAdd(plan, 99, p1, index)
+    expect(r).toEqual({ ok: false, reason: 'invalid_index' })
   })
 })

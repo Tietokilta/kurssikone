@@ -1,7 +1,10 @@
 import {
   DndContext,
+  DragOverlay,
   PointerSensor,
   type DragEndEvent,
+  type DragStartEvent,
+  useDraggable,
   useDroppable,
   useSensor,
   useSensors,
@@ -14,7 +17,7 @@ import {
   getCoursesByIds,
   updateStudyPlan,
 } from '../requestHandlers'
-import { applyPlannedPeriodMove } from '../utils/planPeriodDrag'
+import { applyPlannedPeriodAdd, applyPlannedPeriodMove } from '../utils/planPeriodDrag'
 import {
   buildTimelineCards,
   formatPlannedPeriodForSlot,
@@ -220,6 +223,50 @@ function TimelinePeriodColumn({
   )
 }
 
+function UnscheduledCourseDragPreview({ selection: s }: { selection: ParsedCourseUnitSelection }) {
+  return (
+    <div
+      className="box-border flex cursor-grabbing touch-none bg-gray-300 shadow-lg ring-1 ring-neutral-900/15 w-60"
+      style={{ minHeight: s.plannedCredits * 20 }}
+    >
+      <div className="flex w-12 shrink-0 flex-col items-center justify-center bg-blue-500 py-2 px-1 text-center text-white">
+        <i>{s.plannedCredits.toFixed(1)}</i>
+        {s.creditsMax === s.creditsMin ? s.creditsMax : `${s.creditsMin}–${s.creditsMax}`}
+      </div>
+      <div className="min-w-0 flex-1 p-2">{s.name}</div>
+    </div>
+  )
+}
+
+function UnscheduledCourseItem({ selection: s }: { selection: ParsedCourseUnitSelection }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `unscheduled-${s.selectionIndex}`,
+    data: { selectionIndex: s.selectionIndex, fromUnscheduled: true as const },
+  })
+
+  const style = {
+    minHeight: s.plannedCredits * 20,
+  }
+
+  return (
+    <li
+      ref={setNodeRef}
+      style={style}
+      className={`flex touch-none bg-gray-300 ${
+        isDragging ? 'cursor-grabbing opacity-0' : 'cursor-grab'
+      }`}
+      {...listeners}
+      {...attributes}
+    >
+      <div className="flex w-12 shrink-0 flex-col items-center justify-center bg-blue-500 py-2 px-1 text-center text-white">
+        <i>{s.plannedCredits.toFixed(1)}</i>
+        {s.creditsMax === s.creditsMin ? s.creditsMax : `${s.creditsMin}–${s.creditsMax}`}
+      </div>
+      <div className="min-w-0 flex-1 p-2">{s.name}</div>
+    </li>
+  )
+}
+
 const TimelinePage = ({ planId }: Props) => {
   const [fullPlan, setFullPlan] = useState<SisuStudyPlan | null>(null)
   const [courseData, setCourseData] = useState<Record<string, Course>>({})
@@ -231,6 +278,8 @@ const TimelinePage = ({ planId }: Props) => {
   const [isSaving, setIsSaving] = useState(false)
   const [showSummer, setShowSummer] = useState(true)
   const [showPastPeriods, setShowPastPeriods] = useState(false)
+  const [unscheduledDragPreview, setUnscheduledDragPreview] =
+    useState<ParsedCourseUnitSelection | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -284,20 +333,54 @@ const TimelinePage = ({ planId }: Props) => {
     [fullPlan, plannedSelections]
   )
 
+  const completedCourseIds = useMemo(
+    () => new Set(completedSelections.map((s) => s.id)),
+    [completedSelections]
+  )
+
+  const unscheduledSelections = useMemo(() => {
+    if (!plannedSelections) {
+      return []
+    }
+    return plannedSelections
+      .filter(
+        (s) =>
+          s.selectionIndex >= 0 &&
+          !s.completed &&
+          !completedCourseIds.has(s.id) &&
+          s.rawData.plannedPeriods.length === 0
+      )
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+  }, [plannedSelections, completedCourseIds])
+
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      if (event.active.data.current?.fromUnscheduled === true) {
+        const idx = event.active.data.current.selectionIndex
+        if (typeof idx === 'number') {
+          const sel = plannedSelections?.find((s) => s.selectionIndex === idx)
+          setUnscheduledDragPreview(sel ?? null)
+        }
+      }
+    },
+    [plannedSelections]
+  )
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
+      setUnscheduledDragPreview(null)
       const { active, over } = event
       if (!over || !fullPlan) {
         return
       }
       const selectionIndex = active.data.current?.selectionIndex
-      const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
       const targetPlannedPeriod = over.data.current?.plannedPeriod
       if (
         typeof selectionIndex !== 'number' ||
         selectionIndex < 0 ||
-        typeof startPlannedPeriod !== 'string' ||
-        typeof targetPlannedPeriod !== 'string'
+        typeof targetPlannedPeriod !== 'string' ||
+        !targetPlannedPeriod.trim()
       ) {
         return
       }
@@ -306,13 +389,27 @@ const TimelinePage = ({ planId }: Props) => {
         return
       }
 
-      const applied = applyPlannedPeriodMove(
-        fullPlan,
-        selectionIndex,
-        startPlannedPeriod,
-        targetPlannedPeriod,
-        periodIndex
-      )
+      const fromUnscheduled = active.data.current?.fromUnscheduled === true
+
+      const applied = fromUnscheduled
+        ? applyPlannedPeriodAdd(fullPlan, selectionIndex, targetPlannedPeriod, periodIndex)
+        : (() => {
+            const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
+            if (typeof startPlannedPeriod !== 'string') {
+              return null
+            }
+            return applyPlannedPeriodMove(
+              fullPlan,
+              selectionIndex,
+              startPlannedPeriod,
+              targetPlannedPeriod,
+              periodIndex
+            )
+          })()
+
+      if (applied === null) {
+        return
+      }
 
       if (!applied.ok) {
         if (applied.reason === 'same_slot') {
@@ -320,6 +417,8 @@ const TimelinePage = ({ planId }: Props) => {
         }
         if (applied.reason === 'source_not_found') {
           setSaveError('Could not update plan (source period not found).')
+        } else if (applied.reason === 'already_scheduled') {
+          setSaveError('Could not schedule (course already has a planned period).')
         } else {
           setSaveError('Could not update plan.')
         }
@@ -472,7 +571,8 @@ const TimelinePage = ({ planId }: Props) => {
       {isSaving ? <div className="text-sm text-neutral-600">Saving plan…</div> : null}
       {saveError ? <div className="text-sm text-red-600">{saveError}</div> : null}
       {studyYearsWarning ? <div className="text-sm text-amber-700">{studyYearsWarning}</div> : null}
-      <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-700">
+
+      <div className="flex shrink-0 flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-700">
         <label className="flex cursor-pointer items-center gap-2">
           <input
             type="checkbox"
@@ -493,32 +593,59 @@ const TimelinePage = ({ planId }: Props) => {
         </label>
       </div>
 
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        {timelineCards.map((card) => (
-          <section
-            key={card.cardKey}
-            className="rounded border border-neutral-200 bg-white p-3 shadow-sm"
-          >
-            <h2 className="mb-2 text-sm font-medium text-neutral-900">
-              {card.season} {card.year}
-            </h2>
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="flex min-h-[70vh] items-stretch gap-3">
+          <aside className="flex w-64 shrink-0 flex-col rounded border border-neutral-200 bg-white p-3 shadow-sm">
+            <h2 className="mb-2 shrink-0 text-sm font-medium text-neutral-900">Unscheduled</h2>
+            <p className="mb-2 shrink-0 text-xs text-neutral-500">
+              Drag a course onto a period column.
+            </p>
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              {unscheduledSelections.length === 0 ? (
+                <p className="text-sm text-neutral-400">None</p>
+              ) : (
+                <ul className="flex flex-col gap-1 text-sm">
+                  {unscheduledSelections.map((s) => (
+                    <UnscheduledCourseItem key={s.selectionIndex} selection={s} />
+                  ))}
+                </ul>
+              )}
+            </div>
+          </aside>
 
-            <ul
-              className="grid gap-4"
-              style={{ gridTemplateColumns: `repeat(${card.periods.length}, minmax(0, 1fr))` }}
-            >
-              {card.periods.map((p) => (
-                <TimelinePeriodColumn
-                  key={p.periodKey}
-                  card={card}
-                  period={p}
-                  sisuRootId={sisuRootId}
-                  periodIndex={periodIndex}
-                />
-              ))}
-            </ul>
-          </section>
-        ))}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col space-y-3">
+            {timelineCards.map((card) => (
+              <section
+                key={card.cardKey}
+                className="rounded border border-neutral-200 bg-white p-3 shadow-sm"
+              >
+                <h2 className="mb-2 text-sm font-medium text-neutral-900">
+                  {card.season} {card.year}
+                </h2>
+
+                <ul
+                  className="grid gap-4"
+                  style={{ gridTemplateColumns: `repeat(${card.periods.length}, minmax(0, 1fr))` }}
+                >
+                  {card.periods.map((p) => (
+                    <TimelinePeriodColumn
+                      key={p.periodKey}
+                      card={card}
+                      period={p}
+                      sisuRootId={sisuRootId}
+                      periodIndex={periodIndex}
+                    />
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
+        </div>
+        <DragOverlay adjustScale={false} dropAnimation={null}>
+          {unscheduledDragPreview ? (
+            <UnscheduledCourseDragPreview selection={unscheduledDragPreview} />
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   )
