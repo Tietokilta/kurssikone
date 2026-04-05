@@ -1,3 +1,18 @@
 @import "../../shared/src/styles/global.css";
 
 @source "../../shared/src/**/*.tsx";
+
+@keyframes kurssikompassi-unscheduled-open {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.kurssikompassi-unscheduled-open {
+  animation: kurssikompassi-unscheduled-open 0.35s ease-out both;
+}
