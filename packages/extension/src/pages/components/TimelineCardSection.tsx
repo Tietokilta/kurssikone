@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { plannedPeriodKeysEqual } from '../../utils/planPeriodDrag'
 import {
   formatPlannedPeriodForSlot,
@@ -138,7 +139,7 @@ function TimelinePeriodColumn({
       : '')
 
   return (
-    <li className="flex flex-col gap-3 text-sm">
+    <div className="flex min-w-0 flex-col gap-3 text-sm">
       <span className="w-14 shrink-0 text-neutral-500">{p.period}</span>
 
       <div className="relative min-h-8 min-w-0 flex-1 text-neutral-800">
@@ -175,12 +176,12 @@ function TimelinePeriodColumn({
           }
         />
       </div>
-    </li>
+    </div>
   )
 }
 
 type Props = {
-  card: TimelineCard<ParsedCourseUnitSelection>
+  cards: TimelineCard<ParsedCourseUnitSelection>[]
   sisuRootId: string
   periodIndex: StudyPeriodIndex | null
   activeInteractionKind: TimelineInteractionKind
@@ -193,8 +194,9 @@ type Props = {
   clickPlacementTarget: { action: 'move' | 'extend'; plannedPeriod: string } | null
 }
 
-const TimelineCardSection = ({
-  card,
+/** Single grid for the whole timeline so rows share one column track set (col-span, etc.). */
+const TimelineMainGrid = ({
+  cards,
   sisuRootId,
   periodIndex,
   activeInteractionKind,
@@ -206,32 +208,53 @@ const TimelineCardSection = ({
   onClickPlacementAction,
   clickPlacementTarget,
 }: Props) => {
+  const maxPeriodCols =
+    cards.length === 0 ? 1 : Math.max(1, ...cards.map((c) => c.periods.length))
+
   return (
     <section className="rounded border border-neutral-200 bg-white p-3 shadow-sm">
-      <h2 className="mb-2 text-sm font-medium text-neutral-900">
-        {card.season} {card.year}
-      </h2>
-      <ul className="grid grid-cols-3 gap-4">
-        {card.periods.map((p) => (
-          <TimelinePeriodColumn
-            key={p.periodKey}
-            card={card}
-            period={p}
-            sisuRootId={sisuRootId}
-            periodIndex={periodIndex}
-            activeInteractionKind={activeInteractionKind}
-            dragRowSnapshot={dragRowSnapshot}
-            clickModeEnabled={clickModeEnabled}
-            onCardUnschedule={onCardUnschedule}
-            onCardMoveModeToggle={onCardMoveModeToggle}
-            isMoveModeActiveFor={isMoveModeActiveFor}
-            onClickPlacementAction={onClickPlacementAction}
-            clickPlacementTarget={clickPlacementTarget}
-          />
+      <div
+        className="grid gap-x-4 gap-y-3"
+        style={{
+          gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
+        }}
+      >
+        {cards.map((card) => (
+          <Fragment key={card.cardKey}>
+            <h2 className="col-span-full text-sm font-medium text-neutral-900">
+              {card.season} {card.year}
+            </h2>
+            {card.periods.map((p) => (
+              <TimelinePeriodColumn
+                key={p.periodKey}
+                card={card}
+                period={p}
+                sisuRootId={sisuRootId}
+                periodIndex={periodIndex}
+                activeInteractionKind={activeInteractionKind}
+                dragRowSnapshot={dragRowSnapshot}
+                clickModeEnabled={clickModeEnabled}
+                onCardUnschedule={onCardUnschedule}
+                onCardMoveModeToggle={onCardMoveModeToggle}
+                isMoveModeActiveFor={isMoveModeActiveFor}
+                onClickPlacementAction={onClickPlacementAction}
+                clickPlacementTarget={clickPlacementTarget}
+              />
+            ))}
+            {Array.from({ length: Math.max(0, maxPeriodCols - card.periods.length) }).map(
+              (_, i) => (
+                <div
+                  key={`${card.cardKey}-pad-${i}`}
+                  className="min-w-0"
+                  aria-hidden
+                />
+              )
+            )}
+          </Fragment>
         ))}
-      </ul>
+      </div>
     </section>
   )
 }
 
-export default TimelineCardSection
+export default TimelineMainGrid

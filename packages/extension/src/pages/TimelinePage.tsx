@@ -36,7 +36,7 @@ import type {
 } from '../utils/types'
 import { Course } from '@kurssikompassi/shared/src/types'
 import TimelineCourseCard from './components/TimelineCourseCard'
-import TimelineCardSection, {
+import TimelineMainGrid, {
   type TimelineInteractionKind,
   type TimelineDragRowSnapshot,
 } from './components/TimelineCardSection'
@@ -479,29 +479,26 @@ const TimelinePage = ({ planId }: Props) => {
               />
 
               <div
-                className={`relative z-20 min-h-dvh min-w-0 flex flex-col space-y-3 transition-[padding-left] duration-300 ease-out ${
+                className={`relative z-20 min-h-dvh min-w-0 transition-[padding-left] duration-300 ease-out ${
                   unscheduledSidebarOpen ? 'pl-48 2xl:pl-0' : 'pl-0'
                 }`}
               >
-                {timelineCards.map((card) => (
-                  <TimelineCardSection
-                    key={card.cardKey}
-                    card={card}
-                    sisuRootId={sisuRootId}
-                    periodIndex={periodIndex}
-                    activeInteractionKind={interactionKind}
-                    dragRowSnapshot={timelineDragRowSnapshot}
-                    clickModeEnabled={
-                      interactionKind === 'click-scheduled' ||
-                      interactionKind === 'click-unscheduled'
-                    }
-                    onCardUnschedule={handleCardUnschedule}
-                    onCardMoveModeToggle={handleCardMoveModeToggle}
-                    isMoveModeActiveFor={isMoveModeActiveFor}
-                    onClickPlacementAction={handleClickPlacementAction}
-                    clickPlacementTarget={clickPlacementTarget}
-                  />
-                ))}
+                <TimelineMainGrid
+                  cards={timelineCards}
+                  sisuRootId={sisuRootId}
+                  periodIndex={periodIndex}
+                  activeInteractionKind={interactionKind}
+                  dragRowSnapshot={timelineDragRowSnapshot}
+                  clickModeEnabled={
+                    interactionKind === 'click-scheduled' ||
+                    interactionKind === 'click-unscheduled'
+                  }
+                  onCardUnschedule={handleCardUnschedule}
+                  onCardMoveModeToggle={handleCardMoveModeToggle}
+                  isMoveModeActiveFor={isMoveModeActiveFor}
+                  onClickPlacementAction={handleClickPlacementAction}
+                  clickPlacementTarget={clickPlacementTarget}
+                />
               </div>
               <DragOverlay adjustScale={false} dropAnimation={null} zIndex={11000}>
                 {unscheduledDragPreview ? (
