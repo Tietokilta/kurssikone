@@ -10,7 +10,12 @@ import { IconExtendToPeriod, IconMoveToPeriod } from './TimelineIcons'
 import TimelineDropTile from './TimelineDropTile'
 import TimelinePeriodCourseItem from '../TimelinePeriodCourseItem'
 
-export type TimelineActiveDragKind = 'none' | 'scheduled' | 'unscheduled'
+export type TimelineInteractionKind =
+  | 'none'
+  | 'scheduled'
+  | 'unscheduled'
+  | 'click-scheduled'
+  | 'click-unscheduled'
 
 export type TimelineDragRowSnapshot = {
   courseUnitId: string
@@ -33,23 +38,29 @@ function columnAlreadyHasDraggedCourse(
 function PeriodColumnDropOverlays({
   periodKey,
   plannedPeriod,
-  dragKind,
+  interactionKind,
   periodIndex,
   dragRow,
+  clickModeEnabled,
+  onClickAction,
+  clickTargetAction,
 }: {
   periodKey: string
   plannedPeriod: string
-  dragKind: TimelineActiveDragKind
+  interactionKind: TimelineInteractionKind
   periodIndex: StudyPeriodIndex | null
   dragRow: TimelineDragRowSnapshot | null
+  clickModeEnabled: boolean
+  onClickAction: (action: 'move' | 'extend', plannedPeriod: string) => void
+  clickTargetAction: 'move' | 'extend' | null
 }) {
-  if (dragKind === 'none' || !plannedPeriod.trim()) {
+  if (interactionKind === 'none' || !plannedPeriod.trim()) {
     return null
   }
   if (dragRow && columnAlreadyHasDraggedCourse(plannedPeriod, periodIndex, dragRow)) {
     return null
   }
-  if (dragKind === 'unscheduled') {
+  if (interactionKind === 'unscheduled' || interactionKind === 'click-unscheduled') {
     return (
       <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-20">
         <TimelineDropTile
@@ -59,6 +70,10 @@ function PeriodColumnDropOverlays({
           label="Move to period"
           icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
           tone="move"
+          onClick={
+            clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined
+          }
+          clickActive={clickModeEnabled && clickTargetAction === 'move'}
         />
       </div>
     )
@@ -73,6 +88,8 @@ function PeriodColumnDropOverlays({
         icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
         tone="move"
         layout="half"
+        onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
+        clickActive={clickModeEnabled && clickTargetAction === 'move'}
       />
       <TimelineDropTile
         id={`timeline-extend-${periodKey}`}
@@ -82,6 +99,8 @@ function PeriodColumnDropOverlays({
         icon={<IconExtendToPeriod className="size-5 shrink-0 opacity-95" />}
         tone="extend"
         layout="half"
+        onClick={clickModeEnabled ? () => onClickAction('extend', plannedPeriod) : undefined}
+        clickActive={clickModeEnabled && clickTargetAction === 'extend'}
       />
     </div>
   )
@@ -92,15 +111,27 @@ function TimelinePeriodColumn({
   period: p,
   sisuRootId,
   periodIndex,
-  activeDragKind,
+  activeInteractionKind,
   dragRowSnapshot,
+  clickModeEnabled,
+  onCardUnschedule,
+  onCardMoveModeToggle,
+  isMoveModeActiveFor,
+  onClickPlacementAction,
+  clickPlacementTarget,
 }: {
   card: TimelineCard<ParsedCourseUnitSelection>
   period: TimelinePeriod<ParsedCourseUnitSelection>
   sisuRootId: string
   periodIndex: StudyPeriodIndex | null
-  activeDragKind: TimelineActiveDragKind
+  activeInteractionKind: TimelineInteractionKind
   dragRowSnapshot: TimelineDragRowSnapshot | null
+  clickModeEnabled: boolean
+  onCardUnschedule: (selectionIndex: number, sourcePlannedPeriod: string) => void
+  onCardMoveModeToggle: (selectionIndex: number, sourcePlannedPeriod: string) => void
+  isMoveModeActiveFor: (selectionIndex: number, sourcePlannedPeriod: string) => boolean
+  onClickPlacementAction: (action: 'move' | 'extend', plannedPeriod: string) => void
+  clickPlacementTarget: { action: 'move' | 'extend'; plannedPeriod: string } | null
 }) {
   const resolvedPlannedPeriod =
     p.plannedPeriod ||
@@ -124,6 +155,9 @@ function TimelinePeriodColumn({
                 periodKey={p.periodKey}
                 sourcePlannedPeriod={resolvedPlannedPeriod}
                 completed={s.completed}
+                onUnschedule={onCardUnschedule}
+                onToggleMoveMode={onCardMoveModeToggle}
+                isMoveModeActive={isMoveModeActiveFor(s.selectionIndex, resolvedPlannedPeriod)}
               />
             ))}
           </ul>
@@ -131,9 +165,16 @@ function TimelinePeriodColumn({
         <PeriodColumnDropOverlays
           periodKey={p.periodKey}
           plannedPeriod={resolvedPlannedPeriod}
-          dragKind={activeDragKind}
+          interactionKind={activeInteractionKind}
           periodIndex={periodIndex}
           dragRow={dragRowSnapshot}
+          clickModeEnabled={clickModeEnabled}
+          onClickAction={onClickPlacementAction}
+          clickTargetAction={
+            clickPlacementTarget?.plannedPeriod === resolvedPlannedPeriod
+              ? clickPlacementTarget.action
+              : null
+          }
         />
       </div>
     </li>
@@ -144,16 +185,28 @@ type Props = {
   card: TimelineCard<ParsedCourseUnitSelection>
   sisuRootId: string
   periodIndex: StudyPeriodIndex | null
-  activeDragKind: TimelineActiveDragKind
+  activeInteractionKind: TimelineInteractionKind
   dragRowSnapshot: TimelineDragRowSnapshot | null
+  clickModeEnabled: boolean
+  onCardUnschedule: (selectionIndex: number, sourcePlannedPeriod: string) => void
+  onCardMoveModeToggle: (selectionIndex: number, sourcePlannedPeriod: string) => void
+  isMoveModeActiveFor: (selectionIndex: number, sourcePlannedPeriod: string) => boolean
+  onClickPlacementAction: (action: 'move' | 'extend', plannedPeriod: string) => void
+  clickPlacementTarget: { action: 'move' | 'extend'; plannedPeriod: string } | null
 }
 
 const TimelineCardSection = ({
   card,
   sisuRootId,
   periodIndex,
-  activeDragKind,
+  activeInteractionKind,
   dragRowSnapshot,
+  clickModeEnabled,
+  onCardUnschedule,
+  onCardMoveModeToggle,
+  isMoveModeActiveFor,
+  onClickPlacementAction,
+  clickPlacementTarget,
 }: Props) => {
   return (
     <section className="rounded border border-neutral-200 bg-white p-3 shadow-sm">
@@ -168,8 +221,14 @@ const TimelineCardSection = ({
             period={p}
             sisuRootId={sisuRootId}
             periodIndex={periodIndex}
-            activeDragKind={activeDragKind}
+            activeInteractionKind={activeInteractionKind}
             dragRowSnapshot={dragRowSnapshot}
+            clickModeEnabled={clickModeEnabled}
+            onCardUnschedule={onCardUnschedule}
+            onCardMoveModeToggle={onCardMoveModeToggle}
+            isMoveModeActiveFor={isMoveModeActiveFor}
+            onClickPlacementAction={onClickPlacementAction}
+            clickPlacementTarget={clickPlacementTarget}
           />
         ))}
       </ul>

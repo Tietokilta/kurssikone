@@ -1,8 +1,17 @@
 import type { ParsedCourseUnitSelection } from '../TimelinePage'
 import TimelineCourseCard from './TimelineCourseCard'
 import TimelineDraggableCard from './TimelineDraggableCard'
+import TimelineMoveModeButton from './TimelineMoveModeButton'
 
-function UnscheduledCourseItem({ selection: s }: { selection: ParsedCourseUnitSelection }) {
+function UnscheduledCourseItem({
+  selection: s,
+  onToggleMoveMode,
+  isMoveModeActive,
+}: {
+  selection: ParsedCourseUnitSelection
+  onToggleMoveMode: (selectionIndex: number) => void
+  isMoveModeActive: boolean
+}) {
   return (
     <TimelineDraggableCard
       id={`unscheduled-${s.selectionIndex}`}
@@ -17,6 +26,14 @@ function UnscheduledCourseItem({ selection: s }: { selection: ParsedCourseUnitSe
             creditsMax={s.creditsMax}
             variant="unscheduled"
             isDragging={isDragging}
+            highlightActive={isMoveModeActive}
+            actionButtons={
+              <TimelineMoveModeButton
+                isActive={isMoveModeActive}
+                inactiveLabel="Move to period"
+                onClick={() => onToggleMoveMode(s.selectionIndex)}
+              />
+            }
           />
         </div>
       )}
@@ -28,9 +45,17 @@ type Props = {
   open: boolean
   setOpen: (value: boolean) => void
   selections: ParsedCourseUnitSelection[]
+  onToggleMoveMode: (selectionIndex: number) => void
+  isMoveModeActiveForUnscheduled: (selectionIndex: number) => boolean
 }
 
-const UnscheduledSidebar = ({ open, setOpen, selections }: Props) => {
+const UnscheduledSidebar = ({
+  open,
+  setOpen,
+  selections,
+  onToggleMoveMode,
+  isMoveModeActiveForUnscheduled,
+}: Props) => {
   if (selections.length === 0) {
     return null
   }
@@ -70,7 +95,12 @@ const UnscheduledSidebar = ({ open, setOpen, selections }: Props) => {
             <div className="min-h-0 flex-1 overflow-y-auto">
               <ul className="flex flex-col gap-1 text-sm">
                 {selections.map((s) => (
-                  <UnscheduledCourseItem key={s.selectionIndex} selection={s} />
+                  <UnscheduledCourseItem
+                    key={s.selectionIndex}
+                    selection={s}
+                    onToggleMoveMode={onToggleMoveMode}
+                    isMoveModeActive={isMoveModeActiveForUnscheduled(s.selectionIndex)}
+                  />
                 ))}
               </ul>
             </div>

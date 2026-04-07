@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 type TimelineCourseCardVariant = 'scheduled' | 'unscheduled' | 'completed' | 'dragPreview'
 
 type Props = {
@@ -8,6 +10,8 @@ type Props = {
   minHeight?: number
   variant: TimelineCourseCardVariant
   isDragging?: boolean
+  actionButtons?: ReactNode
+  highlightActive?: boolean
 }
 
 const TimelineCourseCard = ({
@@ -18,6 +22,8 @@ const TimelineCourseCard = ({
   minHeight,
   variant,
   isDragging = false,
+  actionButtons,
+  highlightActive = false,
 }: Props) => {
   const completed = variant === 'completed'
   const preview = variant === 'dragPreview'
@@ -28,7 +34,7 @@ const TimelineCourseCard = ({
   return (
     <div
       style={minHeight ? { minHeight } : undefined}
-      className={`box-border flex h-full w-full min-w-0 ${rootClassName}`}
+      className={`group box-border flex h-full w-full min-w-0 ${rootClassName} ${highlightActive ? 'ring-2 ring-inset ring-timeline-move/80' : ''}`}
     >
       <div
         className={`flex w-12 shrink-0 flex-col items-center justify-center px-1 py-2 text-center text-white ${
@@ -39,10 +45,15 @@ const TimelineCourseCard = ({
         {creditsMax === creditsMin ? creditsMax : `${creditsMin}-${creditsMax}`}
       </div>
 
-      <div className="min-w-0 flex-1 p-2">
+      <div className="relative min-w-0 flex-1 p-2">
         {name}
         {completed ? (
           <span className="mt-0.5 block text-xs text-neutral-600">Completed</span>
+        ) : null}
+        {actionButtons ? (
+          <div className="pointer-events-none absolute top-1 right-1 z-10 flex flex-row gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+            {actionButtons}
+          </div>
         ) : null}
       </div>
     </div>

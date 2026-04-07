@@ -36,12 +36,10 @@ import type {
 } from '../utils/types'
 import { Course } from '@kurssikompassi/shared/src/types'
 import TimelineCourseCard from './components/TimelineCourseCard'
-import { IconUnschedule } from './components/TimelineIcons'
 import TimelineCardSection, {
-  type TimelineActiveDragKind,
+  type TimelineInteractionKind,
   type TimelineDragRowSnapshot,
 } from './components/TimelineCardSection'
-import TimelineDropStrip from './components/TimelineDropStrip'
 import TimelineToolbar from './components/TimelineToolbar'
 import UnscheduledSidebar from './components/UnscheduledSidebar'
 
@@ -94,8 +92,13 @@ const TimelinePage = ({ planId }: Props) => {
   const [unscheduledSidebarOpen, setUnscheduledSidebarOpen] = useState(false)
   const [unscheduledDragPreview, setUnscheduledDragPreview] =
     useState<ParsedCourseUnitSelection | null>(null)
-  const [activeDragKind, setActiveDragKind] = useState<TimelineActiveDragKind>('none')
-  const [activeDragSelectionIndex, setActiveDragSelectionIndex] = useState<number | null>(null)
+  const [interactionKind, setInteractionKind] = useState<TimelineInteractionKind>('none')
+  const [activeSelectionIndex, setActiveSelectionIndex] = useState<number | null>(null)
+  const [activeSourcePlannedPeriod, setActiveSourcePlannedPeriod] = useState<string | null>(null)
+  const [clickPlacementTarget, setClickPlacementTarget] = useState<{
+    action: 'move' | 'extend'
+    plannedPeriod: string
+  } | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -156,68 +159,45 @@ const TimelinePage = ({ planId }: Props) => {
 
   const timelineDragRowSnapshot = useMemo(
     (): TimelineDragRowSnapshot | null =>
-      getTimelineDragRowSnapshot(activeDragKind, activeDragSelectionIndex, fullPlan),
-    [activeDragKind, activeDragSelectionIndex, fullPlan]
+      getTimelineDragRowSnapshot(interactionKind, activeSelectionIndex, fullPlan),
+    [interactionKind, activeSelectionIndex, fullPlan]
   )
 
-  const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      const resolved = resolveDragStartState(
-        event.active.data.current as Record<string, unknown> | undefined,
-        plannedSelections
-      )
-      setActiveDragKind(resolved.kind)
-      setActiveDragSelectionIndex(resolved.selectionIndex)
-      setUnscheduledDragPreview(resolved.unscheduledPreview)
-    },
-    [plannedSelections]
-  )
-
-  const handleDragCancel = useCallback(() => {
-    setActiveDragKind('none')
-    setActiveDragSelectionIndex(null)
+  const resetInteraction = useCallback(() => {
+    setInteractionKind('none')
+    setActiveSelectionIndex(null)
+    setActiveSourcePlannedPeriod(null)
+    setClickPlacementTarget(null)
     setUnscheduledDragPreview(null)
   }, [])
 
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      setActiveDragKind('none')
-      setActiveDragSelectionIndex(null)
-      setUnscheduledDragPreview(null)
-      const { active, over } = event
+  const applyDropAndPersist = useCallback(
+    async (
+      selectionIndex: number,
+      activeData: Record<string, unknown> | undefined,
+      overData: { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' } | undefined
+    ): Promise<boolean> => {
       if (!fullPlan || !periodIndex) {
-        return
+        return false
       }
-      if (!over) {
-        return
-      }
-
-      const selectionIndex = active.data.current?.selectionIndex
-      if (typeof selectionIndex !== 'number' || selectionIndex < 0) {
-        return
-      }
-
       const applied = resolveTimelineDrop({
         fullPlan,
         periodIndex,
         selectionIndex,
-        activeData: active.data.current as Record<string, unknown> | undefined,
-        overData: over.data.current as
-          | { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' }
-          | undefined,
+        activeData,
+        overData,
       })
 
       if (applied === null) {
-        return
+        return false
       }
 
       if (!applied.ok) {
         const message = mapApplyFailureToSaveError(applied.reason)
-        if (!message) {
-          return
+        if (message) {
+          setSaveError(message)
         }
-        setSaveError(message)
-        return
+        return false
       }
 
       setSaveError(null)
@@ -234,12 +214,164 @@ const TimelinePage = ({ planId }: Props) => {
           const detail = raw.length > 200 ? `${raw.slice(0, 200)}…` : raw
           setSaveError(detail ? `Save failed${statusPart}: ${detail}` : `Save failed${statusPart}`)
         }
-        return
+        return false
       }
 
       setFullPlan(applied.plan)
+      return true
     },
-    [fullPlan, planId, periodIndex]
+    [fullPlan, periodIndex, planId]
+  )
+
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const resolved = resolveDragStartState(
+        event.active.data.current as Record<string, unknown> | undefined,
+        plannedSelections
+      )
+      setInteractionKind(resolved.kind)
+      setActiveSelectionIndex(resolved.selectionIndex)
+      setUnscheduledDragPreview(resolved.unscheduledPreview)
+      setActiveSourcePlannedPeriod(
+        typeof event.active.data.current?.sourcePlannedPeriod === 'string'
+          ? event.active.data.current.sourcePlannedPeriod
+          : null
+      )
+      setClickPlacementTarget(null)
+    },
+    [plannedSelections]
+  )
+
+  const handleDragCancel = useCallback(() => {
+    resetInteraction()
+  }, [resetInteraction])
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event
+      resetInteraction()
+      if (!over) {
+        return
+      }
+
+      const selectionIndex = active.data.current?.selectionIndex
+      if (typeof selectionIndex !== 'number' || selectionIndex < 0) {
+        return
+      }
+
+      await applyDropAndPersist(
+        selectionIndex,
+        active.data.current as Record<string, unknown> | undefined,
+        over.data.current as
+          | { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' }
+          | undefined
+      )
+    },
+    [applyDropAndPersist, resetInteraction]
+  )
+
+  const handleCardUnschedule = useCallback(
+    async (selectionIndex: number, sourcePlannedPeriod: string) => {
+      await applyDropAndPersist(
+        selectionIndex,
+        { selectionIndex, sourcePlannedPeriod },
+        { action: 'unschedule' }
+      )
+    },
+    [applyDropAndPersist]
+  )
+
+  const activateClickMoveMode = useCallback(
+    (
+      kind: 'click-scheduled' | 'click-unscheduled',
+      selectionIndex: number,
+      sourcePlannedPeriod: string | null
+    ) => {
+      const isSameCard =
+        interactionKind === kind &&
+        activeSelectionIndex === selectionIndex &&
+        activeSourcePlannedPeriod === sourcePlannedPeriod
+      if (isSameCard) {
+        resetInteraction()
+        return
+      }
+      setInteractionKind(kind)
+      setActiveSelectionIndex(selectionIndex)
+      setActiveSourcePlannedPeriod(sourcePlannedPeriod)
+      setClickPlacementTarget(null)
+      setUnscheduledDragPreview(null)
+    },
+    [interactionKind, activeSelectionIndex, activeSourcePlannedPeriod, resetInteraction]
+  )
+
+  const handleCardMoveModeToggle = useCallback(
+    (selectionIndex: number, sourcePlannedPeriod: string) => {
+      activateClickMoveMode('click-scheduled', selectionIndex, sourcePlannedPeriod)
+    },
+    [activateClickMoveMode]
+  )
+
+  const handleUnscheduledMoveModeToggle = useCallback(
+    (selectionIndex: number) => {
+      activateClickMoveMode('click-unscheduled', selectionIndex, null)
+    },
+    [activateClickMoveMode]
+  )
+
+  const handleClickPlacementAction = useCallback(
+    async (action: 'move' | 'extend', plannedPeriod: string) => {
+      if (activeSelectionIndex === null) {
+        return
+      }
+      if (interactionKind !== 'click-scheduled' && interactionKind !== 'click-unscheduled') {
+        return
+      }
+      if (interactionKind === 'click-unscheduled' && action !== 'move') {
+        return
+      }
+      const activeData: Record<string, unknown> =
+        interactionKind === 'click-unscheduled'
+          ? { selectionIndex: activeSelectionIndex, fromUnscheduled: true as const }
+          : {
+              selectionIndex: activeSelectionIndex,
+              sourcePlannedPeriod: activeSourcePlannedPeriod,
+            }
+      if (
+        interactionKind === 'click-scheduled' &&
+        typeof activeData.sourcePlannedPeriod !== 'string'
+      ) {
+        return
+      }
+      setClickPlacementTarget({ action, plannedPeriod })
+      const applied = await applyDropAndPersist(activeSelectionIndex, activeData, {
+        action,
+        plannedPeriod,
+      })
+      if (applied) {
+        resetInteraction()
+      }
+    },
+    [
+      interactionKind,
+      activeSelectionIndex,
+      activeSourcePlannedPeriod,
+      applyDropAndPersist,
+      resetInteraction,
+    ]
+  )
+
+  const isMoveModeActiveFor = useCallback(
+    (selectionIndex: number, sourcePlannedPeriod: string) =>
+      interactionKind === 'click-scheduled' &&
+      activeSelectionIndex === selectionIndex &&
+      activeSourcePlannedPeriod === sourcePlannedPeriod,
+    [interactionKind, activeSelectionIndex, activeSourcePlannedPeriod]
+  )
+
+  const isMoveModeActiveForUnscheduled = useCallback(
+    (selectionIndex: number) =>
+      interactionKind === 'click-unscheduled' && activeSelectionIndex === selectionIndex,
+    [interactionKind, activeSelectionIndex]
   )
 
   useEffect(() => {
@@ -265,7 +397,10 @@ const TimelinePage = ({ planId }: Props) => {
     void (async () => {
       const authInit = await initSisuAuth()
       if (!authInit.ok) {
-        console.warn('[Kurssikompassi/Timeline]', 'Initial Sisu preauth failed; continuing with lazy refresh')
+        console.warn(
+          '[Kurssikompassi/Timeline]',
+          'Initial Sisu preauth failed; continuing with lazy refresh'
+        )
       }
       const loaded = await loadTimelineData(planId)
       if (cancelled) return
@@ -292,6 +427,20 @@ const TimelinePage = ({ planId }: Props) => {
       setIsErrorBannerVisible(true)
     }
   }, [errorBannerMessage])
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') {
+        return
+      }
+      if (interactionKind !== 'click-scheduled' && interactionKind !== 'click-unscheduled') {
+        return
+      }
+      resetInteraction()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [interactionKind, resetInteraction])
 
   if (timelineRows === null && !error) {
     return <div className="p-4 text-neutral-600">Loading…</div>
@@ -325,6 +474,8 @@ const TimelinePage = ({ planId }: Props) => {
                 open={unscheduledSidebarOpen}
                 setOpen={setUnscheduledSidebarOpen}
                 selections={unscheduledSelections}
+                onToggleMoveMode={handleUnscheduledMoveModeToggle}
+                isMoveModeActiveForUnscheduled={isMoveModeActiveForUnscheduled}
               />
 
               <div
@@ -338,19 +489,20 @@ const TimelinePage = ({ planId }: Props) => {
                     card={card}
                     sisuRootId={sisuRootId}
                     periodIndex={periodIndex}
-                    activeDragKind={activeDragKind}
+                    activeInteractionKind={interactionKind}
                     dragRowSnapshot={timelineDragRowSnapshot}
+                    clickModeEnabled={
+                      interactionKind === 'click-scheduled' ||
+                      interactionKind === 'click-unscheduled'
+                    }
+                    onCardUnschedule={handleCardUnschedule}
+                    onCardMoveModeToggle={handleCardMoveModeToggle}
+                    isMoveModeActiveFor={isMoveModeActiveFor}
+                    onClickPlacementAction={handleClickPlacementAction}
+                    clickPlacementTarget={clickPlacementTarget}
                   />
                 ))}
               </div>
-              {activeDragKind === 'scheduled' ? (
-                <TimelineDropStrip
-                  id="timeline-unschedule"
-                  action="unschedule"
-                  label="Unschedule"
-                  icon={<IconUnschedule className="size-6 shrink-0 opacity-95" />}
-                />
-              ) : null}
               <DragOverlay adjustScale={false} dropAnimation={null} zIndex={11000}>
                 {unscheduledDragPreview ? (
                   <UnscheduledCourseDragPreview selection={unscheduledDragPreview} />

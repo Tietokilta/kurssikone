@@ -8,7 +8,7 @@ import type { StudyPeriodIndex } from './parsePlannedPeriods'
 import type { SisuStudyPlan } from './types'
 import type { ParsedCourseUnitSelection } from '../pages/TimelinePage'
 import type {
-  TimelineActiveDragKind,
+  TimelineInteractionKind,
   TimelineDragRowSnapshot,
 } from '../pages/components/TimelineCardSection'
 
@@ -33,7 +33,7 @@ export function getUnscheduledSelections(
 }
 
 export function getTimelineDragRowSnapshot(
-  activeDragKind: TimelineActiveDragKind,
+  activeDragKind: TimelineInteractionKind,
   activeDragSelectionIndex: number | null,
   fullPlan: SisuStudyPlan | null
 ): TimelineDragRowSnapshot | null {
@@ -51,7 +51,7 @@ export function resolveDragStartState(
   dragData: Record<string, unknown> | undefined,
   plannedSelections: ParsedCourseUnitSelection[] | null
 ): {
-  kind: TimelineActiveDragKind
+  kind: TimelineInteractionKind
   selectionIndex: number | null
   unscheduledPreview: ParsedCourseUnitSelection | null
 } {
