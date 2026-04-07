@@ -8,7 +8,7 @@ import {
 import type { ParsedCourseUnitSelection } from '../TimelinePage'
 import { IconExtendToPeriod, IconMoveToPeriod } from './TimelineIcons'
 import TimelineDropTile from './TimelineDropTile'
-import TimelinePeriodCourseItem from '../TimelinePeriodCourseItem'
+import TimelinePeriodCourseItem from './TimelinePeriodCourseItem'
 
 export type TimelineInteractionKind =
   | 'none'
@@ -70,9 +70,7 @@ function PeriodColumnDropOverlays({
           label="Move to period"
           icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
           tone="move"
-          onClick={
-            clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined
-          }
+          onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
           clickActive={clickModeEnabled && clickTargetAction === 'move'}
         />
       </div>

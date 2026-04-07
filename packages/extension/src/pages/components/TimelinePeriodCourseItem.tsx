@@ -1,8 +1,8 @@
-import type { ParsedCourseUnitSelection } from './TimelinePage'
-import TimelineCourseCard from './components/TimelineCourseCard'
-import TimelineDraggableCard from './components/TimelineDraggableCard'
-import { IconUnschedule } from './components/TimelineIcons'
-import TimelineMoveModeButton from './components/TimelineMoveModeButton'
+import type { ParsedCourseUnitSelection } from '../TimelinePage'
+import TimelineCourseCard from './TimelineCourseCard'
+import TimelineDraggableCard from './TimelineDraggableCard'
+import { IconUnschedule } from './TimelineIcons'
+import TimelineMoveModeButton from './TimelineMoveModeButton'
 
 type Props = {
   selection: ParsedCourseUnitSelection
