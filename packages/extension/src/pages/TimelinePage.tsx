@@ -87,6 +87,7 @@ const TimelinePage = ({ planId }: Props) => {
   const [error, setError] = useState<string | null>(null)
   const [studyYearsWarning, setStudyYearsWarning] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showSummer, setShowSummer] = useState(true)
   const [showPastPeriods, setShowPastPeriods] = useState(false)
@@ -280,72 +281,98 @@ const TimelinePage = ({ planId }: Props) => {
     }
   }, [planId])
 
-  if (error) {
-    return <div className="p-4 text-red-600">{error}</div>
-  }
+  const errorBannerMessage = saveError ?? error
 
-  if (timelineRows === null) {
+  useEffect(() => {
+    if (errorBannerMessage) {
+      setIsErrorBannerVisible(true)
+    }
+  }, [errorBannerMessage])
+
+  if (timelineRows === null && !error) {
     return <div className="p-4 text-neutral-600">Loading…</div>
   }
 
   return (
     <div className="space-y-3 p-3">
       {isSaving ? <div className="text-sm text-neutral-600">Saving plan…</div> : null}
-      {saveError ? <div className="text-sm text-red-600">{saveError}</div> : null}
       {studyYearsWarning ? <div className="text-sm text-amber-700">{studyYearsWarning}</div> : null}
 
-      <TimelineToolbar
-        showPastPeriods={showPastPeriods}
-        setShowPastPeriods={setShowPastPeriods}
-        showSummer={showSummer}
-        setShowSummer={setShowSummer}
-      />
-
-      <DndContext
-        sensors={sensors}
-        collisionDetection={timelineCollisionDetection}
-        onDragStart={handleDragStart}
-        onDragCancel={handleDragCancel}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="relative min-h-dvh">
-          <UnscheduledSidebar
-            open={unscheduledSidebarOpen}
-            setOpen={setUnscheduledSidebarOpen}
-            selections={unscheduledSelections}
+      {error ? (
+        <div className="text-sm text-neutral-600">Timeline unavailable.</div>
+      ) : (
+        <>
+          <TimelineToolbar
+            showPastPeriods={showPastPeriods}
+            setShowPastPeriods={setShowPastPeriods}
+            showSummer={showSummer}
+            setShowSummer={setShowSummer}
           />
 
-          <div
-            className={`relative z-20 min-h-dvh min-w-0 flex flex-col space-y-3 transition-[padding-left] duration-300 ease-out ${
-              unscheduledSidebarOpen ? 'pl-48 2xl:pl-0' : 'pl-0'
-            }`}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={timelineCollisionDetection}
+            onDragStart={handleDragStart}
+            onDragCancel={handleDragCancel}
+            onDragEnd={handleDragEnd}
           >
-            {timelineCards.map((card) => (
-              <TimelineCardSection
-                key={card.cardKey}
-                card={card}
-                sisuRootId={sisuRootId}
-                periodIndex={periodIndex}
-                activeDragKind={activeDragKind}
-                dragRowSnapshot={timelineDragRowSnapshot}
+            <div className="relative min-h-dvh">
+              <UnscheduledSidebar
+                open={unscheduledSidebarOpen}
+                setOpen={setUnscheduledSidebarOpen}
+                selections={unscheduledSelections}
               />
-            ))}
+
+              <div
+                className={`relative z-20 min-h-dvh min-w-0 flex flex-col space-y-3 transition-[padding-left] duration-300 ease-out ${
+                  unscheduledSidebarOpen ? 'pl-48 2xl:pl-0' : 'pl-0'
+                }`}
+              >
+                {timelineCards.map((card) => (
+                  <TimelineCardSection
+                    key={card.cardKey}
+                    card={card}
+                    sisuRootId={sisuRootId}
+                    periodIndex={periodIndex}
+                    activeDragKind={activeDragKind}
+                    dragRowSnapshot={timelineDragRowSnapshot}
+                  />
+                ))}
+              </div>
+              {activeDragKind === 'scheduled' ? (
+                <TimelineDropStrip
+                  id="timeline-unschedule"
+                  action="unschedule"
+                  label="Unschedule"
+                  icon={<IconUnschedule className="size-6 shrink-0 opacity-95" />}
+                />
+              ) : null}
+              <DragOverlay adjustScale={false} dropAnimation={null} zIndex={11000}>
+                {unscheduledDragPreview ? (
+                  <UnscheduledCourseDragPreview selection={unscheduledDragPreview} />
+                ) : null}
+              </DragOverlay>
+            </div>
+          </DndContext>
+        </>
+      )}
+
+      {errorBannerMessage && isErrorBannerVisible ? (
+        <div className="kurssikompassi-error-banner-in fixed right-4 bottom-4 z-12000 w-[24rem] max-w-[calc(100vw-2rem)] rounded-lg border-2 border-red-300 bg-red-700 px-4 py-3 text-base text-white shadow-2xl">
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1 leading-6">{errorBannerMessage}</div>
+            <button
+              type="button"
+              className="shrink-0 rounded border border-red-200/70 px-2 py-1 text-sm leading-none font-semibold text-white/95 hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-100"
+              onClick={() => setIsErrorBannerVisible(false)}
+              aria-label="Dismiss error notification"
+              title="Dismiss"
+            >
+              X
+            </button>
           </div>
-          {activeDragKind === 'scheduled' ? (
-            <TimelineDropStrip
-              id="timeline-unschedule"
-              action="unschedule"
-              label="Unschedule"
-              icon={<IconUnschedule className="size-6 shrink-0 opacity-95" />}
-            />
-          ) : null}
-          <DragOverlay adjustScale={false} dropAnimation={null} zIndex={11000}>
-            {unscheduledDragPreview ? (
-              <UnscheduledCourseDragPreview selection={unscheduledDragPreview} />
-            ) : null}
-          </DragOverlay>
         </div>
-      </DndContext>
+      ) : null}
     </div>
   )
 }

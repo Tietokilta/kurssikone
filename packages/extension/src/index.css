@@ -16,3 +16,18 @@
 .kurssikompassi-unscheduled-open {
   animation: kurssikompassi-unscheduled-open 0.35s ease-out both;
 }
+
+@keyframes kurssikompassi-error-banner-in {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.kurssikompassi-error-banner-in {
+  animation: kurssikompassi-error-banner-in 0.28s ease-out both;
+}
