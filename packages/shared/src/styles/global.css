@@ -6,6 +6,12 @@
   --font-sans:
     'Fira Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji';
+  --color-timeline-accent: oklch(0.62 0.18 255);
+  --color-timeline-move: oklch(0.6 0.18 255);
+  --color-timeline-extend: oklch(0.67 0.16 160);
+  --color-timeline-unschedule: oklch(0.62 0.22 25);
+  --color-timeline-surface: oklch(0.92 0.01 255);
+  --color-timeline-surface-muted: oklch(0.97 0.01 255);
 }
 
 @theme inline {
