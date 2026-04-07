@@ -54,6 +54,7 @@ const TimelineDropTile = ({
     <button
       type="button"
       ref={setNodeRef}
+      data-timeline-drop-zone
       onClick={onClick}
       className={`flex flex-1 min-h-0 cursor-pointer flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-xs font-medium text-white drop-shadow-sm transition-[background-color,box-shadow] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
         layout === 'half' ? '' : 'min-h-full'

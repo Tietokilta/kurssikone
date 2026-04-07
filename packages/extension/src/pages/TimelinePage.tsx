@@ -442,6 +442,22 @@ const TimelinePage = ({ planId }: Props) => {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [interactionKind, resetInteraction])
 
+  useEffect(() => {
+    if (interactionKind !== 'click-scheduled' && interactionKind !== 'click-unscheduled') {
+      return
+    }
+    const onDocumentClick = (event: MouseEvent) => {
+      const node = event.target
+      const el = node instanceof Element ? node : (node as Node | null)?.parentElement
+      if (el?.closest('[data-timeline-drop-zone]')) {
+        return
+      }
+      resetInteraction()
+    }
+    document.addEventListener('click', onDocumentClick)
+    return () => document.removeEventListener('click', onDocumentClick)
+  }, [interactionKind, resetInteraction])
+
   if (timelineRows === null && !error) {
     return <div className="p-4 text-neutral-600">Loading…</div>
   }

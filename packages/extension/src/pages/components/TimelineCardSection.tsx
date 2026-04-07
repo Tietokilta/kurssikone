@@ -192,10 +192,18 @@ const TimelineMainGrid = ({
                   {placements.map((pl) => {
                     const credits = plannedCreditsPerTimelineSlice(pl.selection)
                     const rowSpan = Math.max(1, Math.round(credits))
+                    const isMoveModeActive = isMoveModeActiveFor(
+                      pl.selection.selectionIndex,
+                      pl.anchorPlannedPeriod
+                    )
                     return (
                       <div
                         key={`${pl.selection.id}-${pl.startCol}-${pl.runIndex}`}
-                        className="flex min-h-0 min-w-0 flex-col"
+                        className={
+                          isMoveModeActive
+                            ? 'relative z-20 flex min-h-0 min-w-0 flex-col'
+                            : 'flex min-h-0 min-w-0 flex-col'
+                        }
                         style={{
                           gridColumn: `${pl.startCol + 1} / span ${pl.span}`,
                           gridRow: `span ${rowSpan}`,
@@ -208,10 +216,7 @@ const TimelineMainGrid = ({
                           completed={pl.selection.completed}
                           onUnschedule={onCardUnschedule}
                           onToggleMoveMode={onCardMoveModeToggle}
-                          isMoveModeActive={isMoveModeActiveFor(
-                            pl.selection.selectionIndex,
-                            pl.anchorPlannedPeriod
-                          )}
+                          isMoveModeActive={isMoveModeActive}
                         />
                       </div>
                     )
