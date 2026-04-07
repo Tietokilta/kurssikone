@@ -26,7 +26,7 @@ const TimelineRemoveFromPeriodStrip = ({ columnPlannedPeriods, onRemove }: Props
           <button
             key={`${plannedPeriod}-${i}`}
             type="button"
-            className={`flex h-full min-h-0 w-full cursor-pointer flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-medium leading-snug ${cellTone}`}
+            className={`flex h-full min-h-0 w-full cursor-pointer flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-xs font-medium ${cellTone}`}
             aria-label="Remove from this period"
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation()
@@ -34,7 +34,7 @@ const TimelineRemoveFromPeriodStrip = ({ columnPlannedPeriods, onRemove }: Props
             }}
           >
             <IconScissors className="size-4 shrink-0 opacity-95" />
-            <span className="leading-tight">Remove from period</span>
+            <span>Remove from period</span>
           </button>
         ))}
       </div>
