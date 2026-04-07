@@ -129,7 +129,11 @@ type Props = {
   dragRowSnapshot: TimelineDragRowSnapshot | null
   clickModeEnabled: boolean
   onCardUnschedule: (selectionIndex: number, sourcePlannedPeriod: string) => void
-  onCardMoveModeToggle: (selectionIndex: number, sourcePlannedPeriod: string, cardKey: string) => void
+  onCardMoveModeToggle: (
+    selectionIndex: number,
+    sourcePlannedPeriod: string,
+    cardKey: string
+  ) => void
   isMoveModeActiveFor: (selectionIndex: number, cardKey: string) => boolean
   onClickPlacementAction: (action: 'move' | 'extend', plannedPeriod: string) => void
   clickPlacementTarget: { action: 'move' | 'extend'; plannedPeriod: string } | null
@@ -189,7 +193,7 @@ const TimelineMainGrid = ({
               )}
               <div className="relative col-span-full min-h-8">
                 <div
-                  className="relative z-0 grid grid-flow-dense items-stretch gap-y-1"
+                  className="relative z-0 grid grid-flow-dense items-stretch gap-y-2 gap-x-2"
                   style={{
                     gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
                     gridAutoRows: 'minmax(20px, auto)',
