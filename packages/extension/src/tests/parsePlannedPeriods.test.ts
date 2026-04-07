@@ -5,6 +5,7 @@ import path from 'path'
 import type { ParsedPlannedPeriod, Season, YearSeason } from '../utils/parsePlannedPeriods'
 import {
   buildTimelineCards,
+  computeSemesterCoursePlacements,
   comparePeriodKeysChronological,
   computeTimelineRange,
   formatPlannedPeriodForSlot,
@@ -422,6 +423,51 @@ describe('buildTimelineCards', () => {
       periodIndex: idxNoSummer,
     })
     expect(cards.some((c) => c.season === 'Summer')).toBe(false)
+  })
+})
+
+describe('computeSemesterCoursePlacements', () => {
+  const root = 'aalto-university-root-id'
+  const idx = periodIndex(true)
+
+  it('merges contiguous period columns into one span', () => {
+    const course = { id: 'a', name: 'A' }
+    const card = {
+      year: 2026,
+      season: 'Spring' as const,
+      cardKey: '2026-Spring',
+      periods: [
+        { period: 'III', periodKey: 'k1', plannedPeriod: 'loc1', selections: [course] },
+        { period: 'IV', periodKey: 'k2', plannedPeriod: 'loc2', selections: [course] },
+        { period: 'V', periodKey: 'k3', plannedPeriod: 'loc3', selections: [] },
+      ],
+    }
+    const pl = computeSemesterCoursePlacements(card, root, idx)
+    expect(pl).toHaveLength(1)
+    expect(pl[0]).toMatchObject({
+      startCol: 0,
+      span: 2,
+      anchorPeriodKey: 'k1',
+      runIndex: 0,
+    })
+  })
+
+  it('splits non-contiguous columns into separate placements', () => {
+    const course = { id: 'a', name: 'A' }
+    const card = {
+      year: 2026,
+      season: 'Spring' as const,
+      cardKey: '2026-Spring',
+      periods: [
+        { period: 'III', periodKey: 'k1', plannedPeriod: 'loc1', selections: [course] },
+        { period: 'IV', periodKey: 'k2', plannedPeriod: 'loc2', selections: [] },
+        { period: 'V', periodKey: 'k3', plannedPeriod: 'loc3', selections: [course] },
+      ],
+    }
+    const pl = computeSemesterCoursePlacements(card, root, idx)
+    expect(pl).toHaveLength(2)
+    expect(pl[0]).toMatchObject({ startCol: 0, span: 1, runIndex: 0 })
+    expect(pl[1]).toMatchObject({ startCol: 2, span: 1, runIndex: 1 })
   })
 })
 

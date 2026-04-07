@@ -306,6 +306,99 @@ export type TimelineCard<T = { id: string; name: string }> = {
   periods: TimelinePeriod<T>[]
 }
 
+/** One rendered course block in a semester row (may span multiple period columns). */
+export type SemesterCoursePlacement<T = { id: string; name: string }> = {
+  selection: T
+  /** 0-based column index into `card.periods`. */
+  startCol: number
+  span: number
+  /** First column in the run; used for drag/move source resolution. */
+  anchorPlannedPeriod: string
+  anchorPeriodKey: string
+  /** Distinct runs when the same course appears in non-adjacent periods. */
+  runIndex: number
+}
+
+function contiguousColumnRuns(sortedIndices: number[]): number[][] {
+  if (sortedIndices.length === 0) {
+    return []
+  }
+  const runs: number[][] = []
+  let cur = [sortedIndices[0]!]
+  for (let i = 1; i < sortedIndices.length; i++) {
+    const v = sortedIndices[i]!
+    if (v === cur[cur.length - 1]! + 1) {
+      cur.push(v)
+    } else {
+      runs.push(cur)
+      cur = [v]
+    }
+  }
+  runs.push(cur)
+  return runs
+}
+
+/**
+ * Deduplicates multi-period courses into contiguous column spans for a single semester card.
+ * Data from {@link buildTimelineCards} may still list the same selection in multiple period cells.
+ */
+export function computeSemesterCoursePlacements<T extends { id: string; name: string }>(
+  card: TimelineCard<T>,
+  sisuRootId: string,
+  periodIndex: StudyPeriodIndex | null
+): SemesterCoursePlacement<T>[] {
+  const byId = new Map<string, T>()
+  for (const p of card.periods) {
+    for (const s of p.selections) {
+      if (!byId.has(s.id)) {
+        byId.set(s.id, s)
+      }
+    }
+  }
+
+  const resolvePlannedPeriod = (col: number): string => {
+    const period = card.periods[col]!
+    return (
+      period.plannedPeriod ||
+      (periodIndex
+        ? formatPlannedPeriodForSlot(sisuRootId, card.year, card.season, period.period, periodIndex)
+        : '')
+    )
+  }
+
+  const placements: SemesterCoursePlacement<T>[] = []
+
+  for (const sel of byId.values()) {
+    const colIndices: number[] = []
+    for (let i = 0; i < card.periods.length; i++) {
+      if (card.periods[i]!.selections.some((s) => s.id === sel.id)) {
+        colIndices.push(i)
+      }
+    }
+    const runs = contiguousColumnRuns(colIndices)
+    runs.forEach((run, runIdx) => {
+      const start = run[0]!
+      placements.push({
+        selection: sel,
+        startCol: start,
+        span: run.length,
+        anchorPlannedPeriod: resolvePlannedPeriod(start),
+        anchorPeriodKey: card.periods[start]!.periodKey,
+        runIndex: runIdx,
+      })
+    })
+  }
+
+  placements.sort((a, b) => {
+    if (a.startCol !== b.startCol) {
+      return a.startCol - b.startCol
+    }
+    return a.selection.name.localeCompare(b.selection.name, undefined, { sensitivity: 'base' })
+  })
+
+  return placements
+}
+
 export type BuildTimelineCardsOptions = {
   showSummer?: boolean
   /** From kori study-years; missing or empty → no cards. */

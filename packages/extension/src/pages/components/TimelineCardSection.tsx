@@ -1,6 +1,7 @@
 import { Fragment } from 'react'
 import { plannedPeriodKeysEqual } from '../../utils/planPeriodDrag'
 import {
+  computeSemesterCoursePlacements,
   formatPlannedPeriodForSlot,
   type StudyPeriodIndex,
   type TimelineCard,
@@ -105,78 +106,17 @@ function PeriodColumnDropOverlays({
   )
 }
 
-function TimelinePeriodColumn({
-  card,
-  period: p,
-  sisuRootId,
-  periodIndex,
-  activeInteractionKind,
-  dragRowSnapshot,
-  clickModeEnabled,
-  onCardUnschedule,
-  onCardMoveModeToggle,
-  isMoveModeActiveFor,
-  onClickPlacementAction,
-  clickPlacementTarget,
-}: {
-  card: TimelineCard<ParsedCourseUnitSelection>
-  period: TimelinePeriod<ParsedCourseUnitSelection>
+function resolvePlannedPeriodForPeriod(
+  card: TimelineCard<ParsedCourseUnitSelection>,
+  p: TimelinePeriod<ParsedCourseUnitSelection>,
+  periodIndex: StudyPeriodIndex | null,
   sisuRootId: string
-  periodIndex: StudyPeriodIndex | null
-  activeInteractionKind: TimelineInteractionKind
-  dragRowSnapshot: TimelineDragRowSnapshot | null
-  clickModeEnabled: boolean
-  onCardUnschedule: (selectionIndex: number, sourcePlannedPeriod: string) => void
-  onCardMoveModeToggle: (selectionIndex: number, sourcePlannedPeriod: string) => void
-  isMoveModeActiveFor: (selectionIndex: number, sourcePlannedPeriod: string) => boolean
-  onClickPlacementAction: (action: 'move' | 'extend', plannedPeriod: string) => void
-  clickPlacementTarget: { action: 'move' | 'extend'; plannedPeriod: string } | null
-}) {
-  const resolvedPlannedPeriod =
+): string {
+  return (
     p.plannedPeriod ||
     (periodIndex
       ? formatPlannedPeriodForSlot(sisuRootId, card.year, card.season, p.period, periodIndex)
       : '')
-
-  return (
-    <div className="flex min-w-0 flex-col gap-3 text-sm">
-      <span className="w-14 shrink-0 text-neutral-500">{p.period}</span>
-
-      <div className="relative min-h-8 min-w-0 flex-1 text-neutral-800">
-        {p.selections.length === 0 ? (
-          <span className="text-neutral-400">-</span>
-        ) : (
-          <ul className="flex flex-col gap-1">
-            {p.selections.map((s) => (
-              <TimelinePeriodCourseItem
-                key={`${s.id}-${p.periodKey}-${s.completed ? 'c' : 'p'}`}
-                selection={s}
-                periodKey={p.periodKey}
-                sourcePlannedPeriod={resolvedPlannedPeriod}
-                completed={s.completed}
-                onUnschedule={onCardUnschedule}
-                onToggleMoveMode={onCardMoveModeToggle}
-                isMoveModeActive={isMoveModeActiveFor(s.selectionIndex, resolvedPlannedPeriod)}
-              />
-            ))}
-          </ul>
-        )}
-        <PeriodColumnDropOverlays
-          periodKey={p.periodKey}
-          plannedPeriod={resolvedPlannedPeriod}
-          interactionKind={activeInteractionKind}
-          periodIndex={periodIndex}
-          dragRow={dragRowSnapshot}
-          clickModeEnabled={clickModeEnabled}
-          onClickAction={onClickPlacementAction}
-          clickTargetAction={
-            clickPlacementTarget?.plannedPeriod === resolvedPlannedPeriod
-              ? clickPlacementTarget.action
-              : null
-          }
-        />
-      </div>
-    </div>
   )
 }
 
@@ -219,39 +159,105 @@ const TimelineMainGrid = ({
           gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
         }}
       >
-        {cards.map((card) => (
-          <Fragment key={card.cardKey}>
-            <h2 className="col-span-full text-sm font-medium text-neutral-900">
-              {card.season} {card.year}
-            </h2>
-            {card.periods.map((p) => (
-              <TimelinePeriodColumn
-                key={p.periodKey}
-                card={card}
-                period={p}
-                sisuRootId={sisuRootId}
-                periodIndex={periodIndex}
-                activeInteractionKind={activeInteractionKind}
-                dragRowSnapshot={dragRowSnapshot}
-                clickModeEnabled={clickModeEnabled}
-                onCardUnschedule={onCardUnschedule}
-                onCardMoveModeToggle={onCardMoveModeToggle}
-                isMoveModeActiveFor={isMoveModeActiveFor}
-                onClickPlacementAction={onClickPlacementAction}
-                clickPlacementTarget={clickPlacementTarget}
-              />
-            ))}
-            {Array.from({ length: Math.max(0, maxPeriodCols - card.periods.length) }).map(
-              (_, i) => (
+        {cards.map((card) => {
+          const placements = computeSemesterCoursePlacements(card, sisuRootId, periodIndex)
+          return (
+            <Fragment key={card.cardKey}>
+              <h2 className="col-span-full text-sm font-medium text-neutral-900">
+                {card.season} {card.year}
+              </h2>
+              {card.periods.map((p) => (
+                <div key={p.periodKey} className="text-sm text-neutral-500">
+                  {p.period}
+                </div>
+              ))}
+              {Array.from({ length: Math.max(0, maxPeriodCols - card.periods.length) }).map(
+                (_, i) => (
+                  <div
+                    key={`${card.cardKey}-label-pad-${i}`}
+                    className="min-w-0"
+                    aria-hidden
+                  />
+                )
+              )}
+              <div className="relative col-span-full min-h-8">
                 <div
-                  key={`${card.cardKey}-pad-${i}`}
-                  className="min-w-0"
-                  aria-hidden
-                />
-              )
-            )}
-          </Fragment>
-        ))}
+                  className="relative z-0 grid gap-y-1"
+                  style={{
+                    gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
+                  }}
+                >
+                  {placements.map((pl) => (
+                    <div
+                      key={`${pl.selection.id}-${pl.startCol}-${pl.runIndex}`}
+                      className="min-w-0"
+                      style={{
+                        gridColumn: `${pl.startCol + 1} / span ${pl.span}`,
+                      }}
+                    >
+                      <TimelinePeriodCourseItem
+                        selection={pl.selection}
+                        periodKey={pl.anchorPeriodKey}
+                        sourcePlannedPeriod={pl.anchorPlannedPeriod}
+                        completed={pl.selection.completed}
+                        onUnschedule={onCardUnschedule}
+                        onToggleMoveMode={onCardMoveModeToggle}
+                        isMoveModeActive={isMoveModeActiveFor(
+                          pl.selection.selectionIndex,
+                          pl.anchorPlannedPeriod
+                        )}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {activeInteractionKind !== 'none' ? (
+                  <div
+                    className="pointer-events-none absolute inset-0 z-10 grid"
+                    style={{
+                      gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
+                    }}
+                  >
+                    {card.periods.map((p) => {
+                      const resolved = resolvePlannedPeriodForPeriod(
+                        card,
+                        p,
+                        periodIndex,
+                        sisuRootId
+                      )
+                      return (
+                        <div key={p.periodKey} className="pointer-events-auto relative min-h-20">
+                          <PeriodColumnDropOverlays
+                            periodKey={p.periodKey}
+                            plannedPeriod={resolved}
+                            interactionKind={activeInteractionKind}
+                            periodIndex={periodIndex}
+                            dragRow={dragRowSnapshot}
+                            clickModeEnabled={clickModeEnabled}
+                            onClickAction={onClickPlacementAction}
+                            clickTargetAction={
+                              clickPlacementTarget?.plannedPeriod === resolved
+                                ? clickPlacementTarget.action
+                                : null
+                            }
+                          />
+                        </div>
+                      )
+                    })}
+                    {Array.from({
+                      length: Math.max(0, maxPeriodCols - card.periods.length),
+                    }).map((_, i) => (
+                      <div
+                        key={`${card.cardKey}-overlay-pad-${i}`}
+                        className="min-w-0"
+                        aria-hidden
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </Fragment>
+          )
+        })}
       </div>
     </section>
   )
