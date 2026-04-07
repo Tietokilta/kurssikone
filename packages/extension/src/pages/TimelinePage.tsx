@@ -364,7 +364,8 @@ const TimelinePage = ({ planId }: Props) => {
         action,
         plannedPeriod,
       })
-      if (applied) {
+      setClickPlacementTarget(null)
+      if (applied && interactionKind === 'click-unscheduled') {
         resetInteraction()
       }
     },
@@ -407,16 +408,29 @@ const TimelinePage = ({ planId }: Props) => {
       periodIndex,
       showPastPeriods,
     })
-    const card = cards.find((c) => c.cardKey === activeEditCardKey)
-    if (!card) {
+    let card = cards.find((c) => c.cardKey === activeEditCardKey)
+    let placements = card ? computeSemesterCoursePlacements(card, sisuRootId, periodIndex) : []
+    let pl = placements.find((p) => p.selection.selectionIndex === activeSelectionIndex)
+
+    if (!pl) {
+      for (const c of cards) {
+        const pls = computeSemesterCoursePlacements(c, sisuRootId, periodIndex)
+        const found = pls.find((p) => p.selection.selectionIndex === activeSelectionIndex)
+        if (found) {
+          pl = found
+          card = c
+          break
+        }
+      }
+    }
+
+    if (!pl || !card) {
       resetInteraction()
       return
     }
-    const placements = computeSemesterCoursePlacements(card, sisuRootId, periodIndex)
-    const pl = placements.find((p) => p.selection.selectionIndex === activeSelectionIndex)
-    if (!pl) {
-      resetInteraction()
-      return
+
+    if (card.cardKey !== activeEditCardKey) {
+      setActiveEditCardKey(card.cardKey)
     }
     if (pl.anchorPlannedPeriod !== activeSourcePlannedPeriod) {
       setActiveSourcePlannedPeriod(pl.anchorPlannedPeriod)
@@ -573,8 +587,7 @@ const TimelinePage = ({ planId }: Props) => {
                   activeInteractionKind={interactionKind}
                   dragRowSnapshot={timelineDragRowSnapshot}
                   clickModeEnabled={
-                    interactionKind === 'click-scheduled' ||
-                    interactionKind === 'click-unscheduled'
+                    interactionKind === 'click-scheduled' || interactionKind === 'click-unscheduled'
                   }
                   onCardUnschedule={handleCardUnschedule}
                   onCardMoveModeToggle={handleCardMoveModeToggle}
