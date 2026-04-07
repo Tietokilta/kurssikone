@@ -24,7 +24,7 @@ const TimelineDraggableCard = ({ id, data, disabled = false, children }: Props) 
     <li
       ref={setNodeRef}
       style={style}
-      className="w-full min-w-0 touch-none"
+      className={`relative w-full min-w-0 touch-none ${isDragging ? 'z-20' : 'z-0'}`}
       {...(disabled ? {} : listeners)}
       {...(disabled ? {} : attributes)}
     >
