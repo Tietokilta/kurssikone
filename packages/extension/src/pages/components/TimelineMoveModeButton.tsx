@@ -1,4 +1,4 @@
-import { IconCancelMove, IconMoveToPeriod } from './TimelineIcons'
+import { IconCancelMove, IconEdit } from './TimelineIcons'
 
 type Props = {
   isActive: boolean
@@ -9,7 +9,7 @@ type Props = {
 const TimelineMoveModeButton = ({
   isActive,
   onClick,
-  inactiveLabel = 'Move or extend timeline item',
+  inactiveLabel = 'Enter edit mode',
 }: Props) => {
   return (
     <button
@@ -19,14 +19,14 @@ const TimelineMoveModeButton = ({
           ? 'bg-neutral-500 hover:bg-neutral-600'
           : 'bg-timeline-move/90 hover:bg-timeline-move'
       }`}
-      aria-label={isActive ? 'Cancel move operation' : inactiveLabel}
+      aria-label={isActive ? 'Exit edit mode' : inactiveLabel}
       aria-pressed={isActive}
       onClick={(event) => {
         event.stopPropagation()
         onClick()
       }}
     >
-      {isActive ? <IconCancelMove className="size-4" /> : <IconMoveToPeriod className="size-4" />}
+      {isActive ? <IconCancelMove className="size-4" /> : <IconEdit className="size-4" />}
     </button>
   )
 }

@@ -30,7 +30,7 @@ function UnscheduledCourseItem({
             actionButtons={
               <TimelineMoveModeButton
                 isActive={isMoveModeActive}
-                inactiveLabel="Move to period"
+                inactiveLabel="Enter edit mode to schedule"
                 onClick={() => onToggleMoveMode(s.selectionIndex)}
               />
             }

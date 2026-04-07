@@ -41,7 +41,7 @@ export function IconExtendToPeriod({ className }: IconProps) {
   )
 }
 
-export function IconUnschedule({ className }: IconProps) {
+export function IconEdit({ className }: IconProps) {
   return (
     <svg
       className={className}
@@ -55,7 +55,30 @@ export function IconUnschedule({ className }: IconProps) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6h12zM10 11v6M14 11v6" />
+      <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </svg>
+  )
+}
+
+export function IconScissors({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <circle cx="6" cy="6" r="3" />
+      <path d="M8.12 8.12 12 12" />
+      <path d="M20 4 8.12 15.88" />
+      <circle cx="6" cy="18" r="3" />
+      <path d="M14.47 14.48 20 20" />
     </svg>
   )
 }

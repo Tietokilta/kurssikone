@@ -13,6 +13,8 @@ type Props = {
   variant: TimelineCourseCardVariant
   isDragging?: boolean
   actionButtons?: ReactNode
+  /** Per-column controls (e.g. scissors), only while edit mode is active. */
+  editModeColumnStrip?: ReactNode
   highlightActive?: boolean
 }
 
@@ -26,6 +28,7 @@ const TimelineCourseCard = ({
   variant,
   isDragging = false,
   actionButtons,
+  editModeColumnStrip,
   highlightActive = false,
 }: Props) => {
   const completed = variant === 'completed'
@@ -49,12 +52,25 @@ const TimelineCourseCard = ({
       </div>
 
       <div className="relative min-w-0 flex-1 p-2">
-        {name}
-        {completed ? (
-          <span className="mt-0.5 block text-xs text-neutral-600">Completed</span>
+        {editModeColumnStrip ? (
+          <div className="pointer-events-auto absolute top-1 left-2 right-10 z-20 min-h-0">
+            {editModeColumnStrip}
+          </div>
         ) : null}
+        <div className={editModeColumnStrip ? 'pt-8' : undefined}>
+          {name}
+          {completed ? (
+            <span className="mt-0.5 block text-xs text-neutral-600">Completed</span>
+          ) : null}
+        </div>
         {actionButtons ? (
-          <div className="pointer-events-none absolute top-1 right-1 z-10 flex flex-row gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+          <div
+            className={`pointer-events-none absolute top-1 right-1 z-10 flex flex-row gap-1 transition-opacity duration-150 ${
+              highlightActive
+                ? 'opacity-100'
+                : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+            }`}
+          >
             {actionButtons}
           </div>
         ) : null}

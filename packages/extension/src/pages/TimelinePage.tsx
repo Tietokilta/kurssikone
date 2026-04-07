@@ -10,9 +10,13 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { initSisuAuth, updateStudyPlan } from '../requestHandlers'
-import { buildTimelineCards, type ParsedPlannedPeriod } from '../utils/parsePlannedPeriods'
+import {
+  buildTimelineCards,
+  computeSemesterCoursePlacements,
+  type ParsedPlannedPeriod,
+} from '../utils/parsePlannedPeriods'
 import { createPeriodIndex } from '../utils/studyYearPeriods'
 import {
   buildCompletedSelections,
@@ -95,6 +99,8 @@ const TimelinePage = ({ planId }: Props) => {
   const [interactionKind, setInteractionKind] = useState<TimelineInteractionKind>('none')
   const [activeSelectionIndex, setActiveSelectionIndex] = useState<number | null>(null)
   const [activeSourcePlannedPeriod, setActiveSourcePlannedPeriod] = useState<string | null>(null)
+  /** Semester row (`TimelineCard.cardKey`) for click edit mode; keeps anchor in sync after partial unschedule. */
+  const [activeEditCardKey, setActiveEditCardKey] = useState<string | null>(null)
   const [clickPlacementTarget, setClickPlacementTarget] = useState<{
     action: 'move' | 'extend'
     plannedPeriod: string
@@ -167,6 +173,7 @@ const TimelinePage = ({ planId }: Props) => {
     setInteractionKind('none')
     setActiveSelectionIndex(null)
     setActiveSourcePlannedPeriod(null)
+    setActiveEditCardKey(null)
     setClickPlacementTarget(null)
     setUnscheduledDragPreview(null)
   }, [])
@@ -237,6 +244,7 @@ const TimelinePage = ({ planId }: Props) => {
           ? event.active.data.current.sourcePlannedPeriod
           : null
       )
+      setActiveEditCardKey(null)
       setClickPlacementTarget(null)
     },
     [plannedSelections]
@@ -285,12 +293,14 @@ const TimelinePage = ({ planId }: Props) => {
     (
       kind: 'click-scheduled' | 'click-unscheduled',
       selectionIndex: number,
-      sourcePlannedPeriod: string | null
+      sourcePlannedPeriod: string | null,
+      cardKey: string | null = null
     ) => {
       const isSameCard =
         interactionKind === kind &&
         activeSelectionIndex === selectionIndex &&
-        activeSourcePlannedPeriod === sourcePlannedPeriod
+        activeSourcePlannedPeriod === sourcePlannedPeriod &&
+        (kind === 'click-unscheduled' || activeEditCardKey === cardKey)
       if (isSameCard) {
         resetInteraction()
         return
@@ -298,22 +308,29 @@ const TimelinePage = ({ planId }: Props) => {
       setInteractionKind(kind)
       setActiveSelectionIndex(selectionIndex)
       setActiveSourcePlannedPeriod(sourcePlannedPeriod)
+      setActiveEditCardKey(kind === 'click-scheduled' ? cardKey : null)
       setClickPlacementTarget(null)
       setUnscheduledDragPreview(null)
     },
-    [interactionKind, activeSelectionIndex, activeSourcePlannedPeriod, resetInteraction]
+    [
+      interactionKind,
+      activeSelectionIndex,
+      activeSourcePlannedPeriod,
+      activeEditCardKey,
+      resetInteraction,
+    ]
   )
 
   const handleCardMoveModeToggle = useCallback(
-    (selectionIndex: number, sourcePlannedPeriod: string) => {
-      activateClickMoveMode('click-scheduled', selectionIndex, sourcePlannedPeriod)
+    (selectionIndex: number, sourcePlannedPeriod: string, cardKey: string) => {
+      activateClickMoveMode('click-scheduled', selectionIndex, sourcePlannedPeriod, cardKey)
     },
     [activateClickMoveMode]
   )
 
   const handleUnscheduledMoveModeToggle = useCallback(
     (selectionIndex: number) => {
-      activateClickMoveMode('click-unscheduled', selectionIndex, null)
+      activateClickMoveMode('click-unscheduled', selectionIndex, null, null)
     },
     [activateClickMoveMode]
   )
@@ -361,12 +378,62 @@ const TimelinePage = ({ planId }: Props) => {
   )
 
   const isMoveModeActiveFor = useCallback(
-    (selectionIndex: number, sourcePlannedPeriod: string) =>
+    (selectionIndex: number, anchorPlannedPeriod: string, cardKey: string) =>
       interactionKind === 'click-scheduled' &&
       activeSelectionIndex === selectionIndex &&
-      activeSourcePlannedPeriod === sourcePlannedPeriod,
-    [interactionKind, activeSelectionIndex, activeSourcePlannedPeriod]
+      activeEditCardKey === cardKey &&
+      activeSourcePlannedPeriod === anchorPlannedPeriod,
+    [interactionKind, activeSelectionIndex, activeEditCardKey, activeSourcePlannedPeriod]
   )
+
+  useLayoutEffect(() => {
+    if (
+      interactionKind !== 'click-scheduled' ||
+      activeSelectionIndex === null ||
+      !fullPlan ||
+      !periodIndex ||
+      !activeEditCardKey ||
+      !timelineRows
+    ) {
+      return
+    }
+    const row = fullPlan.courseUnitSelections[activeSelectionIndex]
+    if (!row?.plannedPeriods?.length) {
+      resetInteraction()
+      return
+    }
+    const cards = buildTimelineCards(timelineRows, undefined, {
+      showSummer,
+      periodIndex,
+      showPastPeriods,
+    })
+    const card = cards.find((c) => c.cardKey === activeEditCardKey)
+    if (!card) {
+      resetInteraction()
+      return
+    }
+    const placements = computeSemesterCoursePlacements(card, sisuRootId, periodIndex)
+    const pl = placements.find((p) => p.selection.selectionIndex === activeSelectionIndex)
+    if (!pl) {
+      resetInteraction()
+      return
+    }
+    if (pl.anchorPlannedPeriod !== activeSourcePlannedPeriod) {
+      setActiveSourcePlannedPeriod(pl.anchorPlannedPeriod)
+    }
+  }, [
+    fullPlan,
+    interactionKind,
+    activeSelectionIndex,
+    activeEditCardKey,
+    activeSourcePlannedPeriod,
+    timelineRows,
+    periodIndex,
+    showSummer,
+    showPastPeriods,
+    sisuRootId,
+    resetInteraction,
+  ])
 
   const isMoveModeActiveForUnscheduled = useCallback(
     (selectionIndex: number) =>

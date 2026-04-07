@@ -129,8 +129,12 @@ type Props = {
   dragRowSnapshot: TimelineDragRowSnapshot | null
   clickModeEnabled: boolean
   onCardUnschedule: (selectionIndex: number, sourcePlannedPeriod: string) => void
-  onCardMoveModeToggle: (selectionIndex: number, sourcePlannedPeriod: string) => void
-  isMoveModeActiveFor: (selectionIndex: number, sourcePlannedPeriod: string) => boolean
+  onCardMoveModeToggle: (selectionIndex: number, sourcePlannedPeriod: string, cardKey: string) => void
+  isMoveModeActiveFor: (
+    selectionIndex: number,
+    anchorPlannedPeriod: string,
+    cardKey: string
+  ) => boolean
   onClickPlacementAction: (action: 'move' | 'extend', plannedPeriod: string) => void
   clickPlacementTarget: { action: 'move' | 'extend'; plannedPeriod: string } | null
 }
@@ -149,8 +153,7 @@ const TimelineMainGrid = ({
   onClickPlacementAction,
   clickPlacementTarget,
 }: Props) => {
-  const maxPeriodCols =
-    cards.length === 0 ? 1 : Math.max(1, ...cards.map((c) => c.periods.length))
+  const maxPeriodCols = cards.length === 0 ? 1 : Math.max(1, ...cards.map((c) => c.periods.length))
 
   return (
     <section className="rounded border border-neutral-200 bg-white p-3 shadow-sm">
@@ -162,6 +165,17 @@ const TimelineMainGrid = ({
       >
         {cards.map((card) => {
           const placements = computeSemesterCoursePlacements(card, sisuRootId, periodIndex)
+          /** Columns where the period overlay must not steal clicks (so edit-mode scissors work). */
+          const columnsWithActiveEditCard = new Set<number>()
+          if (clickModeEnabled) {
+            for (const pl of placements) {
+              if (isMoveModeActiveFor(pl.selection.selectionIndex, pl.anchorPlannedPeriod, card.cardKey)) {
+                for (let c = pl.startCol; c < pl.startCol + pl.span; c++) {
+                  columnsWithActiveEditCard.add(c)
+                }
+              }
+            }
+          }
           return (
             <Fragment key={card.cardKey}>
               <h2 className="col-span-full text-sm font-medium text-neutral-900">
@@ -174,11 +188,7 @@ const TimelineMainGrid = ({
               ))}
               {Array.from({ length: Math.max(0, maxPeriodCols - card.periods.length) }).map(
                 (_, i) => (
-                  <div
-                    key={`${card.cardKey}-label-pad-${i}`}
-                    className="min-w-0"
-                    aria-hidden
-                  />
+                  <div key={`${card.cardKey}-label-pad-${i}`} className="min-w-0" aria-hidden />
                 )
               )}
               <div className="relative col-span-full min-h-8">
@@ -194,8 +204,18 @@ const TimelineMainGrid = ({
                     const rowSpan = Math.max(1, Math.round(credits))
                     const isMoveModeActive = isMoveModeActiveFor(
                       pl.selection.selectionIndex,
-                      pl.anchorPlannedPeriod
+                      pl.anchorPlannedPeriod,
+                      card.cardKey
                     )
+                    const columnPlannedPeriods: string[] = []
+                    for (let c = pl.startCol; c < pl.startCol + pl.span; c++) {
+                      const period = card.periods[c]
+                      if (period) {
+                        columnPlannedPeriods.push(
+                          resolvePlannedPeriodForPeriod(card, period, periodIndex, sisuRootId)
+                        )
+                      }
+                    }
                     return (
                       <div
                         key={`${pl.selection.id}-${pl.startCol}-${pl.runIndex}`}
@@ -213,6 +233,8 @@ const TimelineMainGrid = ({
                           selection={pl.selection}
                           periodKey={pl.anchorPeriodKey}
                           sourcePlannedPeriod={pl.anchorPlannedPeriod}
+                          cardKey={card.cardKey}
+                          columnPlannedPeriods={columnPlannedPeriods}
                           completed={pl.selection.completed}
                           onUnschedule={onCardUnschedule}
                           onToggleMoveMode={onCardMoveModeToggle}
@@ -229,15 +251,21 @@ const TimelineMainGrid = ({
                       gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
                     }}
                   >
-                    {card.periods.map((p) => {
+                    {card.periods.map((p, colIndex) => {
                       const resolved = resolvePlannedPeriodForPeriod(
                         card,
                         p,
                         periodIndex,
                         sisuRootId
                       )
+                      const overlayPointerEventsNone = columnsWithActiveEditCard.has(colIndex)
                       return (
-                        <div key={p.periodKey} className="pointer-events-auto relative min-h-20">
+                        <div
+                          key={p.periodKey}
+                          className={`relative min-h-20 ${
+                            overlayPointerEventsNone ? 'pointer-events-none' : 'pointer-events-auto'
+                          }`}
+                        >
                           <PeriodColumnDropOverlays
                             periodKey={p.periodKey}
                             plannedPeriod={resolved}
