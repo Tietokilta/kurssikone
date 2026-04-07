@@ -3,7 +3,7 @@ import { IconScissors } from './TimelineIcons'
 
 /** Column hit targets on top of full-card red wash; hover matches {@link TimelineDropTile} intensity. */
 const cellTone =
-  'bg-transparent text-white drop-shadow-sm transition-[background-color,box-shadow] duration-150 ease-out hover:bg-timeline-unschedule/95 hover:ring-4 hover:ring-inset hover:ring-white hover:shadow-[0_0_0_1px_rgba(255,255,255,0.5),0_0_28px_rgba(220,38,38,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+  'bg-timeline-unschedule/50 text-white drop-shadow-sm transition-[background-color,box-shadow] duration-150 ease-out hover:bg-timeline-unschedule/95 hover:ring-4 hover:ring-inset hover:ring-white hover:shadow-[0_0_0_1px_rgba(255,255,255,0.5),0_0_28px_rgba(220,38,38,0.55)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
 
 type Props = {
   columnPlannedPeriods: string[]
@@ -17,16 +17,16 @@ const TimelineRemoveFromPeriodStrip = ({ columnPlannedPeriods, onRemove }: Props
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-timeline-unschedule/50">
+    <div className="flex h-full min-h-0 w-full flex-col ">
       <div
-        className="grid h-full min-h-0 flex-1 gap-px bg-white/25"
+        className="grid h-full min-h-0 flex-1 gap-x-2"
         style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
       >
         {columnPlannedPeriods.map((plannedPeriod, i) => (
           <button
             key={`${plannedPeriod}-${i}`}
             type="button"
-            className={`flex h-full min-h-0 w-full cursor-pointer flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-xs font-medium ${cellTone}`}
+            className={`flex h-full min-h-0 w-full cursor-pointer flex-col items-center justify-center gap-1.5 px-2 py-2 text-center text-xs font-medium ${cellTone} `}
             aria-label="Remove from this period"
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
               e.stopPropagation()

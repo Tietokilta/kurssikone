@@ -242,7 +242,7 @@ const TimelineMainGrid = ({
                 </div>
                 {activeInteractionKind !== 'none' ? (
                   <div
-                    className="pointer-events-none absolute inset-0 z-10 grid"
+                    className="pointer-events-none absolute inset-0 z-10 grid gap-x-2"
                     style={{
                       gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
                     }}
