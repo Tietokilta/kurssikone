@@ -182,7 +182,7 @@ const TimelineMainGrid = ({
               )}
               <div className="relative col-span-full min-h-8">
                 <div
-                  className="relative z-0 grid gap-y-1"
+                  className="relative z-0 grid auto-rows-auto grid-flow-dense items-start gap-y-1"
                   style={{
                     gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
                   }}
@@ -193,6 +193,7 @@ const TimelineMainGrid = ({
                       className="min-w-0"
                       style={{
                         gridColumn: `${pl.startCol + 1} / span ${pl.span}`,
+                        gridRow: 'span 1',
                       }}
                     >
                       <TimelinePeriodCourseItem
