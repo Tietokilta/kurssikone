@@ -301,7 +301,7 @@ const TimelinePage = ({ planId }: Props) => {
         activeSelectionIndex === selectionIndex &&
         (kind === 'click-unscheduled'
           ? activeSourcePlannedPeriod === sourcePlannedPeriod
-          : activeEditCardKey === cardKey)
+          : true)
       if (isSameCard) {
         resetInteraction()
         return
@@ -313,13 +313,7 @@ const TimelinePage = ({ planId }: Props) => {
       setClickPlacementTarget(null)
       setUnscheduledDragPreview(null)
     },
-    [
-      interactionKind,
-      activeSelectionIndex,
-      activeSourcePlannedPeriod,
-      activeEditCardKey,
-      resetInteraction,
-    ]
+    [interactionKind, activeSelectionIndex, activeSourcePlannedPeriod, resetInteraction]
   )
 
   const handleCardMoveModeToggle = useCallback(
@@ -380,11 +374,9 @@ const TimelinePage = ({ planId }: Props) => {
   )
 
   const isMoveModeActiveFor = useCallback(
-    (selectionIndex: number, cardKey: string) =>
-      interactionKind === 'click-scheduled' &&
-      activeSelectionIndex === selectionIndex &&
-      activeEditCardKey === cardKey,
-    [interactionKind, activeSelectionIndex, activeEditCardKey]
+    (selectionIndex: number) =>
+      interactionKind === 'click-scheduled' && activeSelectionIndex === selectionIndex,
+    [interactionKind, activeSelectionIndex]
   )
 
   useLayoutEffect(() => {

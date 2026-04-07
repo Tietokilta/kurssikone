@@ -2,8 +2,8 @@ import { plannedCreditsPerTimelineSlice } from '../../utils/parsePlannedPeriods'
 import type { ParsedCourseUnitSelection } from '../TimelinePage'
 import TimelineCourseCard from './TimelineCourseCard'
 import TimelineDraggableCard from './TimelineDraggableCard'
-import { IconScissors } from './TimelineIcons'
 import TimelineMoveModeButton from './TimelineMoveModeButton'
+import TimelineRemoveFromPeriodStrip from './TimelineRemoveFromPeriodStrip'
 
 type Props = {
   selection: ParsedCourseUnitSelection
@@ -33,29 +33,12 @@ const TimelinePeriodCourseItem = ({
 }: Props) => {
   const creditsForPeriod = plannedCreditsPerTimelineSlice(s)
   const actionable = !completed && s.selectionIndex >= 0
-  const editModeColumnStrip =
+  const editModeRemoveStrip =
     isMoveModeActive && actionable && columnPlannedPeriods.length > 0 ? (
-      <div
-        className="grid w-full gap-1"
-        style={{
-          gridTemplateColumns: `repeat(${columnPlannedPeriods.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {columnPlannedPeriods.map((plannedPeriodForColumn, i) => (
-          <button
-            key={`${plannedPeriodForColumn}-${i}`}
-            type="button"
-            className="pointer-events-auto flex size-7 items-center justify-center justify-self-center rounded bg-timeline-unschedule/90 text-white shadow hover:bg-timeline-unschedule focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-            aria-label="Remove from this period"
-            onClick={(event) => {
-              event.stopPropagation()
-              onUnschedule(s.selectionIndex, plannedPeriodForColumn)
-            }}
-          >
-            <IconScissors className="size-4" />
-          </button>
-        ))}
-      </div>
+      <TimelineRemoveFromPeriodStrip
+        columnPlannedPeriods={columnPlannedPeriods}
+        onRemove={(plannedPeriod) => onUnschedule(s.selectionIndex, plannedPeriod)}
+      />
     ) : undefined
 
   return (
@@ -80,7 +63,7 @@ const TimelinePeriodCourseItem = ({
           variant={completed ? 'completed' : 'scheduled'}
           isDragging={isDragging}
           highlightActive={isMoveModeActive}
-          editModeColumnStrip={editModeColumnStrip}
+          editModeRemoveStrip={editModeRemoveStrip}
           actionButtons={
             actionable ? (
               <TimelineMoveModeButton

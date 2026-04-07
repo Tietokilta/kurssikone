@@ -134,7 +134,7 @@ type Props = {
     sourcePlannedPeriod: string,
     cardKey: string
   ) => void
-  isMoveModeActiveFor: (selectionIndex: number, cardKey: string) => boolean
+  isMoveModeActiveFor: (selectionIndex: number) => boolean
   onClickPlacementAction: (action: 'move' | 'extend', plannedPeriod: string) => void
   clickPlacementTarget: { action: 'move' | 'extend'; plannedPeriod: string } | null
 }
@@ -169,7 +169,7 @@ const TimelineMainGrid = ({
           const columnsWithActiveEditCard = new Set<number>()
           if (clickModeEnabled) {
             for (const pl of placements) {
-              if (isMoveModeActiveFor(pl.selection.selectionIndex, card.cardKey)) {
+              if (isMoveModeActiveFor(pl.selection.selectionIndex)) {
                 for (let c = pl.startCol; c < pl.startCol + pl.span; c++) {
                   columnsWithActiveEditCard.add(c)
                 }
@@ -202,10 +202,7 @@ const TimelineMainGrid = ({
                   {placements.map((pl) => {
                     const credits = plannedCreditsPerTimelineSlice(pl.selection)
                     const rowSpan = Math.max(1, Math.round(credits))
-                    const isMoveModeActive = isMoveModeActiveFor(
-                      pl.selection.selectionIndex,
-                      card.cardKey
-                    )
+                    const isMoveModeActive = isMoveModeActiveFor(pl.selection.selectionIndex)
                     const columnPlannedPeriods: string[] = []
                     for (let c = pl.startCol; c < pl.startCol + pl.span; c++) {
                       const period = card.periods[c]
