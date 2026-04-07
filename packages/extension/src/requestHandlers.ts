@@ -33,6 +33,10 @@ export const fetchStudyPlans = async (): Promise<FetchStudyPlansResult> => {
   return (await chrome.runtime.sendMessage({ type: 'fetchStudyPlans' })) as FetchStudyPlansResult
 }
 
+export const initSisuAuth = async (): Promise<{ ok: boolean }> => {
+  return (await chrome.runtime.sendMessage({ type: 'initSisuAuth' })) as { ok: boolean }
+}
+
 export type FetchAttainmentsResult =
   | { ok: true; data: SisuAttainmentsResponse }
   | { ok: false; error: 'no_sisu_token' }

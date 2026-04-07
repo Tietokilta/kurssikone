@@ -11,7 +11,7 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { updateStudyPlan } from '../requestHandlers'
+import { initSisuAuth, updateStudyPlan } from '../requestHandlers'
 import { buildTimelineCards, type ParsedPlannedPeriod } from '../utils/parsePlannedPeriods'
 import { createPeriodIndex } from '../utils/studyYearPeriods'
 import {
@@ -263,6 +263,10 @@ const TimelinePage = ({ planId }: Props) => {
     setAttainments([])
 
     void (async () => {
+      const authInit = await initSisuAuth()
+      if (!authInit.ok) {
+        console.warn('[Kurssikompassi/Timeline]', 'Initial Sisu preauth failed; continuing with lazy refresh')
+      }
       const loaded = await loadTimelineData(planId)
       if (cancelled) return
       if (!loaded.ok) {
