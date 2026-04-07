@@ -351,6 +351,7 @@ function contiguousColumnRuns(sortedIndices: number[]): number[][] {
 /**
  * Deduplicates multi-period courses into contiguous column spans for a single semester card.
  * Data from {@link buildTimelineCards} may still list the same selection in multiple period cells.
+ * Placements are ordered by span (desc), then start column (asc), then course name.
  */
 export function computeSemesterCoursePlacements<T extends { id: string; name: string }>(
   card: TimelineCard<T>,
@@ -400,6 +401,9 @@ export function computeSemesterCoursePlacements<T extends { id: string; name: st
   }
 
   placements.sort((a, b) => {
+    if (b.span !== a.span) {
+      return b.span - a.span
+    }
     if (a.startCol !== b.startCol) {
       return a.startCol - b.startCol
     }

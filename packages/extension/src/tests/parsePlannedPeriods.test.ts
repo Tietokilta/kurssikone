@@ -469,6 +469,23 @@ describe('computeSemesterCoursePlacements', () => {
     expect(pl[0]).toMatchObject({ startCol: 0, span: 1, runIndex: 0 })
     expect(pl[1]).toMatchObject({ startCol: 2, span: 1, runIndex: 1 })
   })
+
+  it('sorts placements by column span descending, then start column, then name', () => {
+    const wide = { id: 'w', name: 'Wide' }
+    const narrow = { id: 'n', name: 'Narrow' }
+    const card = {
+      year: 2026,
+      season: 'Spring' as const,
+      cardKey: '2026-Spring',
+      periods: [
+        { period: 'III', periodKey: 'k1', plannedPeriod: 'loc1', selections: [narrow] },
+        { period: 'IV', periodKey: 'k2', plannedPeriod: 'loc2', selections: [wide] },
+        { period: 'V', periodKey: 'k3', plannedPeriod: 'loc3', selections: [wide] },
+      ],
+    }
+    const pl = computeSemesterCoursePlacements(card, root, idx)
+    expect(pl.map((p) => p.selection.id)).toEqual(['w', 'n'])
+  })
 })
 
 describe('golden: courseNamesToRightPeriods matches selections', () => {
