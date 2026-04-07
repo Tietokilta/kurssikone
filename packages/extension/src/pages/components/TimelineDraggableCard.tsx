@@ -6,10 +6,11 @@ type Props = {
   id: string
   data: Record<string, unknown>
   disabled?: boolean
+  className?: string
   children: (state: { isDragging: boolean }) => ReactNode
 }
 
-const TimelineDraggableCard = ({ id, data, disabled = false, children }: Props) => {
+const TimelineDraggableCard = ({ id, data, disabled = false, className, children }: Props) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
     disabled,
@@ -24,7 +25,7 @@ const TimelineDraggableCard = ({ id, data, disabled = false, children }: Props) 
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative w-full min-w-0 touch-none ${isDragging ? 'z-20' : 'z-0'}`}
+      className={`relative w-full min-w-0 touch-none ${isDragging ? 'z-20' : 'z-0'} ${className ?? ''}`}
       {...(disabled ? {} : listeners)}
       {...(disabled ? {} : attributes)}
     >

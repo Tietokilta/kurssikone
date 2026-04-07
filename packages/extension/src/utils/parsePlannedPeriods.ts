@@ -306,6 +306,16 @@ export type TimelineCard<T = { id: string; name: string }> = {
   periods: TimelinePeriod<T>[]
 }
 
+/**
+ * Credits shown in one timeline cell when a selection spans multiple planned periods
+ * (planned credits split evenly across non-null slices).
+ */
+export function plannedCreditsPerTimelineSlice<T extends { plannedCredits: number; parsedPlannedPeriods: unknown[] }>(
+  selection: T
+): number {
+  return selection.plannedCredits / Math.max(1, selection.parsedPlannedPeriods.filter(Boolean).length)
+}
+
 /** One rendered course block in a semester row (may span multiple period columns). */
 export type SemesterCoursePlacement<T = { id: string; name: string }> = {
   selection: T

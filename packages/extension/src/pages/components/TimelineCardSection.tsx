@@ -3,6 +3,7 @@ import { plannedPeriodKeysEqual } from '../../utils/planPeriodDrag'
 import {
   computeSemesterCoursePlacements,
   formatPlannedPeriodForSlot,
+  plannedCreditsPerTimelineSlice,
   type StudyPeriodIndex,
   type TimelineCard,
   type TimelinePeriod,
@@ -182,34 +183,39 @@ const TimelineMainGrid = ({
               )}
               <div className="relative col-span-full min-h-8">
                 <div
-                  className="relative z-0 grid auto-rows-auto grid-flow-dense items-start gap-y-1"
+                  className="relative z-0 grid grid-flow-dense items-stretch gap-y-1"
                   style={{
                     gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
+                    gridAutoRows: 'minmax(20px, auto)',
                   }}
                 >
-                  {placements.map((pl) => (
-                    <div
-                      key={`${pl.selection.id}-${pl.startCol}-${pl.runIndex}`}
-                      className="min-w-0"
-                      style={{
-                        gridColumn: `${pl.startCol + 1} / span ${pl.span}`,
-                        gridRow: 'span 1',
-                      }}
-                    >
-                      <TimelinePeriodCourseItem
-                        selection={pl.selection}
-                        periodKey={pl.anchorPeriodKey}
-                        sourcePlannedPeriod={pl.anchorPlannedPeriod}
-                        completed={pl.selection.completed}
-                        onUnschedule={onCardUnschedule}
-                        onToggleMoveMode={onCardMoveModeToggle}
-                        isMoveModeActive={isMoveModeActiveFor(
-                          pl.selection.selectionIndex,
-                          pl.anchorPlannedPeriod
-                        )}
-                      />
-                    </div>
-                  ))}
+                  {placements.map((pl) => {
+                    const credits = plannedCreditsPerTimelineSlice(pl.selection)
+                    const rowSpan = Math.max(1, Math.round(credits))
+                    return (
+                      <div
+                        key={`${pl.selection.id}-${pl.startCol}-${pl.runIndex}`}
+                        className="flex min-h-0 min-w-0 flex-col"
+                        style={{
+                          gridColumn: `${pl.startCol + 1} / span ${pl.span}`,
+                          gridRow: `span ${rowSpan}`,
+                        }}
+                      >
+                        <TimelinePeriodCourseItem
+                          selection={pl.selection}
+                          periodKey={pl.anchorPeriodKey}
+                          sourcePlannedPeriod={pl.anchorPlannedPeriod}
+                          completed={pl.selection.completed}
+                          onUnschedule={onCardUnschedule}
+                          onToggleMoveMode={onCardMoveModeToggle}
+                          isMoveModeActive={isMoveModeActiveFor(
+                            pl.selection.selectionIndex,
+                            pl.anchorPlannedPeriod
+                          )}
+                        />
+                      </div>
+                    )
+                  })}
                 </div>
                 {activeInteractionKind !== 'none' ? (
                   <div

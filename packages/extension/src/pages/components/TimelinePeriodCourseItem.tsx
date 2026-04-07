@@ -1,3 +1,4 @@
+import { plannedCreditsPerTimelineSlice } from '../../utils/parsePlannedPeriods'
 import type { ParsedCourseUnitSelection } from '../TimelinePage'
 import TimelineCourseCard from './TimelineCourseCard'
 import TimelineDraggableCard from './TimelineDraggableCard'
@@ -24,12 +25,12 @@ const TimelinePeriodCourseItem = ({
   onToggleMoveMode,
   isMoveModeActive,
 }: Props) => {
-  const creditsForPeriod =
-    s.plannedCredits / Math.max(1, s.parsedPlannedPeriods.filter(Boolean).length)
+  const creditsForPeriod = plannedCreditsPerTimelineSlice(s)
   const actionable = !completed && s.selectionIndex >= 0
 
   return (
     <TimelineDraggableCard
+      className="h-full min-h-0"
       id={`${s.id}::${periodKey}::${completed ? 'c' : 'p'}`}
       disabled={!!completed}
       data={{
@@ -45,7 +46,7 @@ const TimelinePeriodCourseItem = ({
           plannedCredits={creditsForPeriod}
           creditsMin={s.creditsMin}
           creditsMax={s.creditsMax}
-          minHeight={creditsForPeriod * 20}
+          fillContainer
           variant={completed ? 'completed' : 'scheduled'}
           isDragging={isDragging}
           highlightActive={isMoveModeActive}

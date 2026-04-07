@@ -8,6 +8,8 @@ type Props = {
   creditsMin: number
   creditsMax: number
   minHeight?: number
+  /** Stretch to parent height (e.g. grid row span) instead of min-height from credits. */
+  fillContainer?: boolean
   variant: TimelineCourseCardVariant
   isDragging?: boolean
   actionButtons?: ReactNode
@@ -20,6 +22,7 @@ const TimelineCourseCard = ({
   creditsMin,
   creditsMax,
   minHeight,
+  fillContainer = false,
   variant,
   isDragging = false,
   actionButtons,
@@ -33,8 +36,8 @@ const TimelineCourseCard = ({
 
   return (
     <div
-      style={minHeight ? { minHeight } : undefined}
-      className={`group box-border flex h-full w-full min-w-0 ${rootClassName} ${highlightActive ? 'ring-2 ring-inset ring-timeline-move/80' : ''}`}
+      style={!fillContainer && minHeight ? { minHeight } : undefined}
+      className={`group box-border flex w-full min-w-0 ${fillContainer ? 'h-full min-h-0' : 'h-full'} ${rootClassName} ${highlightActive ? 'ring-2 ring-inset ring-timeline-move/80' : ''}`}
     >
       <div
         className={`flex w-12 shrink-0 flex-col items-center justify-center px-1 py-2 text-center text-white ${
