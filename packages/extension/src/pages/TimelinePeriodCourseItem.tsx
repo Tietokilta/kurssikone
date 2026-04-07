@@ -16,13 +16,13 @@ const TimelinePeriodCourseItem = ({
   sourcePlannedPeriod,
   completed,
 }: Props) => {
-  const creditsForPeriod = s.plannedCredits / Math.max(1, s.parsedPlannedPeriods.filter(Boolean).length)
+  const creditsForPeriod =
+    s.plannedCredits / Math.max(1, s.parsedPlannedPeriods.filter(Boolean).length)
 
   return (
     <TimelineDraggableCard
       id={`${s.id}::${periodKey}::${completed ? 'c' : 'p'}`}
       disabled={!!completed}
-      minHeight={creditsForPeriod * 20}
       data={{
         courseId: s.id,
         periodKey,
@@ -36,6 +36,7 @@ const TimelinePeriodCourseItem = ({
           plannedCredits={creditsForPeriod}
           creditsMin={s.creditsMin}
           creditsMax={s.creditsMax}
+          minHeight={creditsForPeriod * 20}
           variant={completed ? 'completed' : 'scheduled'}
           isDragging={isDragging}
         />

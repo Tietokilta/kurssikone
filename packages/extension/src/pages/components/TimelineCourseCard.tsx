@@ -26,7 +26,10 @@ const TimelineCourseCard = ({
     : `bg-timeline-surface ${preview ? 'cursor-grabbing shadow-lg ring-1 ring-neutral-900/15' : isDragging ? 'cursor-grabbing opacity-60' : 'cursor-grab'}`
 
   return (
-    <div style={minHeight ? { minHeight } : undefined} className={`box-border flex min-w-0 ${rootClassName}`}>
+    <div
+      style={minHeight ? { minHeight } : undefined}
+      className={`box-border flex h-full w-full min-w-0 ${rootClassName}`}
+    >
       <div
         className={`flex w-12 shrink-0 flex-col items-center justify-center px-1 py-2 text-center text-white ${
           completed ? 'bg-neutral-500' : 'bg-timeline-accent'
@@ -38,7 +41,9 @@ const TimelineCourseCard = ({
 
       <div className="min-w-0 flex-1 p-2">
         {name}
-        {completed ? <span className="mt-0.5 block text-xs text-neutral-600">Completed</span> : null}
+        {completed ? (
+          <span className="mt-0.5 block text-xs text-neutral-600">Completed</span>
+        ) : null}
       </div>
     </div>
   )

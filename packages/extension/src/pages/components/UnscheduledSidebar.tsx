@@ -7,10 +7,9 @@ function UnscheduledCourseItem({ selection: s }: { selection: ParsedCourseUnitSe
     <TimelineDraggableCard
       id={`unscheduled-${s.selectionIndex}`}
       data={{ selectionIndex: s.selectionIndex, fromUnscheduled: true as const }}
-      minHeight={s.plannedCredits * 20}
     >
       {({ isDragging }) => (
-        <div className={isDragging ? 'opacity-0' : undefined}>
+        <div className={isDragging ? 'h-full opacity-0' : 'h-full'}>
           <TimelineCourseCard
             name={s.name}
             plannedCredits={s.plannedCredits}
@@ -47,7 +46,9 @@ const UnscheduledSidebar = ({ open, setOpen, selections }: Props) => {
       {open ? (
         <div className="kurssikompassi-unscheduled-open flex min-h-0 min-w-64 flex-1 flex-col">
           <div className="flex shrink-0 items-center justify-between gap-1 border-b border-neutral-100 px-2 py-2">
-            <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">Unscheduled</h2>
+            <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">
+              Unscheduled
+            </h2>
             <button
               type="button"
               className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded border border-neutral-200 bg-white text-base leading-none text-neutral-600 hover:bg-neutral-50"
@@ -59,8 +60,13 @@ const UnscheduledSidebar = ({ open, setOpen, selections }: Props) => {
               <span aria-hidden>‹</span>
             </button>
           </div>
-          <div id="kurssikompassi-unscheduled-panel" className="flex min-h-0 flex-1 flex-col px-3 pt-2 pb-3">
-            <p className="mb-2 shrink-0 text-xs text-neutral-500">Drag a course onto a period column.</p>
+          <div
+            id="kurssikompassi-unscheduled-panel"
+            className="flex min-h-0 flex-1 flex-col px-3 pt-2 pb-3"
+          >
+            <p className="mb-2 shrink-0 text-xs text-neutral-500">
+              Drag a course onto a period column.
+            </p>
             <div className="min-h-0 flex-1 overflow-y-auto">
               <ul className="flex flex-col gap-1 text-sm">
                 {selections.map((s) => (

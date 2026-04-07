@@ -6,11 +6,10 @@ type Props = {
   id: string
   data: Record<string, unknown>
   disabled?: boolean
-  minHeight?: number
   children: (state: { isDragging: boolean }) => ReactNode
 }
 
-const TimelineDraggableCard = ({ id, data, disabled = false, minHeight, children }: Props) => {
+const TimelineDraggableCard = ({ id, data, disabled = false, children }: Props) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
     disabled,
@@ -18,7 +17,6 @@ const TimelineDraggableCard = ({ id, data, disabled = false, minHeight, children
   })
 
   const style = {
-    minHeight,
     transform: CSS.Translate.toString(transform),
   }
 

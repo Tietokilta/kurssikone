@@ -11,34 +11,25 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { updateStudyPlan } from '../requestHandlers'
+import { buildTimelineCards, type ParsedPlannedPeriod } from '../utils/parsePlannedPeriods'
+import { createPeriodIndex } from '../utils/studyYearPeriods'
 import {
-  fetchAttainments,
-  fetchStudyPlans,
-  fetchStudyYears,
-  getCoursesByIds,
-  updateStudyPlan,
-} from '../requestHandlers'
+  buildCompletedSelections,
+  buildParsedCourseUnitSelections,
+  DEFAULT_SISU_ROOT_ID,
+  extractSisuRootId,
+} from '../utils/timelinePageData'
 import {
-  applyPlannedPeriodAdd,
-  applyPlannedPeriodExtend,
-  applyPlannedPeriodMove,
-  applyPlannedPeriodUnschedule,
-} from '../utils/planPeriodDrag'
-import {
-  buildTimelineCards,
-  parseCourseUnitPlannedPeriods,
-  type ParsedPlannedPeriod,
-  type StudyPeriodIndex,
-} from '../utils/parsePlannedPeriods'
-import {
-  defaultFirstStudyYearWhenNoAttainments,
-  firstStudyYearFromAttainmentDates,
-} from '../utils/inferSisuFirstStudyYear'
-import { createPeriodIndex, findPeriodByDate } from '../utils/studyYearPeriods'
+  getTimelineDragRowSnapshot,
+  getUnscheduledSelections,
+  mapApplyFailureToSaveError,
+  resolveDragStartState,
+  resolveTimelineDrop,
+} from '../utils/timelinePageLogic'
+import { loadTimelineData } from '../utils/timelinePageLoad'
 import type {
-  SisuAssessmentItemAttainment,
   SisuAttainment,
-  SisuCourseUnitAttainment,
   SisuCourseUnitSelection,
   SisuStudyPlan,
   SisuStudyYear,
@@ -71,122 +62,9 @@ export type ParsedCourseUnitSelection = {
   completed?: boolean
 }
 
-const DEFAULT_SISU_ROOT_ID = 'aalto-university-root-id'
-
 const timelineCollisionDetection: CollisionDetection = (args) => {
   const pointerHits = pointerWithin(args)
   return pointerHits.length > 0 ? pointerHits : rectIntersection(args)
-}
-
-function extractSisuRootId(selections: ParsedCourseUnitSelection[]): string {
-  for (const s of selections) {
-    for (const p of s.rawData.plannedPeriods) {
-      const root = p.split('/')[0]
-      if (root) {
-        return root
-      }
-    }
-  }
-  return DEFAULT_SISU_ROOT_ID
-}
-
-function emptySelectionRow(courseUnitId: string): SisuCourseUnitSelection {
-  return {
-    courseUnitId,
-    parentModuleId: '',
-    completionMethodId: null,
-    substitutedBy: [],
-    substituteFor: [],
-    plannedPeriods: [],
-    gradeRaiseAttempt: null,
-  }
-}
-
-function buildParsedCourseUnitSelections(
-  selections: SisuCourseUnitSelection[],
-  courseData: Record<string, Course>,
-  periodIndex: StudyPeriodIndex | null
-): ParsedCourseUnitSelection[] {
-  return selections.map((s, selectionIndex) => {
-    const course = courseData[s.courseUnitId]
-
-    const name =
-      (course?.nameEn && course.nameEn.trim()) ||
-      (course?.nameFi && course.nameFi.trim()) ||
-      course?.code ||
-      s.courseUnitId
-
-    const creditsMin = course?.creditsMin || 0
-    const creditsMax = course?.creditsMax || 0
-    const plannedCredits =
-      creditsMax === creditsMin ? creditsMax : Math.round((creditsMax + creditsMin) / 2)
-
-    return {
-      id: s.courseUnitId,
-      name,
-      creditsMin,
-      creditsMax,
-      plannedCredits,
-      parsedPlannedPeriods: parseCourseUnitPlannedPeriods(
-        s.courseUnitId,
-        s.plannedPeriods,
-        periodIndex
-      ),
-      rawData: s,
-      selectionIndex,
-    }
-  })
-}
-
-function buildCompletedSelections(
-  attainments: SisuAttainment[],
-  periodIndex: StudyPeriodIndex | null,
-  courseData: Record<string, Course>
-): ParsedCourseUnitSelection[] {
-  if (!periodIndex) {
-    return []
-  }
-  const best = new Map<string, SisuCourseUnitAttainment | SisuAssessmentItemAttainment>()
-  for (const a of attainments) {
-    if (a.type !== 'CourseUnitAttainment' && a.type !== 'AssessmentItemAttainment') {
-      continue
-    }
-    const prev = best.get(a.courseUnitId)
-    if (!prev || a.attainmentDate.localeCompare(prev.attainmentDate) < 0) {
-      best.set(a.courseUnitId, a)
-    }
-  }
-
-  const out: ParsedCourseUnitSelection[] = []
-  for (const [, att] of best) {
-    const slot = findPeriodByDate(periodIndex, att.attainmentDate)
-    if (!slot) {
-      continue
-    }
-    const course = courseData[att.courseUnitId]
-    const name =
-      (course?.nameEn && course.nameEn.trim()) ||
-      (course?.nameFi && course.nameFi.trim()) ||
-      course?.code ||
-      att.courseUnitId
-    const creditsMin = course?.creditsMin || att.credits || 0
-    const creditsMax = course?.creditsMax || att.credits || 0
-    const plannedCredits =
-      creditsMax === creditsMin ? creditsMax : Math.round((creditsMax + creditsMin) / 2)
-
-    out.push({
-      id: att.courseUnitId,
-      name,
-      creditsMin,
-      creditsMax,
-      plannedCredits,
-      parsedPlannedPeriods: [slot],
-      rawData: emptySelectionRow(att.courseUnitId),
-      selectionIndex: -1,
-      completed: true,
-    })
-  }
-  return out
 }
 
 function UnscheduledCourseDragPreview({ selection: s }: { selection: ParsedCourseUnitSelection }) {
@@ -200,7 +78,6 @@ function UnscheduledCourseDragPreview({ selection: s }: { selection: ParsedCours
     />
   )
 }
-
 
 const TimelinePage = ({ planId }: Props) => {
   const [fullPlan, setFullPlan] = useState<SisuStudyPlan | null>(null)
@@ -271,58 +148,26 @@ const TimelinePage = ({ planId }: Props) => {
     [fullPlan, plannedSelections]
   )
 
-  const completedCourseIds = useMemo(
-    () => new Set(completedSelections.map((s) => s.id)),
-    [completedSelections]
+  const unscheduledSelections = useMemo(
+    () => getUnscheduledSelections(plannedSelections, completedSelections),
+    [plannedSelections, completedSelections]
   )
 
-  const unscheduledSelections = useMemo(() => {
-    if (!plannedSelections) {
-      return []
-    }
-    return plannedSelections
-      .filter(
-        (s) =>
-          s.selectionIndex >= 0 &&
-          !s.completed &&
-          !completedCourseIds.has(s.id) &&
-          s.rawData.plannedPeriods.length === 0
-      )
-      .slice()
-      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
-  }, [plannedSelections, completedCourseIds])
-
-  const timelineDragRowSnapshot = useMemo((): TimelineDragRowSnapshot | null => {
-    if (activeDragKind === 'none' || activeDragSelectionIndex === null || !fullPlan) {
-      return null
-    }
-    const row = fullPlan.courseUnitSelections[activeDragSelectionIndex]
-    if (!row) {
-      return null
-    }
-    return { courseUnitId: row.courseUnitId, plannedPeriods: row.plannedPeriods }
-  }, [activeDragKind, activeDragSelectionIndex, fullPlan])
+  const timelineDragRowSnapshot = useMemo(
+    (): TimelineDragRowSnapshot | null =>
+      getTimelineDragRowSnapshot(activeDragKind, activeDragSelectionIndex, fullPlan),
+    [activeDragKind, activeDragSelectionIndex, fullPlan]
+  )
 
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
-      const d = event.active.data.current
-      const idx = d?.selectionIndex
-      const selIdx = typeof idx === 'number' && idx >= 0 ? idx : null
-
-      if (d?.fromUnscheduled === true) {
-        setActiveDragKind('unscheduled')
-        setActiveDragSelectionIndex(selIdx)
-        if (typeof idx === 'number') {
-          const sel = plannedSelections?.find((s) => s.selectionIndex === idx)
-          setUnscheduledDragPreview(sel ?? null)
-        }
-      } else if (typeof d?.sourcePlannedPeriod === 'string' && d.sourcePlannedPeriod.trim()) {
-        setActiveDragKind('scheduled')
-        setActiveDragSelectionIndex(selIdx)
-      } else {
-        setActiveDragKind('none')
-        setActiveDragSelectionIndex(null)
-      }
+      const resolved = resolveDragStartState(
+        event.active.data.current as Record<string, unknown> | undefined,
+        plannedSelections
+      )
+      setActiveDragKind(resolved.kind)
+      setActiveDragSelectionIndex(resolved.selectionIndex)
+      setUnscheduledDragPreview(resolved.unscheduledPreview)
     },
     [plannedSelections]
   )
@@ -351,91 +196,26 @@ const TimelinePage = ({ planId }: Props) => {
         return
       }
 
-      const fromUnscheduled = active.data.current?.fromUnscheduled === true
-      const overData = over.data.current as
-        | { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' }
-        | undefined
-      const dropAction = overData?.action ?? 'move'
-      const targetPlannedPeriod = overData?.plannedPeriod
-
-      type Applied =
-        | ReturnType<typeof applyPlannedPeriodAdd>
-        | ReturnType<typeof applyPlannedPeriodMove>
-        | ReturnType<typeof applyPlannedPeriodExtend>
-        | ReturnType<typeof applyPlannedPeriodUnschedule>
-
-      let applied: Applied | null = null
-
-      if (dropAction === 'unschedule') {
-        if (fromUnscheduled) {
-          return
-        }
-        const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
-        if (typeof startPlannedPeriod !== 'string' || !startPlannedPeriod.trim()) {
-          return
-        }
-        applied = applyPlannedPeriodUnschedule(
-          fullPlan,
-          selectionIndex,
-          startPlannedPeriod,
-          periodIndex
-        )
-      } else if (dropAction === 'extend') {
-        if (fromUnscheduled) {
-          return
-        }
-        const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
-        if (typeof startPlannedPeriod !== 'string' || !startPlannedPeriod.trim()) {
-          return
-        }
-        if (typeof targetPlannedPeriod !== 'string' || !targetPlannedPeriod.trim()) {
-          return
-        }
-        applied = applyPlannedPeriodExtend(
-          fullPlan,
-          selectionIndex,
-          startPlannedPeriod,
-          targetPlannedPeriod,
-          periodIndex
-        )
-      } else {
-        if (typeof targetPlannedPeriod !== 'string' || !targetPlannedPeriod.trim()) {
-          return
-        }
-        applied = fromUnscheduled
-          ? applyPlannedPeriodAdd(fullPlan, selectionIndex, targetPlannedPeriod, periodIndex)
-          : (() => {
-              const startPlannedPeriod = active.data.current?.sourcePlannedPeriod
-              if (typeof startPlannedPeriod !== 'string' || !startPlannedPeriod.trim()) {
-                return null
-              }
-              return applyPlannedPeriodMove(
-                fullPlan,
-                selectionIndex,
-                startPlannedPeriod,
-                targetPlannedPeriod,
-                periodIndex
-              )
-            })()
-      }
+      const applied = resolveTimelineDrop({
+        fullPlan,
+        periodIndex,
+        selectionIndex,
+        activeData: active.data.current as Record<string, unknown> | undefined,
+        overData: over.data.current as
+          | { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' }
+          | undefined,
+      })
 
       if (applied === null) {
         return
       }
 
       if (!applied.ok) {
-        if (applied.reason === 'same_slot') {
+        const message = mapApplyFailureToSaveError(applied.reason)
+        if (!message) {
           return
         }
-        if (applied.reason === 'source_not_found') {
-          setSaveError('Could not update plan (source period not found).')
-        } else if (applied.reason === 'already_scheduled') {
-          setSaveError('Could not schedule (course already has a planned period).')
-        } else if (applied.reason === 'invalid_index') {
-          setSaveError('Could not update plan.')
-        } else {
-          setSaveError('Could not update plan.')
-        }
+        setSaveError(message)
         return
       }
 
@@ -482,89 +262,17 @@ const TimelinePage = ({ planId }: Props) => {
     setAttainments([])
 
     void (async () => {
-      const plansResult = await fetchStudyPlans()
+      const loaded = await loadTimelineData(planId)
       if (cancelled) return
-
-      if (!plansResult.ok) {
-        console.error('[Kurssikompassi/Timeline]', 'Study plans fetch failed', {
-          error: plansResult.error,
-          message: plansResult.error === 'fetch_failed' ? plansResult.message : undefined,
-        })
-        if (plansResult.error === 'no_sisu_token') {
-          setError('Could not get Sisu auth')
-        } else {
-          setError(plansResult.message ?? 'Failed to load study plans')
-        }
+      if (!loaded.ok) {
+        setError(loaded.error)
         return
       }
-
-      const plan = plansResult.data.find((p) => p.id === planId)
-      if (!plan) {
-        setError('Plan not found')
-        return
-      }
-
-      const selections = plan.courseUnitSelections
-      const plannedIds = [...new Set(selections.map((s) => s.courseUnitId))]
-
-      const attainmentsResult = await fetchAttainments(plan.userId)
-      if (cancelled) return
-
-      if (!attainmentsResult.ok) {
-        console.warn('[Kurssikompassi/Timeline]', 'Attainments fetch failed', {
-          error: attainmentsResult.error,
-          message:
-            attainmentsResult.error === 'fetch_failed' ? attainmentsResult.message : undefined,
-        })
-      }
-      const attData = attainmentsResult.ok ? attainmentsResult.data : []
-      setAttainments(attData)
-
-      const fromAtt = firstStudyYearFromAttainmentDates(attData)
-      const firstYear = fromAtt ?? defaultFirstStudyYearWhenNoAttainments()
-
-      const studyYearsResult = await fetchStudyYears(DEFAULT_SISU_ROOT_ID, firstYear)
-      if (cancelled) return
-
-      if (studyYearsResult.ok) {
-        setStudyYears(studyYearsResult.data)
-      } else {
-        console.warn('[Kurssikompassi/Timeline]', 'Study years fetch failed', {
-          error: studyYearsResult.error,
-          message: studyYearsResult.error === 'fetch_failed' ? studyYearsResult.message : undefined,
-          organisationId: DEFAULT_SISU_ROOT_ID,
-          firstYear,
-        })
-        setStudyYears(null)
-        setStudyYearsWarning(
-          studyYearsResult.error === 'no_sisu_token'
-            ? 'Study years unavailable (no Sisu auth)'
-            : studyYearsResult.error === 'fetch_failed' && studyYearsResult.message
-              ? `Study years unavailable: ${studyYearsResult.message}`
-              : 'Study years unavailable'
-        )
-      }
-
-      const attainmentCourseIds = new Set<string>()
-      for (const a of attData) {
-        if (a.type === 'CourseUnitAttainment') {
-          attainmentCourseIds.add(a.courseUnitId)
-        } else if (a.type === 'AssessmentItemAttainment') {
-          attainmentCourseIds.add(a.courseUnitId)
-        }
-      }
-
-      const allIds = [...new Set([...plannedIds, ...attainmentCourseIds])]
-      const courses = await getCoursesByIds(allIds)
-      if (cancelled) return
-
-      const nextCourseData: Record<string, Course> = {}
-      for (const c of courses) {
-        nextCourseData[c.id] = c
-      }
-
-      setFullPlan(plan)
-      setCourseData(nextCourseData)
+      setAttainments(loaded.attainments)
+      setStudyYears(loaded.studyYears)
+      setStudyYearsWarning(loaded.studyYearsWarning)
+      setFullPlan(loaded.plan)
+      setCourseData(loaded.courseData)
     })()
 
     return () => {
