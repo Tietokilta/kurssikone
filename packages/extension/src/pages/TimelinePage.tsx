@@ -15,6 +15,7 @@ import { initSisuAuth, updateStudyPlan } from '../requestHandlers'
 import {
   buildTimelineCards,
   computeSemesterCoursePlacements,
+  formatPlannedPeriodForSlot,
   type ParsedPlannedPeriod,
 } from '../utils/parsePlannedPeriods'
 import { createPeriodIndex } from '../utils/studyYearPeriods'
@@ -31,6 +32,7 @@ import {
   resolveDragStartState,
   resolveTimelineDrop,
 } from '../utils/timelinePageLogic'
+import { resolveTimelineMoveRun } from '../utils/planPeriodDrag'
 import { loadTimelineData } from '../utils/timelinePageLoad'
 import type {
   SisuAttainment,
@@ -105,6 +107,8 @@ const TimelinePage = ({ planId }: Props) => {
     action: 'move' | 'extend'
     plannedPeriod: string
   } | null>(null)
+  /** Contiguous planned-period locators moved together (multi-column card); drives drop overlay rules. */
+  const [activeMovingRun, setActiveMovingRun] = useState<string[] | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -165,8 +169,13 @@ const TimelinePage = ({ planId }: Props) => {
 
   const timelineDragRowSnapshot = useMemo(
     (): TimelineDragRowSnapshot | null =>
-      getTimelineDragRowSnapshot(interactionKind, activeSelectionIndex, fullPlan),
-    [interactionKind, activeSelectionIndex, fullPlan]
+      getTimelineDragRowSnapshot(
+        interactionKind,
+        activeSelectionIndex,
+        fullPlan,
+        activeMovingRun
+      ),
+    [interactionKind, activeSelectionIndex, fullPlan, activeMovingRun]
   )
 
   const resetInteraction = useCallback(() => {
@@ -176,6 +185,7 @@ const TimelinePage = ({ planId }: Props) => {
     setActiveEditCardKey(null)
     setClickPlacementTarget(null)
     setUnscheduledDragPreview(null)
+    setActiveMovingRun(null)
   }, [])
 
   const applyDropAndPersist = useCallback(
@@ -239,15 +249,37 @@ const TimelinePage = ({ planId }: Props) => {
       setInteractionKind(resolved.kind)
       setActiveSelectionIndex(resolved.selectionIndex)
       setUnscheduledDragPreview(resolved.unscheduledPreview)
-      setActiveSourcePlannedPeriod(
-        typeof event.active.data.current?.sourcePlannedPeriod === 'string'
-          ? event.active.data.current.sourcePlannedPeriod
-          : null
-      )
+
+      const data = event.active.data.current as Record<string, unknown> | undefined
+      const anchorRaw =
+        typeof data?.sourcePlannedPeriod === 'string' ? data.sourcePlannedPeriod.trim() : ''
+      let movingRun: string[] | null = null
+      if (
+        resolved.kind === 'scheduled' &&
+        fullPlan &&
+        periodIndex &&
+        typeof resolved.selectionIndex === 'number' &&
+        resolved.selectionIndex >= 0 &&
+        anchorRaw
+      ) {
+        const row = fullPlan.courseUnitSelections[resolved.selectionIndex]
+        const rawConnected = data?.connectedPlannedPeriods
+        const connected =
+          Array.isArray(rawConnected) && rawConnected.every((x) => typeof x === 'string')
+            ? (rawConnected as string[]).map((s) => s.trim()).filter(Boolean)
+            : null
+        if (row) {
+          const run = resolveTimelineMoveRun(row, anchorRaw, connected?.length ? connected : null, periodIndex)
+          movingRun = run && run.length > 1 ? run : null
+        }
+      }
+      setActiveMovingRun(movingRun)
+
+      setActiveSourcePlannedPeriod(anchorRaw || null)
       setActiveEditCardKey(null)
       setClickPlacementTarget(null)
     },
-    [plannedSelections]
+    [plannedSelections, fullPlan, periodIndex]
   )
 
   const handleDragCancel = useCallback(() => {
@@ -294,7 +326,8 @@ const TimelinePage = ({ planId }: Props) => {
       kind: 'click-scheduled' | 'click-unscheduled',
       selectionIndex: number,
       sourcePlannedPeriod: string | null,
-      cardKey: string | null = null
+      cardKey: string | null = null,
+      connectedPlannedPeriods: string[] | null = null
     ) => {
       const isSameCard =
         interactionKind === kind &&
@@ -312,13 +345,31 @@ const TimelinePage = ({ planId }: Props) => {
       setActiveEditCardKey(kind === 'click-scheduled' ? cardKey : null)
       setClickPlacementTarget(null)
       setUnscheduledDragPreview(null)
+      setActiveMovingRun(
+        kind === 'click-scheduled' &&
+          connectedPlannedPeriods &&
+          connectedPlannedPeriods.length > 1
+          ? connectedPlannedPeriods
+          : null
+      )
     },
     [interactionKind, activeSelectionIndex, activeSourcePlannedPeriod, resetInteraction]
   )
 
   const handleCardMoveModeToggle = useCallback(
-    (selectionIndex: number, sourcePlannedPeriod: string, cardKey: string) => {
-      activateClickMoveMode('click-scheduled', selectionIndex, sourcePlannedPeriod, cardKey)
+    (
+      selectionIndex: number,
+      sourcePlannedPeriod: string,
+      cardKey: string,
+      connectedPlannedPeriods: string[]
+    ) => {
+      activateClickMoveMode(
+        'click-scheduled',
+        selectionIndex,
+        sourcePlannedPeriod,
+        cardKey,
+        connectedPlannedPeriods
+      )
     },
     [activateClickMoveMode]
   )
@@ -347,6 +398,9 @@ const TimelinePage = ({ planId }: Props) => {
           : {
               selectionIndex: activeSelectionIndex,
               sourcePlannedPeriod: activeSourcePlannedPeriod,
+              ...(activeMovingRun && activeMovingRun.length > 1
+                ? { connectedPlannedPeriods: activeMovingRun }
+                : {}),
             }
       if (
         interactionKind === 'click-scheduled' &&
@@ -368,6 +422,7 @@ const TimelinePage = ({ planId }: Props) => {
       interactionKind,
       activeSelectionIndex,
       activeSourcePlannedPeriod,
+      activeMovingRun,
       applyDropAndPersist,
       resetInteraction,
     ]
@@ -426,6 +481,21 @@ const TimelinePage = ({ planId }: Props) => {
     }
     if (pl.anchorPlannedPeriod !== activeSourcePlannedPeriod) {
       setActiveSourcePlannedPeriod(pl.anchorPlannedPeriod)
+    }
+    const movingRun: string[] = []
+    for (let c = pl.startCol; c < pl.startCol + pl.span; c++) {
+      const period = card.periods[c]
+      if (period) {
+        movingRun.push(
+          period.plannedPeriod ||
+            formatPlannedPeriodForSlot(sisuRootId, card.year, card.season, period.period, periodIndex)
+        )
+      }
+    }
+    if (movingRun.length > 1) {
+      setActiveMovingRun(movingRun)
+    } else {
+      setActiveMovingRun(null)
     }
   }, [
     fullPlan,

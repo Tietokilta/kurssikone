@@ -23,6 +23,17 @@ export type TimelineInteractionKind =
 export type TimelineDragRowSnapshot = {
   courseUnitId: string
   plannedPeriods: string[]
+  /** Slots moved together; drop targets on these columns stay available during the drag. */
+  movingRunPlannedPeriods?: string[]
+}
+
+function slotInMovingRun(
+  columnPlannedPeriod: string,
+  movingRun: string[],
+  courseUnitId: string,
+  periodIndex: StudyPeriodIndex
+): boolean {
+  return movingRun.some((p) => plannedPeriodKeysEqual(p, columnPlannedPeriod, courseUnitId, periodIndex))
 }
 
 function columnAlreadyHasDraggedCourse(
@@ -33,9 +44,17 @@ function columnAlreadyHasDraggedCourse(
   if (!periodIndex || !columnPlannedPeriod.trim()) {
     return false
   }
-  return row.plannedPeriods.some((p) =>
+  const inColumn = row.plannedPeriods.some((p) =>
     plannedPeriodKeysEqual(p, columnPlannedPeriod, row.courseUnitId, periodIndex)
   )
+  if (!inColumn) {
+    return false
+  }
+  const run = row.movingRunPlannedPeriods
+  if (run?.length && slotInMovingRun(columnPlannedPeriod, run, row.courseUnitId, periodIndex)) {
+    return false
+  }
+  return true
 }
 
 function PeriodColumnDropOverlays({
@@ -132,7 +151,8 @@ type Props = {
   onCardMoveModeToggle: (
     selectionIndex: number,
     sourcePlannedPeriod: string,
-    cardKey: string
+    cardKey: string,
+    connectedPlannedPeriods: string[]
   ) => void
   isMoveModeActiveFor: (selectionIndex: number) => boolean
   onClickPlacementAction: (action: 'move' | 'extend', plannedPeriod: string) => void
@@ -233,7 +253,9 @@ const TimelineMainGrid = ({
                           columnPlannedPeriods={columnPlannedPeriods}
                           completed={pl.selection.completed}
                           onUnschedule={onCardUnschedule}
-                          onToggleMoveMode={onCardMoveModeToggle}
+                          onToggleMoveMode={(selectionIndex, source, cardKey) =>
+                            onCardMoveModeToggle(selectionIndex, source, cardKey, columnPlannedPeriods)
+                          }
                           isMoveModeActive={isMoveModeActive}
                         />
                       </div>

@@ -51,6 +51,7 @@ const TimelinePeriodCourseItem = ({
         periodKey,
         sourcePlannedPeriod,
         selectionIndex: s.selectionIndex,
+        connectedPlannedPeriods: columnPlannedPeriods,
       }}
     >
       {({ isDragging }) => (

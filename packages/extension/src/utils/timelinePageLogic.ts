@@ -35,7 +35,8 @@ export function getUnscheduledSelections(
 export function getTimelineDragRowSnapshot(
   activeDragKind: TimelineInteractionKind,
   activeDragSelectionIndex: number | null,
-  fullPlan: SisuStudyPlan | null
+  fullPlan: SisuStudyPlan | null,
+  movingRunPlannedPeriods: string[] | null
 ): TimelineDragRowSnapshot | null {
   if (activeDragKind === 'none' || activeDragSelectionIndex === null || !fullPlan) {
     return null
@@ -44,7 +45,11 @@ export function getTimelineDragRowSnapshot(
   if (!row) {
     return null
   }
-  return { courseUnitId: row.courseUnitId, plannedPeriods: row.plannedPeriods }
+  return {
+    courseUnitId: row.courseUnitId,
+    plannedPeriods: row.plannedPeriods,
+    movingRunPlannedPeriods: movingRunPlannedPeriods?.length ? movingRunPlannedPeriods : undefined,
+  }
 }
 
 export function resolveDragStartState(
@@ -54,9 +59,19 @@ export function resolveDragStartState(
   kind: TimelineInteractionKind
   selectionIndex: number | null
   unscheduledPreview: ParsedCourseUnitSelection | null
+  movingRunPlannedPeriods: string[] | null
 } {
   const idx = dragData?.selectionIndex
   const selIdx = typeof idx === 'number' && idx >= 0 ? idx : null
+
+  const movingRunFromData = (): string[] | null => {
+    const raw = dragData?.connectedPlannedPeriods
+    if (!Array.isArray(raw) || !raw.every((x) => typeof x === 'string')) {
+      return null
+    }
+    const filtered = (raw as string[]).map((s) => s.trim()).filter(Boolean)
+    return filtered.length > 0 ? filtered : null
+  }
 
   if (dragData?.fromUnscheduled === true) {
     return {
@@ -66,14 +81,20 @@ export function resolveDragStartState(
         typeof idx === 'number'
           ? plannedSelections?.find((s) => s.selectionIndex === idx) ?? null
           : null,
+      movingRunPlannedPeriods: null,
     }
   }
 
   if (typeof dragData?.sourcePlannedPeriod === 'string' && dragData.sourcePlannedPeriod.trim()) {
-    return { kind: 'scheduled', selectionIndex: selIdx, unscheduledPreview: null }
+    return {
+      kind: 'scheduled',
+      selectionIndex: selIdx,
+      unscheduledPreview: null,
+      movingRunPlannedPeriods: movingRunFromData(),
+    }
   }
 
-  return { kind: 'none', selectionIndex: null, unscheduledPreview: null }
+  return { kind: 'none', selectionIndex: null, unscheduledPreview: null, movingRunPlannedPeriods: null }
 }
 
 type Applied =
@@ -123,12 +144,18 @@ export function resolveTimelineDrop(params: {
   }
   const startPlannedPeriod = activeData?.sourcePlannedPeriod
   if (typeof startPlannedPeriod !== 'string' || !startPlannedPeriod.trim()) return null
+  const rawConnected = activeData?.connectedPlannedPeriods
+  const connected =
+    Array.isArray(rawConnected) && rawConnected.every((x) => typeof x === 'string')
+      ? (rawConnected as string[]).map((s) => s.trim()).filter(Boolean)
+      : null
   return applyPlannedPeriodMove(
     fullPlan,
     selectionIndex,
     startPlannedPeriod,
     targetPlannedPeriod,
-    periodIndex
+    periodIndex,
+    connected && connected.length > 0 ? connected : null
   )
 }
 

@@ -113,6 +113,122 @@ export function comparePeriodKeysChronological(a: string, b: string): number {
   return pa.periodIndex - pb.periodIndex
 }
 
+/**
+ * All unique period slots in global chronological order (for multi-period moves that shift
+ * a contiguous run, including across semester rows).
+ *
+ * Uses every slot indexed in {@link StudyPeriodIndex.byLocator} — not only grid-visible
+ * columns — so e.g. Spring V is followed by Summer even when summer is hidden in the UI
+ * (`showSummer: false`).
+ */
+export function flatTimelineLocatorsInOrder(index: StudyPeriodIndex): string[] {
+  const byKey = new Map<string, string>()
+  for (const parsed of index.byLocator.values()) {
+    if (!byKey.has(parsed.key)) {
+      byKey.set(parsed.key, parsed.plannedPeriod)
+    }
+  }
+  const keys = [...byKey.keys()].sort(comparePeriodKeysChronological)
+  return keys.map((k) => byKey.get(k)!)
+}
+
+function flatIndexForLocator(index: StudyPeriodIndex, flat: string[], plannedPeriod: string): number {
+  const parsed = lookupParsedPlannedPeriod(index, plannedPeriod)
+  if (!parsed) {
+    return -1
+  }
+  return flat.findIndex((loc) => {
+    const p = lookupParsedPlannedPeriod(index, loc)
+    return p !== null && comparePeriodKeysChronological(p.key, parsed.key) === 0
+  })
+}
+
+export function sortLocatorsByTimelineOrder(
+  index: StudyPeriodIndex,
+  locators: string[]
+): string[] {
+  const flat = flatTimelineLocatorsInOrder(index)
+  return [...locators].sort(
+    (a, b) => flatIndexForLocator(index, flat, a) - flatIndexForLocator(index, flat, b)
+  )
+}
+
+export function plannedPeriodSlotsAreTimelineConsecutive(
+  index: StudyPeriodIndex,
+  locators: string[]
+): boolean {
+  if (locators.length <= 1) {
+    return true
+  }
+  const flat = flatTimelineLocatorsInOrder(index)
+  const sorted = sortLocatorsByTimelineOrder(index, locators)
+  let prev = -1
+  for (const loc of sorted) {
+    const i = flatIndexForLocator(index, flat, loc)
+    if (i < 0) {
+      return false
+    }
+    if (prev >= 0 && i !== prev + 1) {
+      return false
+    }
+    prev = i
+  }
+  return true
+}
+
+/** `count` consecutive slots starting at `startPlannedPeriod`, or null if out of range. */
+export function consecutiveTimelineLocatorsFrom(
+  index: StudyPeriodIndex,
+  startPlannedPeriod: string,
+  count: number
+): string[] | null {
+  if (count < 1) {
+    return null
+  }
+  const flat = flatTimelineLocatorsInOrder(index)
+  const startIdx = flatIndexForLocator(index, flat, startPlannedPeriod)
+  if (startIdx < 0 || startIdx + count > flat.length) {
+    return null
+  }
+  return flat.slice(startIdx, startIdx + count)
+}
+
+/**
+ * Maximal contiguous chain of planned slots in {@link flatTimelineLocatorsInOrder} that
+ * includes `anchorPlannedPeriod` and only uses periods from `plannedPeriods`.
+ * Joins across semester rows (e.g. Spring V + Summer) when they are consecutive globally.
+ */
+export function contiguousRunContainingAnchor(
+  plannedPeriods: string[],
+  anchorPlannedPeriod: string,
+  index: StudyPeriodIndex
+): string[] | null {
+  const flat = flatTimelineLocatorsInOrder(index)
+  const anchorFlatIdx = flatIndexForLocator(index, flat, anchorPlannedPeriod)
+  if (anchorFlatIdx < 0) {
+    return null
+  }
+  const slotIndices = new Set<number>()
+  for (const p of plannedPeriods) {
+    const i = flatIndexForLocator(index, flat, p)
+    if (i >= 0) {
+      slotIndices.add(i)
+    }
+  }
+  if (!slotIndices.has(anchorFlatIdx)) {
+    return null
+  }
+  let left = anchorFlatIdx
+  while (left > 0 && slotIndices.has(left - 1)) {
+    left--
+  }
+  let right = anchorFlatIdx
+  while (right < flat.length - 1 && slotIndices.has(right + 1)) {
+    right++
+  }
+  return flat.slice(left, right + 1)
+}
+
 function seasonTier(season: Season): number {
   if (season === 'Spring') {
     return 0

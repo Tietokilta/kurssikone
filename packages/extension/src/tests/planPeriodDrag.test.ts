@@ -11,19 +11,22 @@ import {
   moveCourseUnitPlannedPeriod,
   plannedPeriodKeysEqual,
   removePlannedPeriodForSlot,
+  resolveTimelineMoveRun,
 } from '../utils/planPeriodDrag'
 import { createPeriodIndex } from '../utils/studyYearPeriods'
 import type { SisuCourseUnitSelection, SisuStudyPlan, SisuStudyYear } from '../utils/types'
 
 const ROOT = 'aalto-university-root-id'
 
-function loadIndex(): ReturnType<typeof createPeriodIndex> {
+function loadIndex(showSummer = true): ReturnType<typeof createPeriodIndex> {
   const raw = fs.readFileSync(path.join(__dirname, 'data', 'studyYears.json'), 'utf8').replace(/^\uFEFF/, '')
   const years = JSON.parse(raw) as SisuStudyYear[]
-  return createPeriodIndex(years, ROOT, true)
+  return createPeriodIndex(years, ROOT, showSummer)
 }
 
 const index = loadIndex()
+/** Index with summer columns omitted from the grid; `byLocator` still includes Summer. */
+const indexGridWithoutSummer = loadIndex(false)
 
 function selection(periods: string[]): SisuCourseUnitSelection {
   return {
@@ -152,6 +155,112 @@ describe('applyPlannedPeriodMove', () => {
   it('returns source_not_found when period not in row', () => {
     const r = applyPlannedPeriodMove(plan, 0, `${ROOT}/2026/1/0`, p2, index)
     expect(r).toEqual({ ok: false, reason: 'source_not_found' })
+  })
+
+  const fallI = `${ROOT}/2025/0/1`
+  const fallII = `${ROOT}/2025/0/2`
+  const springIII = `${ROOT}/2025/1/0`
+  const springIV = `${ROOT}/2025/1/1`
+  const springV = `${ROOT}/2025/1/2`
+
+  it('moves a contiguous two-period run so the block shifts (Fall I+II → start at II → II + Spring III)', () => {
+    const planMulti = studyPlan([selection([fallI, fallII])], 4)
+    const r = applyPlannedPeriodMove(planMulti, 0, fallI, fallII, index, [fallI, fallII])
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([fallII, springIII])
+  })
+
+  it('moves a contiguous run to another season (Fall I+II → Spring III starts III+IV)', () => {
+    const planMulti = studyPlan([selection([fallI, fallII])], 4)
+    const r = applyPlannedPeriodMove(planMulti, 0, fallI, springIII, index, [fallI, fallII])
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([springIII, springIV])
+  })
+
+  it('moves Spring III+IV with start at IV to IV+V', () => {
+    const planMulti = studyPlan([selection([springIII, springIV])], 4)
+    const r = applyPlannedPeriodMove(planMulti, 0, springIII, springIV, index, [springIII, springIV])
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([springIV, springV])
+  })
+
+  it('moves Spring IV+V to start at V → V + Summer (next slot after V in full academic chain)', () => {
+    const springSummer = `${ROOT}/2025/1/3`
+    const planMulti = studyPlan([selection([springIV, springV])], 4)
+    const r = applyPlannedPeriodMove(planMulti, 0, springIV, springV, index, [springIV, springV])
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([springV, springSummer])
+  })
+
+  it('moves Spring V+Summer to IV → IV+V (run is inferred when UI only sends anchor column V)', () => {
+    const springSummer = `${ROOT}/2025/1/3`
+    const planMulti = studyPlan([selection([springV, springSummer])], 4)
+    const r = applyPlannedPeriodMove(planMulti, 0, springV, springIV, index)
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([springIV, springV])
+  })
+
+  it('falls back to plan-derived run when explicit connected list is invalid', () => {
+    const planMulti = studyPlan([selection([springIV, springV])], 4)
+    const row = planMulti.courseUnitSelections[0]!
+    const run = resolveTimelineMoveRun(row, springIV, [springIV, springIV], index)
+    expect(run).toEqual([springIV, springV])
+    const r = applyPlannedPeriodMove(planMulti, 0, springIV, springIII, index, [springIV, springIV])
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([springIII, springIV])
+  })
+
+  it('moves IV+V+Summer to III when UI only lists IV+V (extends explicit run with Summer)', () => {
+    const springSummer = `${ROOT}/2025/1/3`
+    const planMulti = studyPlan([selection([springIV, springV, springSummer])], 4)
+    const row = planMulti.courseUnitSelections[0]!
+    expect(resolveTimelineMoveRun(row, springIV, [springIV, springV], index)).toEqual([
+      springIV,
+      springV,
+      springSummer,
+    ])
+    const r = applyPlannedPeriodMove(planMulti, 0, springIV, springIII, index, [springIV, springV])
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([springIII, springIV, springV])
+  })
+
+  it('moves Spring IV+V to V → V+Summer even when summer is hidden from grid columns', () => {
+    const springSummer = `${ROOT}/2025/1/3`
+    const planMulti = studyPlan([selection([springIV, springV])], 4)
+    const r = applyPlannedPeriodMove(
+      planMulti,
+      0,
+      springIV,
+      springV,
+      indexGridWithoutSummer,
+      [springIV, springV]
+    )
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([springV, springSummer])
   })
 })
 
