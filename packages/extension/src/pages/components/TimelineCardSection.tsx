@@ -4,6 +4,7 @@ import {
   computeSemesterCoursePlacements,
   formatPlannedPeriodForSlot,
   plannedCreditsPerTimelineSlice,
+  sortLocatorsByTimelineOrder,
   type SemesterCoursePlacement,
   type StudyPeriodIndex,
   type TimelineCard,
@@ -45,18 +46,38 @@ export type TimelineDragRowSnapshot = {
   movingRunPlannedPeriods?: string[]
 }
 
-/** True when this column is a period where the dragged course is already placed (show keep overlay). */
-function columnShowsKeepOverlay(
+/**
+ * When dragging a scheduled course, columns it already occupies:
+ * - single-slot or first column of a multi-slot run → keep
+ * - other columns in the run → move (re-anchor run to start here)
+ */
+function occupiedColumnDragOverlayKind(
   columnPlannedPeriod: string,
   periodIndex: StudyPeriodIndex | null,
   row: TimelineDragRowSnapshot
-): boolean {
+): 'none' | 'keep' | 'reanchor-move' {
   if (!periodIndex || !columnPlannedPeriod.trim()) {
-    return false
+    return 'none'
   }
-  return row.plannedPeriods.some((p) =>
+  const inColumn = row.plannedPeriods.some((p) =>
     plannedPeriodKeysEqual(p, columnPlannedPeriod, row.courseUnitId, periodIndex)
   )
+  if (!inColumn) {
+    return 'none'
+  }
+  const run = row.movingRunPlannedPeriods
+  if (!run?.length || run.length <= 1) {
+    return 'keep'
+  }
+  const sorted = sortLocatorsByTimelineOrder(periodIndex, run)
+  const first = sorted[0]
+  if (
+    first &&
+    plannedPeriodKeysEqual(columnPlannedPeriod, first, row.courseUnitId, periodIndex)
+  ) {
+    return 'keep'
+  }
+  return 'reanchor-move'
 }
 
 function PeriodColumnDropOverlays({
@@ -81,19 +102,38 @@ function PeriodColumnDropOverlays({
   if (interactionKind === 'none' || !plannedPeriod.trim()) {
     return null
   }
-  if (dragRow && columnShowsKeepOverlay(plannedPeriod, periodIndex, dragRow)) {
-    return (
-      <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-0">
-        <TimelineDropTile
-          id={`timeline-keep-${periodKey}`}
-          action="keep"
-          plannedPeriod={plannedPeriod}
-          label="Keep in current period"
-          icon={<IconKeepInPeriod className="size-5 shrink-0 opacity-95" />}
-          tone="keep"
-        />
-      </div>
-    )
+  if (dragRow && interactionKind !== 'unscheduled' && interactionKind !== 'click-unscheduled') {
+    const occ = occupiedColumnDragOverlayKind(plannedPeriod, periodIndex, dragRow)
+    if (occ === 'keep') {
+      return (
+        <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-0">
+          <TimelineDropTile
+            id={`timeline-keep-${periodKey}`}
+            action="keep"
+            plannedPeriod={plannedPeriod}
+            label="Keep in current period"
+            icon={<IconKeepInPeriod className="size-5 shrink-0 opacity-95" />}
+            tone="keep"
+          />
+        </div>
+      )
+    }
+    if (occ === 'reanchor-move') {
+      return (
+        <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-0">
+          <TimelineDropTile
+            id={`timeline-reanchor-${periodKey}`}
+            action="move"
+            plannedPeriod={plannedPeriod}
+            label="Move to period"
+            icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
+            tone="move"
+            onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
+            clickActive={clickModeEnabled && clickTargetAction === 'move'}
+          />
+        </div>
+      )
+    }
   }
   if (interactionKind === 'unscheduled' || interactionKind === 'click-unscheduled') {
     return (
