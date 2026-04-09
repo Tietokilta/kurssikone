@@ -1,0 +1,11 @@
+{
+  "id": "aalto-CU-1150933377-20220801",
+  "groupId": "aalto-CU-1150933377",
+  "code": "CS-E4770",
+  "name": {
+    "en": "Designing and Building Scalable Web Applications D",
+    "fi": "Designing and Building Scalable Web Applications D"
+  },
+  "credits": { "min": 5, "max": 5 },
+  "validityPeriod": { "startDate": "2022-08-01" }
+}

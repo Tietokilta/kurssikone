@@ -1,15 +1,16 @@
 import { Course } from '@kurssikompassi/shared/src/types'
 import {
   fetchAttainments,
+  fetchCourseUnits,
   fetchStudyPlans,
   fetchStudyYears,
-  getCoursesByIds,
 } from '../requestHandlers'
 import {
   defaultFirstStudyYearWhenNoAttainments,
   firstStudyYearFromAttainmentDates,
 } from './inferSisuFirstStudyYear'
 import { DEFAULT_SISU_ROOT_ID } from './timelinePageData'
+import { koriCourseUnitToSharedCourse } from './sisuKoriCourseUnit'
 import type { SisuAttainment, SisuStudyPlan, SisuStudyYear } from './types'
 
 type TimelineLoadSuccess = {
@@ -90,10 +91,24 @@ export async function loadTimelineData(planId: string): Promise<TimelineLoadResu
   }
 
   const allIds = [...new Set([...plannedIds, ...attainmentCourseIds])]
-  const courses = await getCoursesByIds(allIds)
+  const courseUnitsResult = await fetchCourseUnits(allIds)
+  if (!courseUnitsResult.ok) {
+    console.error('[Kurssikompassi/Timeline]', 'Course units fetch failed', {
+      error: courseUnitsResult.error,
+      message: courseUnitsResult.error === 'fetch_failed' ? courseUnitsResult.message : undefined,
+    })
+    if (courseUnitsResult.error === 'no_sisu_token') {
+      return { ok: false, error: 'Could not get Sisu auth' }
+    }
+    return {
+      ok: false,
+      error: courseUnitsResult.message ?? 'Failed to load course metadata',
+    }
+  }
+
   const courseData: Record<string, Course> = {}
-  for (const c of courses) {
-    courseData[c.id] = c
+  for (const u of courseUnitsResult.data) {
+    courseData[u.id] = koriCourseUnitToSharedCourse(u)
   }
 
   return {

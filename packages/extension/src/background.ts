@@ -21,6 +21,9 @@ function numberOfKoriStudyYearsFromFirst(firstYear: number, now = new Date()): n
   return Math.min(50, inclusiveSpan + 7)
 }
 
+/** Max course unit ids per `/kori/api/course-units` request (URL length; HAR uses ~50). */
+const COURSE_UNITS_CHUNK_MAX = 45
+
 const IS_PRODUCTION = false
 
 const host = IS_PRODUCTION
@@ -115,6 +118,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   if (request.type === 'updateStudyPlan') {
     putStudyPlanToSisu(request.planId, request.plan).then((res) => sendResponse(res))
+  }
+  if (request.type === 'fetchCourseUnits') {
+    const raw = request.ids
+    const ids = Array.isArray(raw) ? raw.filter((x: unknown) => typeof x === 'string') : []
+    fetchCourseUnitsFromSisu(ids as string[]).then((res) => sendResponse(res))
   }
   return true
 })
@@ -548,4 +556,71 @@ async function putStudyPlanToSisu(
     logSisuFailure('PUT my-plans', url, { error: String(err) })
     return { ok: false, error: 'fetch_failed', message: String(err) }
   }
+}
+
+type FetchCourseUnitsResult =
+  | { ok: true; data: import('./utils/types').SisuKoriCourseUnit[] }
+  | { ok: false; error: 'no_sisu_token' }
+  | { ok: false; error: 'fetch_failed'; message?: string }
+
+async function fetchCourseUnitsChunkFromSisu(ids: string[]): Promise<FetchCourseUnitsResult> {
+  if (ids.length === 0) {
+    return { ok: true, data: [] }
+  }
+  const url = new URL('https://sisu.aalto.fi/kori/api/course-units')
+  url.searchParams.set('id', ids.join(','))
+  const urlStr = url.toString()
+  try {
+    const authResponse = await sisuFetchWithAuth(urlStr)
+    if (!authResponse.ok) {
+      console.warn(LOG, 'course-units skipped: no valid Sisu auth', { url: urlStr })
+      return { ok: false, error: 'no_sisu_token' }
+    }
+    const response = authResponse.response
+    if (!response.ok) {
+      const text = await response.text()
+      logSisuFailure('course-units', urlStr, {
+        status: response.status,
+        statusText: response.statusText,
+        bodySnippet: text.slice(0, 300),
+      })
+      return {
+        ok: false,
+        error: 'fetch_failed',
+        message: text ? `${response.status}: ${text.slice(0, 200)}` : response.statusText,
+      }
+    }
+    const raw: unknown = await response.json()
+    if (!Array.isArray(raw)) {
+      logSisuFailure('course-units', urlStr, {
+        error: 'unexpected JSON shape (not array)',
+        bodySnippet: typeof raw === 'object' ? JSON.stringify(raw).slice(0, 300) : String(raw),
+      })
+      return { ok: false, error: 'fetch_failed', message: 'course-units: expected JSON array' }
+    }
+    return { ok: true, data: raw as import('./utils/types').SisuKoriCourseUnit[] }
+  } catch (err) {
+    logSisuFailure('course-units', urlStr, { error: String(err) })
+    return { ok: false, error: 'fetch_failed', message: String(err) }
+  }
+}
+
+async function fetchCourseUnitsFromSisu(ids: string[]): Promise<FetchCourseUnitsResult> {
+  const unique = Array.from(
+    new Set(ids.filter((id) => typeof id === 'string' && id.trim() !== ''))
+  )
+  if (unique.length === 0) {
+    return { ok: true, data: [] }
+  }
+  const all: import('./utils/types').SisuKoriCourseUnit[] = []
+  for (let i = 0; i < unique.length; i += COURSE_UNITS_CHUNK_MAX) {
+    const chunk = unique.slice(i, i + COURSE_UNITS_CHUNK_MAX)
+    const dedupeKey = `sisu:course-units:${[...chunk].sort().join(',')}`
+    const res = await dedupeSisuFetch(dedupeKey, () => fetchCourseUnitsChunkFromSisu(chunk))
+    if (!res.ok) {
+      return res
+    }
+    all.push(...res.data)
+  }
+  return { ok: true, data: all }
 }

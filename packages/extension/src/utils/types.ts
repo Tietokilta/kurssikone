@@ -233,3 +233,15 @@ export interface SisuStudyYear {
 }
 
 export type SisuStudyYearsResponse = SisuStudyYear[]
+
+/** Kori course-units API (`/kori/api/course-units`); subset from `data/course-units-sisu.har`. */
+export interface SisuKoriCourseUnit {
+  id: string
+  groupId: string
+  code: string
+  name: SisuLocalizedName
+  credits: { min: number; max: number }
+  validityPeriod?: { startDate?: string; endDate?: string | null }
+}
+
+export type SisuKoriCourseUnitsResponse = SisuKoriCourseUnit[]

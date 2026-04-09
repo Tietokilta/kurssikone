@@ -1,8 +1,9 @@
-import { Course, NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikompassi/shared'
+import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikompassi/shared'
 import hashIt from 'hash-it'
 
 import type {
   SisuAttainmentsResponse,
+  SisuKoriCourseUnit,
   SisuMyPlansResponse,
   SisuStudyPlan,
   SisuStudyYearsResponse,
@@ -87,13 +88,14 @@ export const updateStudyPlan = async (
   })) as UpdateStudyPlanResult
 }
 
-export const getCoursesByIds = async (ids: string[]): Promise<Course[]> => {
-  const unique = [...new Set(ids.filter(Boolean))]
-  if (unique.length === 0) return []
+export type FetchCourseUnitsResult =
+  | { ok: true; data: SisuKoriCourseUnit[] }
+  | { ok: false; error: 'no_sisu_token' }
+  | { ok: false; error: 'fetch_failed'; message?: string }
 
-  const json = await get(['courses'], { ids: unique.join(',') })
-  if (!json || !Array.isArray(json.courses)) return []
-  return json.courses as Course[]
+/** Kori `/kori/api/course-units` (Sisu auth); used by timeline for course names/credits. */
+export const fetchCourseUnits = async (ids: string[]): Promise<FetchCourseUnitsResult> => {
+  return (await chrome.runtime.sendMessage({ type: 'fetchCourseUnits', ids })) as FetchCourseUnitsResult
 }
 
 export const getReviewsForCourseExcludingUserReview = async (
