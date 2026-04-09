@@ -55,10 +55,7 @@ export function IconKeepInPeriod({ className }: IconProps) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <path d="M12 17v5M9 22h6" />
-      <path d="M12 2v3" />
-      <circle cx="12" cy="10" r="7" />
-      <path d="m9 10 2 2 4-4" />
+      <path d="M20 6 9 17l-5-5" />
     </svg>
   )
 }
