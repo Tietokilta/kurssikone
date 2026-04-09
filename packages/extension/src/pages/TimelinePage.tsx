@@ -112,7 +112,7 @@ const TimelinePage = ({ planId }: Props) => {
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 6 },
+      activationConstraint: { distance: 20 },
     })
   )
 
@@ -169,12 +169,7 @@ const TimelinePage = ({ planId }: Props) => {
 
   const timelineDragRowSnapshot = useMemo(
     (): TimelineDragRowSnapshot | null =>
-      getTimelineDragRowSnapshot(
-        interactionKind,
-        activeSelectionIndex,
-        fullPlan,
-        activeMovingRun
-      ),
+      getTimelineDragRowSnapshot(interactionKind, activeSelectionIndex, fullPlan, activeMovingRun),
     [interactionKind, activeSelectionIndex, fullPlan, activeMovingRun]
   )
 
@@ -192,7 +187,9 @@ const TimelinePage = ({ planId }: Props) => {
     async (
       selectionIndex: number,
       activeData: Record<string, unknown> | undefined,
-      overData: { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' | 'keep' } | undefined
+      overData:
+        | { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' | 'keep' }
+        | undefined
     ): Promise<boolean> => {
       if (!fullPlan || !periodIndex) {
         return false
@@ -269,7 +266,12 @@ const TimelinePage = ({ planId }: Props) => {
             ? (rawConnected as string[]).map((s) => s.trim()).filter(Boolean)
             : null
         if (row) {
-          const run = resolveTimelineMoveRun(row, anchorRaw, connected?.length ? connected : null, periodIndex)
+          const run = resolveTimelineMoveRun(
+            row,
+            anchorRaw,
+            connected?.length ? connected : null,
+            periodIndex
+          )
           movingRun = run && run.length > 1 ? run : null
         }
       }
@@ -332,9 +334,7 @@ const TimelinePage = ({ planId }: Props) => {
       const isSameCard =
         interactionKind === kind &&
         activeSelectionIndex === selectionIndex &&
-        (kind === 'click-unscheduled'
-          ? activeSourcePlannedPeriod === sourcePlannedPeriod
-          : true)
+        (kind === 'click-unscheduled' ? activeSourcePlannedPeriod === sourcePlannedPeriod : true)
       if (isSameCard) {
         resetInteraction()
         return
@@ -346,9 +346,7 @@ const TimelinePage = ({ planId }: Props) => {
       setClickPlacementTarget(null)
       setUnscheduledDragPreview(null)
       setActiveMovingRun(
-        kind === 'click-scheduled' &&
-          connectedPlannedPeriods &&
-          connectedPlannedPeriods.length > 1
+        kind === 'click-scheduled' && connectedPlannedPeriods && connectedPlannedPeriods.length > 1
           ? connectedPlannedPeriods
           : null
       )
@@ -488,7 +486,13 @@ const TimelinePage = ({ planId }: Props) => {
       if (period) {
         movingRun.push(
           period.plannedPeriod ||
-            formatPlannedPeriodForSlot(sisuRootId, card.year, card.season, period.period, periodIndex)
+            formatPlannedPeriodForSlot(
+              sisuRootId,
+              card.year,
+              card.season,
+              period.period,
+              periodIndex
+            )
         )
       }
     }
