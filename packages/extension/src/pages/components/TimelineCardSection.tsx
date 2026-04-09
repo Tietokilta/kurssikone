@@ -71,10 +71,7 @@ function occupiedColumnDragOverlayKind(
   }
   const sorted = sortLocatorsByTimelineOrder(periodIndex, run)
   const first = sorted[0]
-  if (
-    first &&
-    plannedPeriodKeysEqual(columnPlannedPeriod, first, row.courseUnitId, periodIndex)
-  ) {
+  if (first && plannedPeriodKeysEqual(columnPlannedPeriod, first, row.courseUnitId, periodIndex)) {
     return 'keep'
   }
   return 'reanchor-move'
@@ -280,7 +277,7 @@ const TimelineMainGrid = ({
                   <div key={`${card.cardKey}-label-pad-${i}`} className="min-w-0" aria-hidden />
                 )
               )}
-              <div className="relative col-span-full min-h-8">
+              <div className="relative col-span-full min-h-40">
                 <div
                   className="relative z-0 grid grid-flow-dense items-stretch gap-y-2 gap-x-2"
                   style={{
@@ -322,7 +319,12 @@ const TimelineMainGrid = ({
                           columnPlannedPeriods={columnPlannedPeriods}
                           completed={pl.selection.completed}
                           onToggleMoveMode={(selectionIndex, source, cardKey) =>
-                            onCardMoveModeToggle(selectionIndex, source, cardKey, columnPlannedPeriods)
+                            onCardMoveModeToggle(
+                              selectionIndex,
+                              source,
+                              cardKey,
+                              columnPlannedPeriods
+                            )
                           }
                           isMoveModeActive={isMoveModeActive}
                         />
@@ -356,19 +358,20 @@ const TimelineMainGrid = ({
                       return (
                         <div
                           key={p.periodKey}
-                          className={`relative flex min-h-full min-h-20 flex-1 flex-col self-stretch ${
+                          className={`relative flex min-h-20 flex-1 flex-col self-stretch ${
                             overlayPointerEventsNone ? 'pointer-events-none' : 'pointer-events-auto'
                           }`}
                         >
                           {editPl ? (
-                            <div className="pointer-events-auto absolute inset-0 z-[25] flex min-h-0 flex-col">
+                            <div className="pointer-events-auto absolute inset-0 z-25 flex min-h-0 flex-col">
                               <TimelineEditColumnStrip
                                 plannedPeriod={resolved}
                                 isAnchorColumn={colIndex === editPl.startCol}
-                                onRemove={(pp) => onCardUnschedule(editPl.selection.selectionIndex, pp)}
+                                onRemove={(pp) =>
+                                  onCardUnschedule(editPl.selection.selectionIndex, pp)
+                                }
                                 onMoveToPeriod={
-                                  clickModeEnabled &&
-                                  activeInteractionKind === 'click-scheduled'
+                                  clickModeEnabled && activeInteractionKind === 'click-scheduled'
                                     ? (pp) => onClickPlacementAction('move', pp)
                                     : undefined
                                 }
