@@ -284,20 +284,22 @@ const TimelineMainGrid = ({
                             overlayPointerEventsNone ? 'pointer-events-none' : 'pointer-events-auto'
                           }`}
                         >
-                          <PeriodColumnDropOverlays
-                            periodKey={p.periodKey}
-                            plannedPeriod={resolved}
-                            interactionKind={activeInteractionKind}
-                            periodIndex={periodIndex}
-                            dragRow={dragRowSnapshot}
-                            clickModeEnabled={clickModeEnabled}
-                            onClickAction={onClickPlacementAction}
-                            clickTargetAction={
-                              clickPlacementTarget?.plannedPeriod === resolved
-                                ? clickPlacementTarget.action
-                                : null
-                            }
-                          />
+                          {overlayPointerEventsNone ? null : (
+                            <PeriodColumnDropOverlays
+                              periodKey={p.periodKey}
+                              plannedPeriod={resolved}
+                              interactionKind={activeInteractionKind}
+                              periodIndex={periodIndex}
+                              dragRow={dragRowSnapshot}
+                              clickModeEnabled={clickModeEnabled}
+                              onClickAction={onClickPlacementAction}
+                              clickTargetAction={
+                                clickPlacementTarget?.plannedPeriod === resolved
+                                  ? clickPlacementTarget.action
+                                  : null
+                              }
+                            />
+                          )}
                         </div>
                       )
                     })}
