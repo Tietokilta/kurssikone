@@ -14,11 +14,11 @@ const TimelineMoveModeButton = ({
   return (
     <button
       type="button"
-      className={`pointer-events-auto flex size-7 items-center justify-center rounded text-white shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+      className={
         isActive
-          ? 'bg-neutral-500 hover:bg-neutral-600'
-          : 'bg-timeline-move/90 hover:bg-timeline-move'
-      }`}
+          ? 'pointer-events-auto flex h-full w-full min-h-0 flex-col items-center justify-center rounded-none border-0 bg-neutral-500/35 text-white shadow-none transition-colors hover:bg-neutral-500/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/80'
+          : 'pointer-events-auto flex size-7 items-center justify-center rounded bg-timeline-move/90 text-white shadow hover:bg-timeline-move focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+      }
       aria-label={isActive ? 'Exit edit mode' : inactiveLabel}
       aria-pressed={isActive}
       onClick={(event) => {
@@ -26,7 +26,11 @@ const TimelineMoveModeButton = ({
         onClick()
       }}
     >
-      {isActive ? <IconCancelMove className="size-4" /> : <IconEdit className="size-4" />}
+      {isActive ? (
+        <IconCancelMove className="size-8 shrink-0 drop-shadow-sm" />
+      ) : (
+        <IconEdit className="size-4" />
+      )}
     </button>
   )
 }

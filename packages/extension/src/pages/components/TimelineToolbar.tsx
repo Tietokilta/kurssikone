@@ -1,15 +1,15 @@
 type Props = {
   showPastPeriods: boolean
   setShowPastPeriods: (value: boolean) => void
-  showSummer: boolean
-  setShowSummer: (value: boolean) => void
+  showEmptySummerPeriods: boolean
+  setShowEmptySummerPeriods: (value: boolean) => void
 }
 
 const TimelineToolbar = ({
   showPastPeriods,
   setShowPastPeriods,
-  showSummer,
-  setShowSummer,
+  showEmptySummerPeriods,
+  setShowEmptySummerPeriods,
 }: Props) => {
   return (
     <div className="flex shrink-0 flex-wrap gap-x-6 gap-y-2 text-sm text-neutral-700">
@@ -26,10 +26,10 @@ const TimelineToolbar = ({
         <input
           type="checkbox"
           className="size-4 rounded border-neutral-300"
-          checked={showSummer}
-          onChange={(e) => setShowSummer(e.target.checked)}
+          checked={showEmptySummerPeriods}
+          onChange={(e) => setShowEmptySummerPeriods(e.target.checked)}
         />
-        Show summer periods
+        Show empty summer periods
       </label>
     </div>
   )

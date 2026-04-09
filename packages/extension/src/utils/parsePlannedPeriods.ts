@@ -118,8 +118,8 @@ export function comparePeriodKeysChronological(a: string, b: string): number {
  * a contiguous run, including across semester rows).
  *
  * Uses every slot indexed in {@link StudyPeriodIndex.byLocator} — not only grid-visible
- * columns — so e.g. Spring V is followed by Summer even when summer is hidden in the UI
- * (`showSummer: false`).
+ * columns — so e.g. Spring V is followed by Summer even when empty summer columns are omitted
+ * from {@link StudyPeriodIndex.periodsByCard}.
  */
 export function flatTimelineLocatorsInOrder(index: StudyPeriodIndex): string[] {
   const byKey = new Map<string, string>()
@@ -530,8 +530,7 @@ export function computeSemesterCoursePlacements<T extends { id: string; name: st
 }
 
 export type BuildTimelineCardsOptions = {
-  showSummer?: boolean
-  /** From kori study-years; missing or empty → no cards. */
+  /** From kori study-years; missing or empty → no cards. Which semesters appear follows {@link StudyPeriodIndex.periodsByCard}. */
   periodIndex?: StudyPeriodIndex | null
   /** Passed to {@link computeTimelineRange}; default true (show history). */
   showPastPeriods?: boolean
@@ -557,12 +556,16 @@ export function buildTimelineCards<
     showPastPeriods: options?.showPastPeriods,
   })
   const slots = iterateYearSeasonSlots(start, end)
-  const showSummer = options?.showSummer !== false
-  const visibleSlots = showSummer ? slots : slots.filter((slot) => slot.season !== 'Summer')
   const index = options?.periodIndex
   if (!index || index.periodsByCard.size === 0) {
     return []
   }
+
+  const visibleSlots = slots.filter((slot) => {
+    const ck = `${slot.year}|${slot.season}`
+    const cols = index.periodsByCard.get(ck)
+    return !!cols?.length
+  })
 
   return visibleSlots
     .map((slot) => {

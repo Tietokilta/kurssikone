@@ -406,7 +406,7 @@ describe('buildTimelineCards', () => {
     }
   })
 
-  it('omits summer semester cards when showSummer is false', () => {
+  it('omits summer semester cards when the period index has no summer columns', () => {
     const selections = [
       {
         id: 'a',
@@ -419,10 +419,33 @@ describe('buildTimelineCards', () => {
       },
     ]
     const cards = buildTimelineCards(selections, spring2026, {
-      showSummer: false,
       periodIndex: idxNoSummer,
     })
     expect(cards.some((c) => c.season === 'Summer')).toBe(false)
+  })
+
+  it('shows summer when indexed for occupied summer even if empty summers are off in the index builder', () => {
+    const selections = [
+      {
+        id: 'a',
+        name: 'Summer course',
+        parsedPlannedPeriods: parseCourseUnitPlannedPeriods(
+          'x',
+          ['aalto-university-root-id/2025/1/3'],
+          periodIndex(true)
+        ),
+      },
+    ]
+    const idxSummerWhenOccupied = createPeriodIndex(
+      loadStudyYears(),
+      TEST_ORG,
+      false,
+      new Set(['2026|Summer'])
+    )
+    const cards = buildTimelineCards(selections, spring2026, {
+      periodIndex: idxSummerWhenOccupied,
+    })
+    expect(cards.some((c) => c.season === 'Summer')).toBe(true)
   })
 })
 

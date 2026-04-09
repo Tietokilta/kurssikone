@@ -73,9 +73,18 @@ function timelinePlacement(
   return null
 }
 
-function includePeriodInGrid(sp: SisuStudyPeriod, label: string, showSummer: boolean): boolean {
+function includePeriodInGrid(
+  sp: SisuStudyPeriod,
+  label: string,
+  showEmptySummerPeriods: boolean,
+  cardKey: string,
+  summerCardKeysWithCourses?: ReadonlySet<string>
+): boolean {
   if (label === 'Summer') {
-    return showSummer
+    return (
+      showEmptySummerPeriods ||
+      (summerCardKeysWithCourses?.has(cardKey) ?? false)
+    )
   }
   return sp.visibleByDefault
 }
@@ -108,7 +117,8 @@ function dayInRange(day: string, start: string, end: string): boolean {
 export function createPeriodIndex(
   studyYears: SisuStudyYear[],
   org: string,
-  showSummer: boolean
+  showEmptySummerPeriods: boolean,
+  summerCardKeysWithCourses?: ReadonlySet<string>
 ): StudyPeriodIndex {
   const byLocator = new Map<string, ParsedPlannedPeriod>()
   const intervals: StudyPeriodIndex['intervals'] = []
@@ -143,10 +153,10 @@ export function createPeriodIndex(
           endDay: sp.valid.endDate,
           parsed: { ...parsed, plannedPeriod: normLoc },
         })
-        if (!includePeriodInGrid(sp, label, showSummer)) {
+        const ck = cardKey(place.year, place.season)
+        if (!includePeriodInGrid(sp, label, showEmptySummerPeriods, ck, summerCardKeysWithCourses)) {
           continue
         }
-        const ck = cardKey(place.year, place.season)
         const list = cardBuckets.get(ck) ?? []
         list.push({
           label,

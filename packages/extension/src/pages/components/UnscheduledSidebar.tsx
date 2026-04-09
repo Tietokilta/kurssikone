@@ -30,6 +30,7 @@ function UnscheduledCourseItem({
             onEditActivate={
               !isMoveModeActive ? () => onToggleMoveMode(s.selectionIndex) : undefined
             }
+            actionButtonsLayout={isMoveModeActive ? 'cover' : 'corner'}
             actionButtons={
               isMoveModeActive ? (
                 <TimelineMoveModeButton

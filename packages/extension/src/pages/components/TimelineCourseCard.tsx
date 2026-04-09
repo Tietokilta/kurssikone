@@ -17,6 +17,8 @@ type Props = {
   highlightActive?: boolean
   /** Enter edit mode (click / keyboard); shows blue hover overlay + pen when set. */
   onEditActivate?: () => void
+  /** `cover` = full-card overlay (e.g. exit move mode); `corner` = top-right chip row. */
+  actionButtonsLayout?: 'corner' | 'cover'
 }
 
 const TimelineCourseCard = ({
@@ -31,6 +33,7 @@ const TimelineCourseCard = ({
   actionButtons,
   highlightActive = false,
   onEditActivate,
+  actionButtonsLayout = 'corner',
 }: Props) => {
   const completed = variant === 'completed'
   const preview = variant === 'dragPreview'
@@ -95,11 +98,19 @@ const TimelineCourseCard = ({
 
       {actionButtons ? (
         <div
-          className={`pointer-events-none absolute top-1 right-1 z-20 flex flex-row gap-1 transition-opacity duration-150 ${
-            highlightActive
-              ? 'opacity-100'
-              : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
-          }`}
+          className={
+            actionButtonsLayout === 'cover'
+              ? `pointer-events-none absolute inset-0 z-20 flex items-center justify-center transition-opacity duration-150 ${
+                  highlightActive
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+                }`
+              : `pointer-events-none absolute top-1 right-1 z-20 flex flex-row gap-1 transition-opacity duration-150 ${
+                  highlightActive
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100'
+                }`
+          }
         >
           {actionButtons}
         </div>

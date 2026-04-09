@@ -93,7 +93,7 @@ const TimelinePage = ({ planId }: Props) => {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [showSummer, setShowSummer] = useState(true)
+  const [showEmptySummerPeriods, setShowEmptySummerPeriods] = useState(true)
   const [showPastPeriods, setShowPastPeriods] = useState(false)
   const [unscheduledSidebarOpen, setUnscheduledSidebarOpen] = useState(false)
   const [unscheduledDragPreview, setUnscheduledDragPreview] =
@@ -119,24 +119,59 @@ const TimelinePage = ({ planId }: Props) => {
   /** Kori study-years are keyed by university root; `createPeriodIndex` must use the same org id. */
   const studyYearsOrgId = DEFAULT_SISU_ROOT_ID
 
-  const periodIndex = useMemo(() => {
+  /** Full grid (all summers); parsing does not depend on empty-summer visibility. */
+  const periodIndexForParsing = useMemo(() => {
     if (!studyYears?.length) {
       return null
     }
-    return createPeriodIndex(studyYears, studyYearsOrgId, showSummer)
-  }, [studyYears, studyYearsOrgId, showSummer])
+    return createPeriodIndex(studyYears, studyYearsOrgId, true)
+  }, [studyYears, studyYearsOrgId])
 
   const plannedSelections = useMemo(() => {
     if (!fullPlan) {
       return null
     }
-    return buildParsedCourseUnitSelections(fullPlan.courseUnitSelections, courseData, periodIndex)
-  }, [fullPlan, courseData, periodIndex])
+    return buildParsedCourseUnitSelections(fullPlan.courseUnitSelections, courseData, periodIndexForParsing)
+  }, [fullPlan, courseData, periodIndexForParsing])
 
   const completedSelections = useMemo(
-    () => buildCompletedSelections(attainments, periodIndex, courseData),
-    [attainments, periodIndex, courseData]
+    () => buildCompletedSelections(attainments, periodIndexForParsing, courseData),
+    [attainments, periodIndexForParsing, courseData]
   )
+
+  const summerCardKeysWithCourses = useMemo(() => {
+    const keys = new Set<string>()
+    if (!plannedSelections) {
+      return keys
+    }
+    for (const sel of plannedSelections) {
+      for (const p of sel.parsedPlannedPeriods) {
+        if (p?.season === 'Summer') {
+          keys.add(`${p.year}|Summer`)
+        }
+      }
+    }
+    for (const sel of completedSelections) {
+      for (const p of sel.parsedPlannedPeriods) {
+        if (p?.season === 'Summer') {
+          keys.add(`${p.year}|Summer`)
+        }
+      }
+    }
+    return keys
+  }, [plannedSelections, completedSelections])
+
+  const periodIndex = useMemo(() => {
+    if (!studyYears?.length) {
+      return null
+    }
+    return createPeriodIndex(
+      studyYears,
+      studyYearsOrgId,
+      showEmptySummerPeriods,
+      summerCardKeysWithCourses
+    )
+  }, [studyYears, studyYearsOrgId, showEmptySummerPeriods, summerCardKeysWithCourses])
 
   const timelineRows = useMemo(() => {
     if (!plannedSelections) {
@@ -149,12 +184,11 @@ const TimelinePage = ({ planId }: Props) => {
     () =>
       timelineRows
         ? buildTimelineCards(timelineRows, undefined, {
-            showSummer,
             periodIndex,
             showPastPeriods,
           })
         : [],
-    [timelineRows, showSummer, periodIndex, showPastPeriods]
+    [timelineRows, periodIndex, showPastPeriods]
   )
 
   const sisuRootId = useMemo(
@@ -449,7 +483,6 @@ const TimelinePage = ({ planId }: Props) => {
       return
     }
     const cards = buildTimelineCards(timelineRows, undefined, {
-      showSummer,
       periodIndex,
       showPastPeriods,
     })
@@ -509,7 +542,6 @@ const TimelinePage = ({ planId }: Props) => {
     activeSourcePlannedPeriod,
     timelineRows,
     periodIndex,
-    showSummer,
     showPastPeriods,
     sisuRootId,
     resetInteraction,
@@ -621,8 +653,8 @@ const TimelinePage = ({ planId }: Props) => {
           <TimelineToolbar
             showPastPeriods={showPastPeriods}
             setShowPastPeriods={setShowPastPeriods}
-            showSummer={showSummer}
-            setShowSummer={setShowSummer}
+            showEmptySummerPeriods={showEmptySummerPeriods}
+            setShowEmptySummerPeriods={setShowEmptySummerPeriods}
           />
 
           <DndContext
