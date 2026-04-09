@@ -4,14 +4,32 @@ import {
   computeSemesterCoursePlacements,
   formatPlannedPeriodForSlot,
   plannedCreditsPerTimelineSlice,
+  type SemesterCoursePlacement,
   type StudyPeriodIndex,
   type TimelineCard,
   type TimelinePeriod,
 } from '../../utils/parsePlannedPeriods'
 import type { ParsedCourseUnitSelection } from '../TimelinePage'
-import { IconExtendToPeriod, IconMoveToPeriod } from './TimelineIcons'
+import { IconExtendToPeriod, IconKeepInPeriod, IconMoveToPeriod } from './TimelineIcons'
 import TimelineDropTile from './TimelineDropTile'
+import TimelineEditColumnStrip from './TimelineEditColumnStrip'
 import TimelinePeriodCourseItem from './TimelinePeriodCourseItem'
+
+function findEditModePlacementForColumn(
+  placements: SemesterCoursePlacement<ParsedCourseUnitSelection>[],
+  colIndex: number,
+  isMoveModeActiveFor: (selectionIndex: number) => boolean
+): SemesterCoursePlacement<ParsedCourseUnitSelection> | null {
+  for (const pl of placements) {
+    if (!isMoveModeActiveFor(pl.selection.selectionIndex)) {
+      continue
+    }
+    if (colIndex >= pl.startCol && colIndex < pl.startCol + pl.span) {
+      return pl
+    }
+  }
+  return null
+}
 
 export type TimelineInteractionKind =
   | 'none'
@@ -27,16 +45,8 @@ export type TimelineDragRowSnapshot = {
   movingRunPlannedPeriods?: string[]
 }
 
-function slotInMovingRun(
-  columnPlannedPeriod: string,
-  movingRun: string[],
-  courseUnitId: string,
-  periodIndex: StudyPeriodIndex
-): boolean {
-  return movingRun.some((p) => plannedPeriodKeysEqual(p, columnPlannedPeriod, courseUnitId, periodIndex))
-}
-
-function columnAlreadyHasDraggedCourse(
+/** True when this column is a period where the dragged course is already placed (show keep overlay). */
+function columnShowsKeepOverlay(
   columnPlannedPeriod: string,
   periodIndex: StudyPeriodIndex | null,
   row: TimelineDragRowSnapshot
@@ -44,17 +54,9 @@ function columnAlreadyHasDraggedCourse(
   if (!periodIndex || !columnPlannedPeriod.trim()) {
     return false
   }
-  const inColumn = row.plannedPeriods.some((p) =>
+  return row.plannedPeriods.some((p) =>
     plannedPeriodKeysEqual(p, columnPlannedPeriod, row.courseUnitId, periodIndex)
   )
-  if (!inColumn) {
-    return false
-  }
-  const run = row.movingRunPlannedPeriods
-  if (run?.length && slotInMovingRun(columnPlannedPeriod, run, row.courseUnitId, periodIndex)) {
-    return false
-  }
-  return true
 }
 
 function PeriodColumnDropOverlays({
@@ -79,8 +81,19 @@ function PeriodColumnDropOverlays({
   if (interactionKind === 'none' || !plannedPeriod.trim()) {
     return null
   }
-  if (dragRow && columnAlreadyHasDraggedCourse(plannedPeriod, periodIndex, dragRow)) {
-    return null
+  if (dragRow && columnShowsKeepOverlay(plannedPeriod, periodIndex, dragRow)) {
+    return (
+      <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-0">
+        <TimelineDropTile
+          id={`timeline-keep-${periodKey}`}
+          action="keep"
+          plannedPeriod={plannedPeriod}
+          label="Keep in current period"
+          icon={<IconKeepInPeriod className="size-5 shrink-0 opacity-95" />}
+          tone="keep"
+        />
+      </div>
+    )
   }
   if (interactionKind === 'unscheduled' || interactionKind === 'click-unscheduled') {
     return (
@@ -138,6 +151,22 @@ function resolvePlannedPeriodForPeriod(
       ? formatPlannedPeriodForSlot(sisuRootId, card.year, card.season, p.period, periodIndex)
       : '')
   )
+}
+
+function columnPlannedPeriodsForPlacement(
+  pl: SemesterCoursePlacement<ParsedCourseUnitSelection>,
+  card: TimelineCard<ParsedCourseUnitSelection>,
+  periodIndex: StudyPeriodIndex | null,
+  sisuRootId: string
+): string[] {
+  const out: string[] = []
+  for (let c = pl.startCol; c < pl.startCol + pl.span; c++) {
+    const period = card.periods[c]
+    if (period) {
+      out.push(resolvePlannedPeriodForPeriod(card, period, periodIndex, sisuRootId))
+    }
+  }
+  return out
 }
 
 type Props = {
@@ -252,7 +281,6 @@ const TimelineMainGrid = ({
                           cardKey={card.cardKey}
                           columnPlannedPeriods={columnPlannedPeriods}
                           completed={pl.selection.completed}
-                          onUnschedule={onCardUnschedule}
                           onToggleMoveMode={(selectionIndex, source, cardKey) =>
                             onCardMoveModeToggle(selectionIndex, source, cardKey, columnPlannedPeriods)
                           }
@@ -264,7 +292,7 @@ const TimelineMainGrid = ({
                 </div>
                 {activeInteractionKind !== 'none' ? (
                   <div
-                    className="pointer-events-none absolute inset-0 z-10 grid gap-x-2"
+                    className="pointer-events-none absolute inset-0 z-10 grid min-h-0 items-stretch gap-x-2"
                     style={{
                       gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
                     }}
@@ -276,15 +304,45 @@ const TimelineMainGrid = ({
                         periodIndex,
                         sisuRootId
                       )
+                      const editPl = findEditModePlacementForColumn(
+                        placements,
+                        colIndex,
+                        isMoveModeActiveFor
+                      )
                       const overlayPointerEventsNone = columnsWithActiveEditCard.has(colIndex)
+                      const columnPeriodsForEdit = editPl
+                        ? columnPlannedPeriodsForPlacement(editPl, card, periodIndex, sisuRootId)
+                        : []
                       return (
                         <div
                           key={p.periodKey}
-                          className={`relative min-h-20 ${
+                          className={`relative flex min-h-full min-h-20 flex-1 flex-col self-stretch ${
                             overlayPointerEventsNone ? 'pointer-events-none' : 'pointer-events-auto'
                           }`}
                         >
-                          {overlayPointerEventsNone ? null : (
+                          {editPl ? (
+                            <div className="pointer-events-auto absolute inset-0 z-[25] flex min-h-0 flex-col">
+                              <TimelineEditColumnStrip
+                                plannedPeriod={resolved}
+                                isAnchorColumn={colIndex === editPl.startCol}
+                                onRemove={(pp) => onCardUnschedule(editPl.selection.selectionIndex, pp)}
+                                onMoveToPeriod={
+                                  clickModeEnabled &&
+                                  activeInteractionKind === 'click-scheduled'
+                                    ? (pp) => onClickPlacementAction('move', pp)
+                                    : undefined
+                                }
+                                onExitEditMode={() =>
+                                  onCardMoveModeToggle(
+                                    editPl.selection.selectionIndex,
+                                    editPl.anchorPlannedPeriod,
+                                    card.cardKey,
+                                    columnPeriodsForEdit
+                                  )
+                                }
+                              />
+                            </div>
+                          ) : (
                             <PeriodColumnDropOverlays
                               periodKey={p.periodKey}
                               plannedPeriod={resolved}

@@ -192,7 +192,7 @@ const TimelinePage = ({ planId }: Props) => {
     async (
       selectionIndex: number,
       activeData: Record<string, unknown> | undefined,
-      overData: { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' } | undefined
+      overData: { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' | 'keep' } | undefined
     ): Promise<boolean> => {
       if (!fullPlan || !periodIndex) {
         return false
@@ -303,7 +303,7 @@ const TimelinePage = ({ planId }: Props) => {
         selectionIndex,
         active.data.current as Record<string, unknown> | undefined,
         over.data.current as
-          | { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' }
+          | { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' | 'keep' }
           | undefined
       )
     },

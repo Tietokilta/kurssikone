@@ -3,7 +3,6 @@ import type { ParsedCourseUnitSelection } from '../TimelinePage'
 import TimelineCourseCard from './TimelineCourseCard'
 import TimelineDraggableCard from './TimelineDraggableCard'
 import TimelineMoveModeButton from './TimelineMoveModeButton'
-import TimelineRemoveFromPeriodStrip from './TimelineRemoveFromPeriodStrip'
 
 type Props = {
   selection: ParsedCourseUnitSelection
@@ -15,7 +14,6 @@ type Props = {
   /** Semester row (`TimelineCard.cardKey`); edit-mode state keys on this. */
   cardKey: string
   completed?: boolean
-  onUnschedule: (selectionIndex: number, sourcePlannedPeriod: string) => void
   onToggleMoveMode: (selectionIndex: number, sourcePlannedPeriod: string, cardKey: string) => void
   isMoveModeActive: boolean
 }
@@ -27,19 +25,11 @@ const TimelinePeriodCourseItem = ({
   columnPlannedPeriods,
   cardKey,
   completed,
-  onUnschedule,
   onToggleMoveMode,
   isMoveModeActive,
 }: Props) => {
   const creditsForPeriod = plannedCreditsPerTimelineSlice(s)
   const actionable = !completed && s.selectionIndex >= 0
-  const editModeRemoveStrip =
-    isMoveModeActive && actionable && columnPlannedPeriods.length > 0 ? (
-      <TimelineRemoveFromPeriodStrip
-        columnPlannedPeriods={columnPlannedPeriods}
-        onRemove={(plannedPeriod) => onUnschedule(s.selectionIndex, plannedPeriod)}
-      />
-    ) : undefined
 
   return (
     <TimelineDraggableCard
@@ -64,11 +54,10 @@ const TimelinePeriodCourseItem = ({
           variant={completed ? 'completed' : 'scheduled'}
           isDragging={isDragging}
           highlightActive={isMoveModeActive}
-          editModeRemoveStrip={editModeRemoveStrip}
           actionButtons={
-            actionable ? (
+            actionable && !isMoveModeActive ? (
               <TimelineMoveModeButton
-                isActive={isMoveModeActive}
+                isActive={false}
                 onClick={() => onToggleMoveMode(s.selectionIndex, sourcePlannedPeriod, cardKey)}
               />
             ) : undefined

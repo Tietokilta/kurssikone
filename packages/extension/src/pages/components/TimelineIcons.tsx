@@ -41,6 +41,28 @@ export function IconExtendToPeriod({ className }: IconProps) {
   )
 }
 
+export function IconKeepInPeriod({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M12 17v5M9 22h6" />
+      <path d="M12 2v3" />
+      <circle cx="12" cy="10" r="7" />
+      <path d="m9 10 2 2 4-4" />
+    </svg>
+  )
+}
+
 export function IconEdit({ className }: IconProps) {
   return (
     <svg

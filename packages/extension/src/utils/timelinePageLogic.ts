@@ -103,7 +103,7 @@ type Applied =
   | ReturnType<typeof applyPlannedPeriodExtend>
   | ReturnType<typeof applyPlannedPeriodUnschedule>
 
-type OverData = { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' } | undefined
+type OverData = { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' | 'keep' } | undefined
 
 export function resolveTimelineDrop(params: {
   fullPlan: SisuStudyPlan
@@ -116,6 +116,10 @@ export function resolveTimelineDrop(params: {
   const fromUnscheduled = activeData?.fromUnscheduled === true
   const dropAction = overData?.action ?? 'move'
   const targetPlannedPeriod = overData?.plannedPeriod
+
+  if (dropAction === 'keep') {
+    return { ok: false, reason: 'same_slot' }
+  }
 
   if (dropAction === 'unschedule') {
     if (fromUnscheduled) return null

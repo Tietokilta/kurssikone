@@ -13,8 +13,6 @@ type Props = {
   variant: TimelineCourseCardVariant
   isDragging?: boolean
   actionButtons?: ReactNode
-  /** Full-card translucent overlay with remove actions (edit mode). */
-  editModeRemoveStrip?: ReactNode
   highlightActive?: boolean
 }
 
@@ -28,7 +26,6 @@ const TimelineCourseCard = ({
   variant,
   isDragging = false,
   actionButtons,
-  editModeRemoveStrip,
   highlightActive = false,
 }: Props) => {
   const completed = variant === 'completed'
@@ -59,12 +56,6 @@ const TimelineCourseCard = ({
           ) : null}
         </div>
       </div>
-
-      {editModeRemoveStrip ? (
-        <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-0 min-w-0 flex-col">
-          {editModeRemoveStrip}
-        </div>
-      ) : null}
 
       {actionButtons ? (
         <div
