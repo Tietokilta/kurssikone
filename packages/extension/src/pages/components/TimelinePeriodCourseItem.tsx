@@ -2,7 +2,6 @@ import { plannedCreditsPerTimelineSlice } from '../../utils/parsePlannedPeriods'
 import type { ParsedCourseUnitSelection } from '../TimelinePage'
 import TimelineCourseCard from './TimelineCourseCard'
 import TimelineDraggableCard from './TimelineDraggableCard'
-import TimelineMoveModeButton from './TimelineMoveModeButton'
 
 type Props = {
   selection: ParsedCourseUnitSelection
@@ -54,13 +53,10 @@ const TimelinePeriodCourseItem = ({
           variant={completed ? 'completed' : 'scheduled'}
           isDragging={isDragging}
           highlightActive={isMoveModeActive}
-          actionButtons={
-            actionable && !isMoveModeActive ? (
-              <TimelineMoveModeButton
-                isActive={false}
-                onClick={() => onToggleMoveMode(s.selectionIndex, sourcePlannedPeriod, cardKey)}
-              />
-            ) : undefined
+          onEditActivate={
+            actionable && !isMoveModeActive
+              ? () => onToggleMoveMode(s.selectionIndex, sourcePlannedPeriod, cardKey)
+              : undefined
           }
         />
       )}

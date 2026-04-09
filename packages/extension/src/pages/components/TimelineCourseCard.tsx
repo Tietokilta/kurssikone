@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
+import { IconEdit } from './TimelineIcons'
 
 type TimelineCourseCardVariant = 'scheduled' | 'unscheduled' | 'completed' | 'dragPreview'
 
@@ -14,6 +15,8 @@ type Props = {
   isDragging?: boolean
   actionButtons?: ReactNode
   highlightActive?: boolean
+  /** Enter edit mode (click / keyboard); shows blue hover overlay + pen when set. */
+  onEditActivate?: () => void
 }
 
 const TimelineCourseCard = ({
@@ -27,6 +30,7 @@ const TimelineCourseCard = ({
   isDragging = false,
   actionButtons,
   highlightActive = false,
+  onEditActivate,
 }: Props) => {
   const completed = variant === 'completed'
   const preview = variant === 'dragPreview'
@@ -34,10 +38,33 @@ const TimelineCourseCard = ({
     ? 'cursor-default bg-timeline-surface text-neutral-700'
     : `bg-timeline-surface ${preview ? 'cursor-grabbing shadow-lg ring-1 ring-neutral-900/15' : isDragging ? 'cursor-grabbing opacity-60' : 'cursor-grab'}`
 
+  const editActivateProps =
+    onEditActivate !== undefined
+      ? {
+          role: 'button' as const,
+          tabIndex: 0 as const,
+          'aria-label': 'Enter edit mode' as const,
+          // Document listener in TimelinePage exits edit mode on any click outside drop zones;
+          // stop propagation so this activation click does not immediately reset.
+          onClick: (e: MouseEvent<HTMLDivElement>) => {
+            e.stopPropagation()
+            onEditActivate()
+          },
+          onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              e.stopPropagation()
+              onEditActivate()
+            }
+          },
+        }
+      : {}
+
   return (
     <div
       style={!fillContainer && minHeight ? { minHeight } : undefined}
       className={`group relative box-border flex w-full min-w-0 ${fillContainer ? 'h-full min-h-0' : 'h-full'} ${rootClassName} ${highlightActive ? 'ring-2 ring-inset ring-timeline-move/80' : ''}`}
+      {...editActivateProps}
     >
       <div className="flex min-h-0 w-full flex-1">
         <div
@@ -56,6 +83,15 @@ const TimelineCourseCard = ({
           ) : null}
         </div>
       </div>
+
+      {onEditActivate ? (
+        <div
+          className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center bg-timeline-move/70 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+          aria-hidden
+        >
+          <IconEdit className="size-8 text-white" />
+        </div>
+      ) : null}
 
       {actionButtons ? (
         <div

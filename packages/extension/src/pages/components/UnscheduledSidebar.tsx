@@ -27,12 +27,17 @@ function UnscheduledCourseItem({
             variant="unscheduled"
             isDragging={isDragging}
             highlightActive={isMoveModeActive}
+            onEditActivate={
+              !isMoveModeActive ? () => onToggleMoveMode(s.selectionIndex) : undefined
+            }
             actionButtons={
-              <TimelineMoveModeButton
-                isActive={isMoveModeActive}
-                inactiveLabel="Enter edit mode to schedule"
-                onClick={() => onToggleMoveMode(s.selectionIndex)}
-              />
+              isMoveModeActive ? (
+                <TimelineMoveModeButton
+                  isActive
+                  inactiveLabel="Enter edit mode to schedule"
+                  onClick={() => onToggleMoveMode(s.selectionIndex)}
+                />
+              ) : undefined
             }
           />
         </div>
