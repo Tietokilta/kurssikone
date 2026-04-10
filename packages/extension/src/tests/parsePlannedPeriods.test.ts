@@ -16,7 +16,10 @@ import {
   PERIODS_FOR_SEASON,
   parseCourseUnitPlannedPeriods,
   parsePeriodKey,
+  aggregateTimelineCreditsByCompletion,
   parsePlannedPeriods,
+  timelineCreditsByCompletionFromPlacements,
+  totalPlannedCreditsFromPlacements,
   yearSeasonFromKey,
 } from '../utils/parsePlannedPeriods'
 import { createPeriodIndex } from '../utils/studyYearPeriods'
@@ -323,6 +326,115 @@ describe('computeTimelineRange', () => {
     ]
     const { start } = computeTimelineRange(futureHeavy, spring2026)
     expect(start).toEqual({ year: 2027, season: 'Spring' })
+  })
+})
+
+describe('totalPlannedCreditsFromPlacements', () => {
+  const spring2026 = new Date('2026-04-04T12:00:00Z')
+  const root = 'aalto-university-root-id'
+  const idx = periodIndex(true)
+
+  const stubPlacement = <T extends { id: string; name: string }>(
+    selection: T,
+    span: number,
+    startCol = 0
+  ) => ({
+    selection,
+    startCol,
+    span,
+    anchorPlannedPeriod: '',
+    anchorPeriodKey: 'k-0',
+    runIndex: 0,
+  })
+
+  it('returns 0 for empty placements', () => {
+    expect(totalPlannedCreditsFromPlacements([])).toBe(0)
+  })
+
+  it('sums plannedCreditsPerTimelineSlice times span for each placement', () => {
+    const twoPeriods = [{}, {}] as ParsedPlannedPeriod[]
+    const sel = {
+      id: 'a',
+      name: 'a',
+      plannedCredits: 6,
+      parsedPlannedPeriods: twoPeriods,
+    }
+    expect(
+      totalPlannedCreditsFromPlacements([
+        stubPlacement(sel, 1),
+        stubPlacement(
+          { ...sel, id: 'b', plannedCredits: 9, parsedPlannedPeriods: [{}] as ParsedPlannedPeriod[] },
+          1
+        ),
+      ])
+    ).toBe(3 + 9)
+  })
+
+  it('counts each column in a contiguous span', () => {
+    const twoPeriods = [{}, {}] as ParsedPlannedPeriod[]
+    const sel = { id: 'a', name: 'a', plannedCredits: 6, parsedPlannedPeriods: twoPeriods }
+    expect(totalPlannedCreditsFromPlacements([stubPlacement(sel, 2)])).toBe(6)
+  })
+
+  it('matches computeSemesterCoursePlacements on a built card', () => {
+    const locator = 'aalto-university-root-id/2025/0/0'
+    const parsed = parsePlannedPeriods(locator, undefined, idx)
+    expect(parsed).not.toBeNull()
+    const selections = [
+      {
+        id: 'a',
+        name: 'Single',
+        plannedCredits: 10,
+        parsedPlannedPeriods: parseCourseUnitPlannedPeriods('a', [locator], idx),
+      },
+    ]
+    const cards = buildTimelineCards(selections, spring2026, { periodIndex: idx })
+    const card = cards.find((c) => c.year === parsed!.year && c.season === parsed!.season)
+    expect(card).toBeDefined()
+    const placements = computeSemesterCoursePlacements(card!, root, idx)
+    expect(totalPlannedCreditsFromPlacements(placements)).toBe(10)
+  })
+
+  it('splits totals by completion flag', () => {
+    const slice = { id: 'a', name: 'a', plannedCredits: 6, parsedPlannedPeriods: [{}, {}] as ParsedPlannedPeriod[] }
+    const done = { ...slice, id: 'b', completed: true }
+    const pending = { ...slice, id: 'c', completed: false }
+    expect(
+      timelineCreditsByCompletionFromPlacements([
+        stubPlacement(done, 1),
+        stubPlacement(pending, 1),
+      ])
+    ).toEqual({ completed: 3, planned: 3 })
+  })
+
+  it('aggregates completion split across cards', () => {
+    const locator = 'aalto-university-root-id/2025/0/0'
+    const parsed = parsePlannedPeriods(locator, undefined, idx)
+    expect(parsed).not.toBeNull()
+    const cards = buildTimelineCards(
+      [
+        {
+          id: 'p',
+          name: 'Planned',
+          plannedCredits: 5,
+          parsedPlannedPeriods: parseCourseUnitPlannedPeriods('p', [locator], idx),
+        },
+        {
+          id: 'c',
+          name: 'Done',
+          plannedCredits: 7,
+          completed: true,
+          parsedPlannedPeriods: parseCourseUnitPlannedPeriods('c', [locator], idx),
+        },
+      ],
+      spring2026,
+      { periodIndex: idx }
+    )
+    expect(aggregateTimelineCreditsByCompletion(cards, root, idx)).toEqual({
+      completed: 7,
+      planned: 5,
+      total: 12,
+    })
   })
 })
 

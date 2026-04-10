@@ -13,6 +13,7 @@ import {
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { initSisuAuth, updateStudyPlan } from '../requestHandlers'
 import {
+  aggregateTimelineCreditsByCompletion,
   buildTimelineCards,
   computeSemesterCoursePlacements,
   formatPlannedPeriodForSlot,
@@ -107,7 +108,7 @@ const TimelinePage = ({ planId }: Props) => {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [showEmptySummerPeriods, setShowEmptySummerPeriods] = useState(true)
+  const [showEmptySummerPeriods, setShowEmptySummerPeriods] = useState(false)
   const [showPastPeriods, setShowPastPeriods] = useState(false)
   const [unscheduledSidebarOpen, setUnscheduledSidebarOpen] = useState(false)
   const [unscheduledDragPreview, setUnscheduledDragPreview] =
@@ -146,7 +147,11 @@ const TimelinePage = ({ planId }: Props) => {
     if (!fullPlan) {
       return null
     }
-    return buildParsedCourseUnitSelections(fullPlan.courseUnitSelections, courseData, periodIndexForParsing)
+    return buildParsedCourseUnitSelections(
+      fullPlan.courseUnitSelections,
+      courseData,
+      periodIndexForParsing
+    )
   }, [fullPlan, courseData, periodIndexForParsing])
 
   const completedSelectionsRaw = useMemo(
@@ -223,6 +228,18 @@ const TimelinePage = ({ planId }: Props) => {
     () => fullPlan?.rootId?.trim() || extractSisuRootId(plannedSelectionsRaw ?? []),
     [fullPlan, plannedSelectionsRaw]
   )
+
+  /** Full timeline range for totals; grid visibility still follows `showPastPeriods`. */
+  const timelineCreditSummary = useMemo(() => {
+    if (!timelineRows || !periodIndex) {
+      return { completed: 0, planned: 0, total: 0 }
+    }
+    const cardsForTotals = buildTimelineCards(timelineRows, undefined, {
+      periodIndex,
+      showPastPeriods: true,
+    })
+    return aggregateTimelineCreditsByCompletion(cardsForTotals, sisuRootId, periodIndex)
+  }, [timelineRows, periodIndex, sisuRootId])
 
   const unscheduledSelections = useMemo(
     () => getUnscheduledSelections(plannedSelections, completedSelections),
@@ -687,6 +704,7 @@ const TimelinePage = ({ planId }: Props) => {
       ) : (
         <>
           <TimelineToolbar
+            creditSummary={timelineCreditSummary}
             showPastPeriods={showPastPeriods}
             setShowPastPeriods={setShowPastPeriods}
             showEmptySummerPeriods={showEmptySummerPeriods}
@@ -742,7 +760,8 @@ const TimelinePage = ({ planId }: Props) => {
                       isVariableCreditRange(
                         unscheduledDragPreview.creditsMin,
                         unscheduledDragPreview.creditsMax
-                      ) && !creditChoiceIsUserSet(unscheduledDragPreview.id, variableCreditOverrides)
+                      ) &&
+                      !creditChoiceIsUserSet(unscheduledDragPreview.id, variableCreditOverrides)
                     }
                   />
                 ) : null}

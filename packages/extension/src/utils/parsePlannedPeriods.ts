@@ -445,6 +445,64 @@ export type SemesterCoursePlacement<T = { id: string; name: string }> = {
   runIndex: number
 }
 
+/**
+ * Splits {@link totalPlannedCreditsFromPlacements} into completed vs still-planned rows
+ * (`selection.completed` on {@link computeSemesterCoursePlacements} selections).
+ */
+export function timelineCreditsByCompletionFromPlacements<
+  T extends { plannedCredits: number; parsedPlannedPeriods: unknown[]; completed?: boolean },
+>(placements: SemesterCoursePlacement<T>[]): { completed: number; planned: number } {
+  let completed = 0
+  let planned = 0
+  for (const pl of placements) {
+    const slice = plannedCreditsPerTimelineSlice(pl.selection) * pl.span
+    if (pl.selection.completed) {
+      completed += slice
+    } else {
+      planned += slice
+    }
+  }
+  return { completed, planned }
+}
+
+/**
+ * Sum of planned credits allocated to this semester row (each timeline column counts one
+ * {@link plannedCreditsPerTimelineSlice}; {@link computeSemesterCoursePlacements} `span` is the column count per run).
+ */
+export function totalPlannedCreditsFromPlacements<
+  T extends { plannedCredits: number; parsedPlannedPeriods: unknown[]; completed?: boolean },
+>(placements: SemesterCoursePlacement<T>[]): number {
+  const { completed, planned } = timelineCreditsByCompletionFromPlacements(placements)
+  return completed + planned
+}
+
+/**
+ * Aggregates timeline column credits across all semester cards (same rules as per-row season totals).
+ */
+export function aggregateTimelineCreditsByCompletion<
+  T extends {
+    id: string
+    name: string
+    plannedCredits: number
+    parsedPlannedPeriods: unknown[]
+    completed?: boolean
+  },
+>(cards: TimelineCard<T>[], sisuRootId: string, periodIndex: StudyPeriodIndex | null): {
+  completed: number
+  planned: number
+  total: number
+} {
+  let completed = 0
+  let planned = 0
+  for (const card of cards) {
+    const placements = computeSemesterCoursePlacements(card, sisuRootId, periodIndex)
+    const part = timelineCreditsByCompletionFromPlacements(placements)
+    completed += part.completed
+    planned += part.planned
+  }
+  return { completed, planned, total: completed + planned }
+}
+
 function contiguousColumnRuns(sortedIndices: number[]): number[][] {
   if (sortedIndices.length === 0) {
     return []

@@ -5,6 +5,7 @@ import {
   formatPlannedPeriodForSlot,
   plannedCreditsPerTimelineSlice,
   sortLocatorsByTimelineOrder,
+  totalPlannedCreditsFromPlacements,
   type SemesterCoursePlacement,
   type StudyPeriodIndex,
   type TimelineCard,
@@ -256,6 +257,7 @@ const TimelineMainGrid = ({
       >
         {cards.map((card) => {
           const placements = computeSemesterCoursePlacements(card, sisuRootId, periodIndex)
+          const seasonCreditsTotal = totalPlannedCreditsFromPlacements(placements)
           /** Columns where the period overlay must not steal clicks (so edit-mode scissors work). */
           const columnsWithActiveEditCard = new Set<number>()
           if (clickModeEnabled) {
@@ -269,9 +271,20 @@ const TimelineMainGrid = ({
           }
           return (
             <Fragment key={card.cardKey}>
-              <h2 className="col-span-full text-sm font-medium text-neutral-900">
-                {card.season} {card.year}
-              </h2>
+              <div className="col-span-full flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h2 className="text-sm font-medium text-neutral-900">
+                  {card.season} {card.year}
+                </h2>
+                <span
+                  className="text-sm tabular-nums text-neutral-500"
+                  aria-label={`Planned credits this period: ${seasonCreditsTotal}`}
+                >
+                  {seasonCreditsTotal % 1 === 0
+                    ? seasonCreditsTotal
+                    : seasonCreditsTotal.toFixed(1)}
+                  {' credits'}
+                </span>
+              </div>
               {card.periods.map((p) => (
                 <div key={p.periodKey} className="text-sm text-neutral-500">
                   {p.period}
