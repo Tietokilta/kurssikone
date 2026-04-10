@@ -4,7 +4,7 @@ import type {
 } from '@kurssikompassi/shared/src/types'
 import { PERIODS_FOR_SEASON, type Season, type StudyPeriodIndex } from './parsePlannedPeriods'
 
-const AUTUMN_TERMS = /^(autumn|fall|syksy)$/i
+const AUTUMN_TERMS = /^(autumn|fall|syksy|höst|host)$/i
 const SPRING_TERMS = /^(spring|kevät|kevat)$/i
 const SUMMER_TERMS = /^(summer|kesä|kesa)$/i
 
@@ -166,7 +166,7 @@ export function resolveGroupToLocators(
 }
 
 function parseRomanOrSummer(s: string): CourseTeachingPeriodToken | null {
-  const t = s.trim()
+  const t = s.trim().replace(/[,;.):]+$/g, '').trim()
   if (SUMMER_TERMS.test(t)) {
     return 'Summer'
   }
@@ -180,15 +180,18 @@ function parseRomanOrSummer(s: string): CourseTeachingPeriodToken | null {
 }
 
 function parsePeriodRange(rest: string): { from: CourseTeachingPeriodToken; to: CourseTeachingPeriodToken } | null {
-  const compact = rest.replace(/\s+/g, ' ').trim()
-  const springToSummer = compact.match(/^([IV]+)\s*[-–]\s*(Summer|kesä|kesa)$/i)
+  let compact = rest.replace(/\s+/g, ' ').trim()
+  compact = compact.replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-')
+  compact = compact.replace(/([IV]+)\s*,\s*([IV]+)/gi, '$1 - $2')
+  /** Leading match only: Kori often appends `, language of instruction: …` after the range. */
+  const springToSummer = compact.match(/^([IV]+)\s*-\s*(Summer|kesä|kesa)\b/i)
   if (springToSummer) {
     const from = parseRomanOrSummer(springToSummer[1]!)
     if (from && from !== 'Summer') {
       return { from, to: 'Summer' }
     }
   }
-  const rangeMatch = compact.match(/^([IV]+)\s*[-–]\s*([IV]+)$/i)
+  const rangeMatch = compact.match(/^([IV]+)\s*-\s*([IV]+)\b/i)
   if (rangeMatch) {
     const from = parseRomanOrSummer(rangeMatch[1]!)
     const to = parseRomanOrSummer(rangeMatch[2]!)
@@ -219,7 +222,7 @@ function parseSeasonSegment(
   if (parts.length < 2) {
     return null
   }
-  const seasonWord = parts[0]!
+  const seasonWord = parts[0]!.replace(/[:,.;]+$/g, '')
   let term: 'autumn' | 'spring' | 'summer'
   if (AUTUMN_TERMS.test(seasonWord)) {
     term = 'autumn'

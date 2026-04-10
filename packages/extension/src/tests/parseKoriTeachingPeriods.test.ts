@@ -59,6 +59,37 @@ describe('parsedRangeToGroup + formatTeachingPeriodGroup', () => {
     const g = parsedRangeToGroup(r!)!
     expect(formatTeachingPeriodGroup(g)).toBe('2025 Spring III - Summer')
   })
+
+  it('parses Autumn I - II with trailing comma metadata (CS-E4400-style)', () => {
+    const r = parseTeachingPeriodLine(
+      '2026-2027 Autumn I - II, language of instruction: English'
+    )
+    expect(r).not.toBeNull()
+    const g = parsedRangeToGroup(r!)!
+    expect(formatTeachingPeriodGroup(g)).toBe('2026 Fall I - II')
+  })
+
+  it('parses Syksy I - II with trailing Finnish metadata', () => {
+    const r = parseTeachingPeriodLine('2026-2027 Syksy I - II, opetuskieli: englanti')
+    expect(r).not.toBeNull()
+    const g = parsedRangeToGroup(r!)!
+    expect(formatTeachingPeriodGroup(g)).toBe('2026 Fall I - II')
+  })
+
+  it('parses Höst I - II with trailing Swedish metadata', () => {
+    const r = parseTeachingPeriodLine(
+      '2026-2027 Höst I - II, undervisningsspråket: engelska'
+    )
+    expect(r).not.toBeNull()
+    const g = parsedRangeToGroup(r!)!
+    expect(formatTeachingPeriodGroup(g)).toBe('2026 Fall I - II')
+  })
+
+  it('parses Autumn: I - II with colon after season word', () => {
+    const r = parseTeachingPeriodLine('2026-2027 Autumn: I - II')
+    expect(r).not.toBeNull()
+    expect(formatTeachingPeriodGroup(parsedRangeToGroup(r!)!)).toBe('2026 Fall I - II')
+  })
 })
 
 describe('parseTeachingPeriodLineToGroup', () => {
@@ -97,6 +128,32 @@ describe('parseKoriTeachingPeriodsFromAdditional', () => {
           season: 'Spring',
           periodFrom: 'III',
           periodTo: 'V',
+        },
+      ])
+    )
+  })
+
+  it('parses implementations-by-year HTML (CS-E4400) with per-locale metadata suffixes', () => {
+    const additional = {
+      en: '<p>Implementations by the academic year:</p><p>2026-2027 Autumn I - II, language of instruction: English</p><p>2027-2028 Autumn I - II, language of instruction: English</p><p>The languages of instruction',
+      fi: '<p>Toteutukset lukuvuosittain:</p><p>2026-2027 Syksy I - II, opetuskieli: englanti</p><p>2027-2028 Syksy I - II, opetuskieli: englanti</p>',
+      sv: '<p>Studiemoment enligt läsår:</p><p>2026-2027 Höst I - II, undervisningsspråket: engelska</p><p>2027-2028 Höst I - II, undervisningsspråket: engelska</p>',
+    }
+    const { groups } = parseKoriTeachingPeriodsFromAdditional(additional)
+    expect(groups.length).toBe(2)
+    expect(groups).toEqual(
+      expect.arrayContaining([
+        {
+          timelineYear: 2026,
+          season: 'Fall',
+          periodFrom: 'I',
+          periodTo: 'II',
+        },
+        {
+          timelineYear: 2027,
+          season: 'Fall',
+          periodFrom: 'I',
+          periodTo: 'II',
         },
       ])
     )
