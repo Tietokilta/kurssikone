@@ -22,6 +22,7 @@ const VariableCreditsEditPopup = ({
     <div
       data-timeline-credits-popup
       className={`pointer-events-auto z-30 rounded border border-neutral-200 bg-white px-2 py-1.5 shadow-md ${className}`}
+      onPointerDown={(e) => e.stopPropagation()}
     >
       <label htmlFor={id} className="mb-1 block text-[10px] font-medium text-neutral-700">
         Your planned credits ({min}–{max})
