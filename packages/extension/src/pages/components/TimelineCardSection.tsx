@@ -10,6 +10,7 @@ import {
   type TimelineCard,
   type TimelinePeriod,
 } from '../../utils/parsePlannedPeriods'
+import { isVariableCreditRange } from '../../utils/timelineVariableCredits'
 import type { ParsedCourseUnitSelection } from '../TimelinePage'
 import { IconExtendToPeriod, IconKeepInPeriod, IconMoveToPeriod } from './TimelineIcons'
 import TimelineDropTile from './TimelineDropTile'
@@ -223,6 +224,8 @@ type Props = {
   isMoveModeActiveFor: (selectionIndex: number) => boolean
   onClickPlacementAction: (action: 'move' | 'extend', plannedPeriod: string) => void
   clickPlacementTarget: { action: 'move' | 'extend'; plannedPeriod: string } | null
+  variableCreditOverrides: Record<string, number>
+  onVariableCreditChange: (courseId: string, credits: number) => void
 }
 
 /** Single grid for the whole timeline so rows share one column track set (col-span, etc.). */
@@ -238,6 +241,8 @@ const TimelineMainGrid = ({
   isMoveModeActiveFor,
   onClickPlacementAction,
   clickPlacementTarget,
+  variableCreditOverrides,
+  onVariableCreditChange,
 }: Props) => {
   const maxPeriodCols = cards.length === 0 ? 1 : Math.max(1, ...cards.map((c) => c.periods.length))
 
@@ -286,8 +291,8 @@ const TimelineMainGrid = ({
                   }}
                 >
                   {placements.map((pl) => {
-                    const credits = plannedCreditsPerTimelineSlice(pl.selection)
-                    const rowSpan = Math.max(1, Math.round(credits))
+                    const creditsPerPeriod = plannedCreditsPerTimelineSlice(pl.selection)
+                    const rowSpan = Math.max(1, Math.round(creditsPerPeriod))
                     const isMoveModeActive = isMoveModeActiveFor(pl.selection.selectionIndex)
                     const columnPlannedPeriods: string[] = []
                     for (let c = pl.startCol; c < pl.startCol + pl.span; c++) {
@@ -327,6 +332,7 @@ const TimelineMainGrid = ({
                             )
                           }
                           isMoveModeActive={isMoveModeActive}
+                          variableCreditOverrides={variableCreditOverrides}
                         />
                       </div>
                     )
@@ -382,6 +388,22 @@ const TimelineMainGrid = ({
                                     card.cardKey,
                                     columnPeriodsForEdit
                                   )
+                                }
+                                variableCreditsEdit={
+                                  colIndex === editPl.startCol &&
+                                  isVariableCreditRange(
+                                    editPl.selection.creditsMin,
+                                    editPl.selection.creditsMax
+                                  )
+                                    ? {
+                                        min: editPl.selection.creditsMin,
+                                        max: editPl.selection.creditsMax,
+                                        value: editPl.selection.plannedCredits,
+                                        onChange: (credits) =>
+                                          onVariableCreditChange(editPl.selection.id, credits),
+                                        idSuffix: `${editPl.selection.id}-${p.periodKey}`,
+                                      }
+                                    : null
                                 }
                               />
                             </div>

@@ -1,4 +1,4 @@
-import { plannedCreditsPerTimelineSlice } from '../../utils/parsePlannedPeriods'
+import { creditChoiceIsUserSet, isVariableCreditRange } from '../../utils/timelineVariableCredits'
 import type { ParsedCourseUnitSelection } from '../TimelinePage'
 import TimelineCourseCard from './TimelineCourseCard'
 import TimelineDraggableCard from './TimelineDraggableCard'
@@ -15,6 +15,7 @@ type Props = {
   completed?: boolean
   onToggleMoveMode: (selectionIndex: number, sourcePlannedPeriod: string, cardKey: string) => void
   isMoveModeActive: boolean
+  variableCreditOverrides: Record<string, number>
 }
 
 const TimelinePeriodCourseItem = ({
@@ -26,9 +27,12 @@ const TimelinePeriodCourseItem = ({
   completed,
   onToggleMoveMode,
   isMoveModeActive,
+  variableCreditOverrides,
 }: Props) => {
-  const creditsForPeriod = plannedCreditsPerTimelineSlice(s)
   const actionable = !completed && s.selectionIndex >= 0
+  const creditUncertain =
+    isVariableCreditRange(s.creditsMin, s.creditsMax) &&
+    !creditChoiceIsUserSet(s.id, variableCreditOverrides)
 
   return (
     <TimelineDraggableCard
@@ -46,13 +50,14 @@ const TimelinePeriodCourseItem = ({
       {({ isDragging }) => (
         <TimelineCourseCard
           name={s.name}
-          plannedCredits={creditsForPeriod}
+          plannedCredits={s.plannedCredits}
           creditsMin={s.creditsMin}
           creditsMax={s.creditsMax}
           fillContainer
           variant={completed ? 'completed' : 'scheduled'}
           isDragging={isDragging}
           highlightActive={isMoveModeActive}
+          creditUncertain={creditUncertain}
           onEditActivate={
             actionable && !isMoveModeActive
               ? () => onToggleMoveMode(s.selectionIndex, sourcePlannedPeriod, cardKey)

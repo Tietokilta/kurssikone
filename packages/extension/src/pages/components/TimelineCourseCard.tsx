@@ -5,9 +5,11 @@ type TimelineCourseCardVariant = 'scheduled' | 'unscheduled' | 'completed' | 'dr
 
 type Props = {
   name: string
+  /** Total planned credits for the course (display only; row height still follows per-period layout in the grid). */
   plannedCredits: number
-  creditsMin: number
-  creditsMax: number
+  /** Kori min/max; when they differ, shown as small italic “min–max” under the credits in the colored strip. */
+  creditsMin?: number
+  creditsMax?: number
   minHeight?: number
   /** Stretch to parent height (e.g. grid row span) instead of min-height from credits. */
   fillContainer?: boolean
@@ -19,6 +21,8 @@ type Props = {
   onEditActivate?: () => void
   /** `cover` = full-card overlay (e.g. exit move mode); `corner` = top-right chip row. */
   actionButtonsLayout?: 'corner' | 'cover'
+  /** Variable-credit course with no user-picked value yet (show ? after the estimate). */
+  creditUncertain?: boolean
 }
 
 const TimelineCourseCard = ({
@@ -34,9 +38,14 @@ const TimelineCourseCard = ({
   highlightActive = false,
   onEditActivate,
   actionButtonsLayout = 'corner',
+  creditUncertain = false,
 }: Props) => {
   const completed = variant === 'completed'
   const preview = variant === 'dragPreview'
+  const showVariableRange =
+    creditsMin != null &&
+    creditsMax != null &&
+    creditsMax !== creditsMin
   const rootClassName = completed
     ? 'cursor-default bg-timeline-surface text-neutral-700'
     : `bg-timeline-surface ${preview ? 'cursor-grabbing shadow-lg ring-1 ring-neutral-900/15' : isDragging ? 'cursor-grabbing opacity-60' : 'cursor-grab'}`
@@ -75,8 +84,15 @@ const TimelineCourseCard = ({
             completed ? 'bg-neutral-500' : 'bg-timeline-accent'
           }`}
         >
-          <i>{plannedCredits.toFixed(1)}</i>
-          {creditsMax === creditsMin ? creditsMax : `${creditsMin}-${creditsMax}`}
+          <span className="text-sm font-medium leading-tight tabular-nums">
+            {plannedCredits % 1 === 0 ? plannedCredits : plannedCredits.toFixed(1)}
+            {creditUncertain ? '?' : ''}
+          </span>
+          {showVariableRange ? (
+            <span className="mt-0.5 block max-w-full break-all text-[10px] italic leading-tight text-white/85">
+              {creditsMin}-{creditsMax}
+            </span>
+          ) : null}
         </div>
 
         <div className="relative min-w-0 flex-1 p-2">

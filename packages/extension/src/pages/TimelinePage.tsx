@@ -34,6 +34,13 @@ import {
 } from '../utils/timelinePageLogic'
 import { resolveTimelineMoveRun } from '../utils/planPeriodDrag'
 import { loadTimelineData } from '../utils/timelinePageLoad'
+import {
+  applyPlannedCreditOverrides,
+  creditChoiceIsUserSet,
+  isVariableCreditRange,
+  loadTimelineVariableCreditOverrides,
+  setTimelineVariableCreditOverride,
+} from '../utils/timelineVariableCredits'
 import type {
   SisuAttainment,
   SisuCourseUnitSelection,
@@ -71,7 +78,13 @@ const timelineCollisionDetection: CollisionDetection = (args) => {
   return pointerHits.length > 0 ? pointerHits : rectIntersection(args)
 }
 
-function UnscheduledCourseDragPreview({ selection: s }: { selection: ParsedCourseUnitSelection }) {
+function UnscheduledCourseDragPreview({
+  selection: s,
+  creditUncertain,
+}: {
+  selection: ParsedCourseUnitSelection
+  creditUncertain: boolean
+}) {
   return (
     <TimelineCourseCard
       name={s.name}
@@ -79,6 +92,7 @@ function UnscheduledCourseDragPreview({ selection: s }: { selection: ParsedCours
       creditsMin={s.creditsMin}
       creditsMax={s.creditsMax}
       variant="dragPreview"
+      creditUncertain={creditUncertain}
     />
   )
 }
@@ -109,6 +123,7 @@ const TimelinePage = ({ planId }: Props) => {
   } | null>(null)
   /** Contiguous planned-period locators moved together (multi-column card); drives drop overlay rules. */
   const [activeMovingRun, setActiveMovingRun] = useState<string[] | null>(null)
+  const [variableCreditOverrides, setVariableCreditOverrides] = useState<Record<string, number>>({})
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -127,31 +142,44 @@ const TimelinePage = ({ planId }: Props) => {
     return createPeriodIndex(studyYears, studyYearsOrgId, true)
   }, [studyYears, studyYearsOrgId])
 
-  const plannedSelections = useMemo(() => {
+  const plannedSelectionsRaw = useMemo(() => {
     if (!fullPlan) {
       return null
     }
     return buildParsedCourseUnitSelections(fullPlan.courseUnitSelections, courseData, periodIndexForParsing)
   }, [fullPlan, courseData, periodIndexForParsing])
 
-  const completedSelections = useMemo(
+  const completedSelectionsRaw = useMemo(
     () => buildCompletedSelections(attainments, periodIndexForParsing, courseData),
     [attainments, periodIndexForParsing, courseData]
   )
 
+  const plannedSelections = useMemo(
+    () =>
+      plannedSelectionsRaw
+        ? applyPlannedCreditOverrides(plannedSelectionsRaw, variableCreditOverrides)
+        : null,
+    [plannedSelectionsRaw, variableCreditOverrides]
+  )
+
+  const completedSelections = useMemo(
+    () => applyPlannedCreditOverrides(completedSelectionsRaw, variableCreditOverrides),
+    [completedSelectionsRaw, variableCreditOverrides]
+  )
+
   const summerCardKeysWithCourses = useMemo(() => {
     const keys = new Set<string>()
-    if (!plannedSelections) {
+    if (!plannedSelectionsRaw) {
       return keys
     }
-    for (const sel of plannedSelections) {
+    for (const sel of plannedSelectionsRaw) {
       for (const p of sel.parsedPlannedPeriods) {
         if (p?.season === 'Summer') {
           keys.add(`${p.year}|Summer`)
         }
       }
     }
-    for (const sel of completedSelections) {
+    for (const sel of completedSelectionsRaw) {
       for (const p of sel.parsedPlannedPeriods) {
         if (p?.season === 'Summer') {
           keys.add(`${p.year}|Summer`)
@@ -159,7 +187,7 @@ const TimelinePage = ({ planId }: Props) => {
       }
     }
     return keys
-  }, [plannedSelections, completedSelections])
+  }, [plannedSelectionsRaw, completedSelectionsRaw])
 
   const periodIndex = useMemo(() => {
     if (!studyYears?.length) {
@@ -192,8 +220,8 @@ const TimelinePage = ({ planId }: Props) => {
   )
 
   const sisuRootId = useMemo(
-    () => fullPlan?.rootId?.trim() || extractSisuRootId(plannedSelections ?? []),
-    [fullPlan, plannedSelections]
+    () => fullPlan?.rootId?.trim() || extractSisuRootId(plannedSelectionsRaw ?? []),
+    [fullPlan, plannedSelectionsRaw]
   )
 
   const unscheduledSelections = useMemo(
@@ -206,6 +234,10 @@ const TimelinePage = ({ planId }: Props) => {
       getTimelineDragRowSnapshot(interactionKind, activeSelectionIndex, fullPlan, activeMovingRun),
     [interactionKind, activeSelectionIndex, fullPlan, activeMovingRun]
   )
+
+  const handleVariableCreditChange = useCallback((courseId: string, credits: number) => {
+    void setTimelineVariableCreditOverride(courseId, credits).then(setVariableCreditOverrides)
+  }, [])
 
   const resetInteraction = useCallback(() => {
     setInteractionKind('none')
@@ -599,6 +631,10 @@ const TimelinePage = ({ planId }: Props) => {
     }
   }, [planId])
 
+  useEffect(() => {
+    void loadTimelineVariableCreditOverrides().then(setVariableCreditOverrides)
+  }, [])
+
   const errorBannerMessage = saveError ?? error
 
   useEffect(() => {
@@ -628,7 +664,7 @@ const TimelinePage = ({ planId }: Props) => {
     const onDocumentClick = (event: MouseEvent) => {
       const node = event.target
       const el = node instanceof Element ? node : (node as Node | null)?.parentElement
-      if (el?.closest('[data-timeline-drop-zone]')) {
+      if (el?.closest('[data-timeline-drop-zone],[data-timeline-credits-popup]')) {
         return
       }
       resetInteraction()
@@ -671,6 +707,8 @@ const TimelinePage = ({ planId }: Props) => {
                 selections={unscheduledSelections}
                 onToggleMoveMode={handleUnscheduledMoveModeToggle}
                 isMoveModeActiveForUnscheduled={isMoveModeActiveForUnscheduled}
+                variableCreditOverrides={variableCreditOverrides}
+                onVariableCreditChange={handleVariableCreditChange}
               />
 
               <div
@@ -692,11 +730,21 @@ const TimelinePage = ({ planId }: Props) => {
                   isMoveModeActiveFor={isMoveModeActiveFor}
                   onClickPlacementAction={handleClickPlacementAction}
                   clickPlacementTarget={clickPlacementTarget}
+                  variableCreditOverrides={variableCreditOverrides}
+                  onVariableCreditChange={handleVariableCreditChange}
                 />
               </div>
               <DragOverlay adjustScale={false} dropAnimation={null} zIndex={11000}>
                 {unscheduledDragPreview ? (
-                  <UnscheduledCourseDragPreview selection={unscheduledDragPreview} />
+                  <UnscheduledCourseDragPreview
+                    selection={unscheduledDragPreview}
+                    creditUncertain={
+                      isVariableCreditRange(
+                        unscheduledDragPreview.creditsMin,
+                        unscheduledDragPreview.creditsMax
+                      ) && !creditChoiceIsUserSet(unscheduledDragPreview.id, variableCreditOverrides)
+                    }
+                  />
                 ) : null}
               </DragOverlay>
             </div>

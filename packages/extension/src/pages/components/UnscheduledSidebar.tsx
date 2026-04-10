@@ -1,24 +1,44 @@
+import { creditChoiceIsUserSet, isVariableCreditRange } from '../../utils/timelineVariableCredits'
 import type { ParsedCourseUnitSelection } from '../TimelinePage'
 import TimelineCourseCard from './TimelineCourseCard'
 import TimelineDraggableCard from './TimelineDraggableCard'
 import TimelineMoveModeButton from './TimelineMoveModeButton'
+import VariableCreditsEditPopup from './VariableCreditsEditPopup'
 
 function UnscheduledCourseItem({
   selection: s,
   onToggleMoveMode,
   isMoveModeActive,
+  variableCreditOverrides,
+  onVariableCreditChange,
 }: {
   selection: ParsedCourseUnitSelection
   onToggleMoveMode: (selectionIndex: number) => void
   isMoveModeActive: boolean
+  variableCreditOverrides: Record<string, number>
+  onVariableCreditChange: (courseId: string, credits: number) => void
 }) {
+  const creditUncertain =
+    isVariableCreditRange(s.creditsMin, s.creditsMax) &&
+    !creditChoiceIsUserSet(s.id, variableCreditOverrides)
+
   return (
     <TimelineDraggableCard
       id={`unscheduled-${s.selectionIndex}`}
       data={{ selectionIndex: s.selectionIndex, fromUnscheduled: true as const }}
     >
       {({ isDragging }) => (
-        <div className={isDragging ? 'h-full opacity-0' : 'h-full'}>
+        <div className={`relative ${isDragging ? 'h-full opacity-0' : 'h-full'}`}>
+          {isMoveModeActive && isVariableCreditRange(s.creditsMin, s.creditsMax) ? (
+            <VariableCreditsEditPopup
+              min={s.creditsMin}
+              max={s.creditsMax}
+              value={s.plannedCredits}
+              onChange={(credits) => onVariableCreditChange(s.id, credits)}
+              idSuffix={`unscheduled-${s.selectionIndex}`}
+              className="absolute bottom-full left-0 right-0 z-30 mb-1"
+            />
+          ) : null}
           <TimelineCourseCard
             name={s.name}
             plannedCredits={s.plannedCredits}
@@ -27,6 +47,7 @@ function UnscheduledCourseItem({
             variant="unscheduled"
             isDragging={isDragging}
             highlightActive={isMoveModeActive}
+            creditUncertain={creditUncertain}
             onEditActivate={
               !isMoveModeActive ? () => onToggleMoveMode(s.selectionIndex) : undefined
             }
@@ -53,6 +74,8 @@ type Props = {
   selections: ParsedCourseUnitSelection[]
   onToggleMoveMode: (selectionIndex: number) => void
   isMoveModeActiveForUnscheduled: (selectionIndex: number) => boolean
+  variableCreditOverrides: Record<string, number>
+  onVariableCreditChange: (courseId: string, credits: number) => void
 }
 
 const UnscheduledSidebar = ({
@@ -61,6 +84,8 @@ const UnscheduledSidebar = ({
   selections,
   onToggleMoveMode,
   isMoveModeActiveForUnscheduled,
+  variableCreditOverrides,
+  onVariableCreditChange,
 }: Props) => {
   if (selections.length === 0) {
     return null
@@ -106,6 +131,8 @@ const UnscheduledSidebar = ({
                     selection={s}
                     onToggleMoveMode={onToggleMoveMode}
                     isMoveModeActive={isMoveModeActiveForUnscheduled(s.selectionIndex)}
+                    variableCreditOverrides={variableCreditOverrides}
+                    onVariableCreditChange={onVariableCreditChange}
                   />
                 ))}
               </ul>
