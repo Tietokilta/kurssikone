@@ -2,7 +2,9 @@ import { Fragment } from 'react'
 import { plannedPeriodKeysEqual } from '../../utils/planPeriodDrag'
 import {
   computeSemesterCoursePlacements,
+  findConsecutiveLocatorSpanOnCard,
   formatPlannedPeriodForSlot,
+  normalizeStudyLocator,
   plannedCreditsPerTimelineSlice,
   sortLocatorsByTimelineOrder,
   totalPlannedCreditsFromPlacements,
@@ -12,7 +14,7 @@ import {
   type TimelinePeriod,
 } from '../../utils/parsePlannedPeriods'
 import { isVariableCreditRange } from '../../utils/timelineVariableCredits'
-import type { ParsedCourseUnitSelection } from '../TimelinePage'
+import type { ClickPlacementTarget, ParsedCourseUnitSelection } from '../TimelinePage'
 import { IconExtendToPeriod, IconKeepInPeriod, IconMoveToPeriod } from './TimelineIcons'
 import TimelineDropTile from './TimelineDropTile'
 import TimelineEditColumnStrip from './TimelineEditColumnStrip'
@@ -79,6 +81,28 @@ function occupiedColumnDragOverlayKind(
   return 'reanchor-move'
 }
 
+function locatorSpansMatch(
+  periodIndex: StudyPeriodIndex,
+  a: string[],
+  b: string[]
+): boolean {
+  if (!a.length || !b.length || a.length !== b.length) {
+    return false
+  }
+  const sa = sortLocatorsByTimelineOrder(
+    periodIndex,
+    [...a].map((x) => x.trim()).filter(Boolean)
+  )
+  const sb = sortLocatorsByTimelineOrder(
+    periodIndex,
+    [...b].map((x) => x.trim()).filter(Boolean)
+  )
+  if (sa.length !== sb.length) {
+    return false
+  }
+  return sa.every((x, i) => normalizeStudyLocator(x) === normalizeStudyLocator(sb[i]!))
+}
+
 function PeriodColumnDropOverlays({
   periodKey,
   plannedPeriod,
@@ -87,7 +111,8 @@ function PeriodColumnDropOverlays({
   dragRow,
   clickModeEnabled,
   onClickAction,
-  clickTargetAction,
+  singleClick,
+  squeezeForDesignatedRow,
 }: {
   periodKey: string
   plannedPeriod: string
@@ -96,7 +121,8 @@ function PeriodColumnDropOverlays({
   dragRow: TimelineDragRowSnapshot | null
   clickModeEnabled: boolean
   onClickAction: (action: 'move' | 'extend', plannedPeriod: string) => void
-  clickTargetAction: 'move' | 'extend' | null
+  singleClick: { action: 'move' | 'extend'; plannedPeriod: string } | null
+  squeezeForDesignatedRow: boolean
 }) {
   if (interactionKind === 'none' || !plannedPeriod.trim()) {
     return null
@@ -128,13 +154,38 @@ function PeriodColumnDropOverlays({
             icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
             tone="move"
             onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
-            clickActive={clickModeEnabled && clickTargetAction === 'move'}
+            clickActive={
+              clickModeEnabled &&
+              singleClick?.action === 'move' &&
+              singleClick.plannedPeriod === plannedPeriod
+            }
           />
         </div>
       )
     }
   }
+  const moveClickActive =
+    clickModeEnabled && singleClick?.action === 'move' && singleClick.plannedPeriod === plannedPeriod
   if (interactionKind === 'unscheduled' || interactionKind === 'click-unscheduled') {
+    if (squeezeForDesignatedRow) {
+      return (
+        <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-0 flex-col">
+          <div className="min-h-0 flex-1" aria-hidden />
+          <div className="flex min-h-14 shrink-0">
+            <TimelineDropTile
+              id={`timeline-move-${periodKey}`}
+              action="move"
+              plannedPeriod={plannedPeriod}
+              label="Move to period"
+              icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
+              tone="move"
+              onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
+              clickActive={moveClickActive}
+            />
+          </div>
+        </div>
+      )
+    }
     return (
       <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-20">
         <TimelineDropTile
@@ -145,7 +196,7 @@ function PeriodColumnDropOverlays({
           icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
           tone="move"
           onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
-          clickActive={clickModeEnabled && clickTargetAction === 'move'}
+          clickActive={moveClickActive}
         />
       </div>
     )
@@ -161,7 +212,11 @@ function PeriodColumnDropOverlays({
         tone="move"
         layout="half"
         onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
-        clickActive={clickModeEnabled && clickTargetAction === 'move'}
+        clickActive={
+          clickModeEnabled &&
+          singleClick?.action === 'move' &&
+          singleClick.plannedPeriod === plannedPeriod
+        }
       />
       <TimelineDropTile
         id={`timeline-extend-${periodKey}`}
@@ -172,7 +227,11 @@ function PeriodColumnDropOverlays({
         tone="extend"
         layout="half"
         onClick={clickModeEnabled ? () => onClickAction('extend', plannedPeriod) : undefined}
-        clickActive={clickModeEnabled && clickTargetAction === 'extend'}
+        clickActive={
+          clickModeEnabled &&
+          singleClick?.action === 'extend' &&
+          singleClick.plannedPeriod === plannedPeriod
+        }
       />
     </div>
   )
@@ -224,7 +283,9 @@ type Props = {
   ) => void
   isMoveModeActiveFor: (selectionIndex: number) => boolean
   onClickPlacementAction: (action: 'move' | 'extend', plannedPeriod: string) => void
-  clickPlacementTarget: { action: 'move' | 'extend'; plannedPeriod: string } | null
+  clickPlacementTarget: ClickPlacementTarget | null
+  activeUnscheduledSelection: ParsedCourseUnitSelection | null
+  onQuickScheduleToSpan: (selectionIndex: number, locators: string[]) => void
   variableCreditOverrides: Record<string, number>
   onVariableCreditChange: (courseId: string, credits: number) => void
 }
@@ -242,10 +303,14 @@ const TimelineMainGrid = ({
   isMoveModeActiveFor,
   onClickPlacementAction,
   clickPlacementTarget,
+  activeUnscheduledSelection,
+  onQuickScheduleToSpan,
   variableCreditOverrides,
   onVariableCreditChange,
 }: Props) => {
   const maxPeriodCols = cards.length === 0 ? 1 : Math.max(1, ...cards.map((c) => c.periods.length))
+  const singleClick =
+    clickPlacementTarget?.kind === 'single' ? clickPlacementTarget : null
 
   return (
     <section className="rounded border border-neutral-200 bg-white p-3 shadow-sm">
@@ -269,6 +334,34 @@ const TimelineMainGrid = ({
               }
             }
           }
+          const unscheduledPlacing =
+            activeInteractionKind === 'unscheduled' ||
+            activeInteractionKind === 'click-unscheduled'
+          const designatedEntries =
+            unscheduledPlacing && activeUnscheduledSelection && periodIndex
+              ? activeUnscheduledSelection.teachingPeriodQuickOptions.flatMap((o) => {
+                  const locs = o.plannedPeriodLocators?.filter(Boolean) ?? []
+                  if (locs.length === 0) {
+                    return []
+                  }
+                  const span = findConsecutiveLocatorSpanOnCard(
+                    card,
+                    locs,
+                    periodIndex,
+                    sisuRootId
+                  )
+                  if (!span) {
+                    return []
+                  }
+                  const sortedLocators = sortLocatorsByTimelineOrder(
+                    periodIndex,
+                    locs.map((x) => x.trim()).filter(Boolean)
+                  )
+                  return [{ option: o, ...span, sortedLocators }]
+                })
+              : []
+          const showDesignatedRow = designatedEntries.length > 0
+
           return (
             <Fragment key={card.cardKey}>
               <div className="col-span-full flex flex-wrap items-baseline gap-x-3 gap-y-1">
@@ -352,102 +445,152 @@ const TimelineMainGrid = ({
                   })}
                 </div>
                 {activeInteractionKind !== 'none' ? (
-                  <div
-                    className="pointer-events-none absolute inset-0 z-10 grid min-h-0 items-stretch gap-x-2"
-                    style={{
-                      gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {card.periods.map((p, colIndex) => {
-                      const resolved = resolvePlannedPeriodForPeriod(
-                        card,
-                        p,
-                        periodIndex,
-                        sisuRootId
-                      )
-                      const editPl = findEditModePlacementForColumn(
-                        placements,
-                        colIndex,
-                        isMoveModeActiveFor
-                      )
-                      const overlayPointerEventsNone = columnsWithActiveEditCard.has(colIndex)
-                      const columnPeriodsForEdit = editPl
-                        ? columnPlannedPeriodsForPlacement(editPl, card, periodIndex, sisuRootId)
-                        : []
-                      return (
-                        <div
-                          key={p.periodKey}
-                          className={`relative flex min-h-20 flex-1 flex-col self-stretch ${
-                            overlayPointerEventsNone ? 'pointer-events-none' : 'pointer-events-auto'
-                          }`}
-                        >
-                          {editPl ? (
-                            <div className="pointer-events-auto absolute inset-0 z-25 flex min-h-0 flex-col">
-                              <TimelineEditColumnStrip
-                                plannedPeriod={resolved}
-                                isAnchorColumn={colIndex === editPl.startCol}
-                                onRemove={(pp) =>
-                                  onCardUnschedule(editPl.selection.selectionIndex, pp)
-                                }
-                                onMoveToPeriod={
-                                  clickModeEnabled && activeInteractionKind === 'click-scheduled'
-                                    ? (pp) => onClickPlacementAction('move', pp)
-                                    : undefined
-                                }
-                                onExitEditMode={() =>
-                                  onCardMoveModeToggle(
-                                    editPl.selection.selectionIndex,
-                                    editPl.anchorPlannedPeriod,
-                                    card.cardKey,
-                                    columnPeriodsForEdit
-                                  )
-                                }
-                                variableCreditsEdit={
-                                  colIndex === editPl.startCol &&
-                                  isVariableCreditRange(
-                                    editPl.selection.creditsMin,
-                                    editPl.selection.creditsMax
-                                  )
-                                    ? {
-                                        min: editPl.selection.creditsMin,
-                                        max: editPl.selection.creditsMax,
-                                        value: editPl.selection.plannedCredits,
-                                        onChange: (credits) =>
-                                          onVariableCreditChange(editPl.selection.id, credits),
-                                        idSuffix: `${editPl.selection.id}-${p.periodKey}`,
-                                      }
-                                    : null
-                                }
-                              />
+                  <div className="pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col gap-y-1">
+                    {showDesignatedRow && periodIndex && activeUnscheduledSelection ? (
+                      <div className="pointer-events-auto flex shrink-0 flex-col gap-y-1">
+                        {designatedEntries.map((entry, idx) => {
+                          const primaryLocator = entry.sortedLocators[0] ?? ''
+                          const designatedClickActive =
+                            clickPlacementTarget?.kind === 'designated' &&
+                            locatorSpansMatch(
+                              periodIndex,
+                              clickPlacementTarget.spanLocators,
+                              entry.sortedLocators
+                            )
+                          return (
+                            <div
+                              key={`${card.cardKey}-des-${idx}`}
+                              className="grid min-h-12 gap-x-2"
+                              style={{
+                                gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
+                              }}
+                            >
+                              <div
+                                className="flex min-h-12 min-w-0"
+                                style={{
+                                  gridColumn: `${entry.startCol + 1} / span ${entry.span}`,
+                                }}
+                              >
+                                <TimelineDropTile
+                                  id={`timeline-designated-${card.cardKey}-${idx}`}
+                                  action="designated"
+                                  plannedPeriod={primaryLocator}
+                                  spanLocators={entry.sortedLocators}
+                                  label={entry.option.label}
+                                  ariaLabel={`Move to designated period: ${entry.option.label}`}
+                                  icon={<IconExtendToPeriod className="size-5 shrink-0 opacity-95" />}
+                                  tone="designated"
+                                  onClick={
+                                    clickModeEnabled
+                                      ? () =>
+                                          onQuickScheduleToSpan(
+                                            activeUnscheduledSelection.selectionIndex,
+                                            entry.sortedLocators
+                                          )
+                                      : undefined
+                                  }
+                                  clickActive={designatedClickActive}
+                                />
+                              </div>
                             </div>
-                          ) : (
-                            <PeriodColumnDropOverlays
-                              periodKey={p.periodKey}
-                              plannedPeriod={resolved}
-                              interactionKind={activeInteractionKind}
-                              periodIndex={periodIndex}
-                              dragRow={dragRowSnapshot}
-                              clickModeEnabled={clickModeEnabled}
-                              onClickAction={onClickPlacementAction}
-                              clickTargetAction={
-                                clickPlacementTarget?.plannedPeriod === resolved
-                                  ? clickPlacementTarget.action
-                                  : null
-                              }
-                            />
-                          )}
-                        </div>
-                      )
-                    })}
-                    {Array.from({
-                      length: Math.max(0, maxPeriodCols - card.periods.length),
-                    }).map((_, i) => (
-                      <div
-                        key={`${card.cardKey}-overlay-pad-${i}`}
-                        className="min-w-0"
-                        aria-hidden
-                      />
-                    ))}
+                          )
+                        })}
+                      </div>
+                    ) : null}
+                    <div
+                      className="pointer-events-none grid min-h-0 flex-1 gap-x-2"
+                      style={{
+                        gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
+                      }}
+                    >
+                      {card.periods.map((p, colIndex) => {
+                        const resolved = resolvePlannedPeriodForPeriod(
+                          card,
+                          p,
+                          periodIndex,
+                          sisuRootId
+                        )
+                        const editPl = findEditModePlacementForColumn(
+                          placements,
+                          colIndex,
+                          isMoveModeActiveFor
+                        )
+                        const overlayPointerEventsNone = columnsWithActiveEditCard.has(colIndex)
+                        const columnPeriodsForEdit = editPl
+                          ? columnPlannedPeriodsForPlacement(editPl, card, periodIndex, sisuRootId)
+                          : []
+                        return (
+                          <div
+                            key={p.periodKey}
+                            className={`relative flex min-h-20 flex-1 flex-col self-stretch ${
+                              overlayPointerEventsNone ? 'pointer-events-none' : 'pointer-events-auto'
+                            }`}
+                          >
+                            {editPl ? (
+                              <div className="pointer-events-auto absolute inset-0 z-25 flex min-h-0 flex-col">
+                                <TimelineEditColumnStrip
+                                  plannedPeriod={resolved}
+                                  isAnchorColumn={colIndex === editPl.startCol}
+                                  onRemove={(pp) =>
+                                    onCardUnschedule(editPl.selection.selectionIndex, pp)
+                                  }
+                                  onMoveToPeriod={
+                                    clickModeEnabled && activeInteractionKind === 'click-scheduled'
+                                      ? (pp) => onClickPlacementAction('move', pp)
+                                      : undefined
+                                  }
+                                  onExitEditMode={() =>
+                                    onCardMoveModeToggle(
+                                      editPl.selection.selectionIndex,
+                                      editPl.anchorPlannedPeriod,
+                                      card.cardKey,
+                                      columnPeriodsForEdit
+                                    )
+                                  }
+                                  variableCreditsEdit={
+                                    colIndex === editPl.startCol &&
+                                    isVariableCreditRange(
+                                      editPl.selection.creditsMin,
+                                      editPl.selection.creditsMax
+                                    )
+                                      ? {
+                                          min: editPl.selection.creditsMin,
+                                          max: editPl.selection.creditsMax,
+                                          value: editPl.selection.plannedCredits,
+                                          onChange: (credits) =>
+                                            onVariableCreditChange(editPl.selection.id, credits),
+                                          idSuffix: `${editPl.selection.id}-${p.periodKey}`,
+                                        }
+                                      : null
+                                  }
+                                />
+                              </div>
+                            ) : (
+                              <PeriodColumnDropOverlays
+                                periodKey={p.periodKey}
+                                plannedPeriod={resolved}
+                                interactionKind={activeInteractionKind}
+                                periodIndex={periodIndex}
+                                dragRow={dragRowSnapshot}
+                                clickModeEnabled={clickModeEnabled}
+                                onClickAction={onClickPlacementAction}
+                                singleClick={singleClick}
+                                squeezeForDesignatedRow={showDesignatedRow}
+                              />
+                            )}
+                          </div>
+                        )
+                      })}
+                      {Array.from({
+                        length: Math.max(0, maxPeriodCols - card.periods.length),
+                      }).map((_, i) => (
+                        <div
+                          key={`${card.cardKey}-overlay-pad-${i}`}
+                          className="min-w-0"
+                          aria-hidden
+                        />
+                      ))}
+                    </div>
                   </div>
                 ) : null}
               </div>

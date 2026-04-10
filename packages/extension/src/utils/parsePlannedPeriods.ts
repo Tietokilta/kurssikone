@@ -423,6 +423,63 @@ export type TimelineCard<T = { id: string; name: string }> = {
 }
 
 /**
+ * Finds where a **contiguous slice** of `locators` (in timeline order) matches consecutive
+ * columns on this semester row. Prefers the longest slice (e.g. "Spring III–Summer" resolves to
+ * multiple locators across Spring and Summer rows; on the Spring card only the Spring portion
+ * matches, on the Summer card only Summer).
+ *
+ * Callers that schedule the course should still pass the **full** locator list to
+ * {@link applyPlannedPeriodAddSpan} — this helper is only for layout (start column + span).
+ */
+export function findConsecutiveLocatorSpanOnCard<T extends { id: string; name: string }>(
+  card: TimelineCard<T>,
+  locators: string[],
+  periodIndex: StudyPeriodIndex | null,
+  sisuRootId: string
+): { startCol: number; span: number } | null {
+  if (!periodIndex || locators.length === 0) {
+    return null
+  }
+  const trimmed = locators.map((l) => l.trim()).filter(Boolean)
+  if (trimmed.length === 0) {
+    return null
+  }
+  const sorted = sortLocatorsByTimelineOrder(periodIndex, trimmed)
+  const flat = flatTimelineLocatorsInOrder(periodIndex)
+  for (const loc of sorted) {
+    if (flatIndexForLocator(periodIndex, flat, loc) < 0) {
+      return null
+    }
+  }
+  const resolveCol = (col: number): string => {
+    const p = card.periods[col]!
+    return (
+      p.plannedPeriod ||
+      formatPlannedPeriodForSlot(sisuRootId, card.year, card.season, p.period, periodIndex)
+    )
+  }
+  const maxL = Math.min(sorted.length, card.periods.length)
+  for (let L = maxL; L >= 1; L--) {
+    for (let i = 0; i + L <= sorted.length; i++) {
+      const want = sorted.slice(i, i + L).map((l) => normalizeStudyLocator(l))
+      for (let start = 0; start <= card.periods.length - L; start++) {
+        let ok = true
+        for (let k = 0; k < L; k++) {
+          if (normalizeStudyLocator(resolveCol(start + k)) !== want[k]) {
+            ok = false
+            break
+          }
+        }
+        if (ok) {
+          return { startCol: start, span: L }
+        }
+      }
+    }
+  }
+  return null
+}
+
+/**
  * Credits shown in one timeline cell when a selection spans multiple planned periods
  * (planned credits split evenly across non-null slices).
  */

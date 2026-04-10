@@ -62,6 +62,10 @@ type Props = {
   planId: string
 }
 
+export type ClickPlacementTarget =
+  | { kind: 'single'; action: 'move' | 'extend'; plannedPeriod: string }
+  | { kind: 'designated'; spanLocators: string[] }
+
 export type ParsedCourseUnitSelection = {
   id: string
   name: string
@@ -124,10 +128,9 @@ const TimelinePage = ({ planId }: Props) => {
   const [activeSourcePlannedPeriod, setActiveSourcePlannedPeriod] = useState<string | null>(null)
   /** Semester row (`TimelineCard.cardKey`) for click edit mode; keeps anchor in sync after partial unschedule. */
   const [activeEditCardKey, setActiveEditCardKey] = useState<string | null>(null)
-  const [clickPlacementTarget, setClickPlacementTarget] = useState<{
-    action: 'move' | 'extend'
-    plannedPeriod: string
-  } | null>(null)
+  const [clickPlacementTarget, setClickPlacementTarget] = useState<ClickPlacementTarget | null>(
+    null
+  )
   /** Contiguous planned-period locators moved together (multi-column card); drives drop overlay rules. */
   const [activeMovingRun, setActiveMovingRun] = useState<string[] | null>(null)
   const [variableCreditOverrides, setVariableCreditOverrides] = useState<Record<string, number>>({})
@@ -258,6 +261,16 @@ const TimelinePage = ({ planId }: Props) => {
     [interactionKind, activeSelectionIndex, fullPlan, activeMovingRun]
   )
 
+  const activeUnscheduledSelection = useMemo((): ParsedCourseUnitSelection | null => {
+    if (activeSelectionIndex === null || !plannedSelections) {
+      return null
+    }
+    if (interactionKind !== 'unscheduled' && interactionKind !== 'click-unscheduled') {
+      return null
+    }
+    return plannedSelections.find((s) => s.selectionIndex === activeSelectionIndex) ?? null
+  }, [interactionKind, activeSelectionIndex, plannedSelections])
+
   const handleVariableCreditChange = useCallback((courseId: string, credits: number) => {
     void setTimelineVariableCreditOverride(courseId, credits).then(setVariableCreditOverrides)
   }, [])
@@ -277,7 +290,11 @@ const TimelinePage = ({ planId }: Props) => {
       selectionIndex: number,
       activeData: Record<string, unknown> | undefined,
       overData:
-        | { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' | 'keep' }
+        | {
+            plannedPeriod?: string
+            action?: 'move' | 'extend' | 'unschedule' | 'keep' | 'designated'
+            spanLocators?: string[]
+          }
         | undefined
     ): Promise<boolean> => {
       if (!fullPlan || !periodIndex) {
@@ -331,8 +348,10 @@ const TimelinePage = ({ planId }: Props) => {
       if (!fullPlan || !periodIndex) {
         return
       }
+      setClickPlacementTarget({ kind: 'designated', spanLocators: locators })
       const applied = applyPlannedPeriodAddSpan(fullPlan, selectionIndex, locators, periodIndex)
       if (!applied.ok) {
+        setClickPlacementTarget(null)
         const message = mapApplyFailureToSaveError(applied.reason)
         if (message) {
           setSaveError(message)
@@ -343,6 +362,7 @@ const TimelinePage = ({ planId }: Props) => {
       setIsSaving(true)
       const result = await updateStudyPlan(planId, applied.plan)
       setIsSaving(false)
+      setClickPlacementTarget(null)
       if (!result.ok) {
         if (result.error === 'no_sisu_token') {
           setSaveError('Could not get Sisu auth')
@@ -428,7 +448,11 @@ const TimelinePage = ({ planId }: Props) => {
         selectionIndex,
         active.data.current as Record<string, unknown> | undefined,
         over.data.current as
-          | { plannedPeriod?: string; action?: 'move' | 'extend' | 'unschedule' | 'keep' }
+          | {
+              plannedPeriod?: string
+              action?: 'move' | 'extend' | 'unschedule' | 'keep' | 'designated'
+              spanLocators?: string[]
+            }
           | undefined
       )
     },
@@ -529,7 +553,7 @@ const TimelinePage = ({ planId }: Props) => {
       ) {
         return
       }
-      setClickPlacementTarget({ action, plannedPeriod })
+      setClickPlacementTarget({ kind: 'single', action, plannedPeriod })
       const applied = await applyDropAndPersist(activeSelectionIndex, activeData, {
         action,
         plannedPeriod,
@@ -722,9 +746,7 @@ const TimelinePage = ({ planId }: Props) => {
       const node = event.target
       const el = node instanceof Element ? node : (node as Node | null)?.parentElement
       if (
-        el?.closest(
-          '[data-timeline-drop-zone],[data-timeline-credits-popup],[data-timeline-quick-schedule]'
-        )
+        el?.closest('[data-timeline-drop-zone],[data-timeline-credits-popup]')
       ) {
         return
       }
@@ -771,7 +793,6 @@ const TimelinePage = ({ planId }: Props) => {
                 isMoveModeActiveForUnscheduled={isMoveModeActiveForUnscheduled}
                 variableCreditOverrides={variableCreditOverrides}
                 onVariableCreditChange={handleVariableCreditChange}
-                onQuickScheduleToSpan={handleQuickScheduleToSpan}
               />
 
               <div
@@ -793,6 +814,8 @@ const TimelinePage = ({ planId }: Props) => {
                   isMoveModeActiveFor={isMoveModeActiveFor}
                   onClickPlacementAction={handleClickPlacementAction}
                   clickPlacementTarget={clickPlacementTarget}
+                  activeUnscheduledSelection={activeUnscheduledSelection}
+                  onQuickScheduleToSpan={handleQuickScheduleToSpan}
                   variableCreditOverrides={variableCreditOverrides}
                   onVariableCreditChange={handleVariableCreditChange}
                 />

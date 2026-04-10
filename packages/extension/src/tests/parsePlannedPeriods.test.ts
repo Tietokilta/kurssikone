@@ -6,6 +6,7 @@ import type { ParsedPlannedPeriod, Season, YearSeason } from '../utils/parsePlan
 import {
   buildTimelineCards,
   computeSemesterCoursePlacements,
+  findConsecutiveLocatorSpanOnCard,
   comparePeriodKeysChronological,
   computeTimelineRange,
   formatPlannedPeriodForSlot,
@@ -434,6 +435,78 @@ describe('totalPlannedCreditsFromPlacements', () => {
       completed: 7,
       planned: 5,
       total: 12,
+    })
+  })
+})
+
+describe('findConsecutiveLocatorSpanOnCard', () => {
+  const spring2026 = new Date('2026-04-04T12:00:00Z')
+  const root = 'aalto-university-root-id'
+  const idx = periodIndex(true)
+
+  it('returns start and span when locators match consecutive columns', () => {
+    const locator = 'aalto-university-root-id/2025/0/0'
+    const selections = [
+      {
+        id: 'a',
+        name: 'A',
+        plannedCredits: 5,
+        parsedPlannedPeriods: parseCourseUnitPlannedPeriods('a', [locator], idx),
+      },
+    ]
+    const cards = buildTimelineCards(selections, spring2026, { periodIndex: idx })
+    const card = cards.find((c) => c.periods.length >= 3)
+    expect(card).toBeDefined()
+    const locators = card!.periods.slice(0, 3).map((p) => p.plannedPeriod)
+    expect(findConsecutiveLocatorSpanOnCard(card!, locators, idx, root)).toEqual({
+      startCol: 0,
+      span: 3,
+    })
+    // Non-consecutive in the grid: longest match on this row is a single column (first period).
+    expect(findConsecutiveLocatorSpanOnCard(card!, [locators[0]!, locators[2]!], idx, root)).toEqual({
+      startCol: 0,
+      span: 1,
+    })
+  })
+
+  it('matches the longest slice that fits on this row when locators span multiple semesters', () => {
+    const idx = periodIndex(true)
+    const springCard = buildTimelineCards(
+      [
+        {
+          id: 'x',
+          name: 'X',
+          plannedCredits: 5,
+          parsedPlannedPeriods: [],
+        },
+      ],
+      new Date('2026-04-04T12:00:00Z'),
+      { periodIndex: idx }
+    ).find((c) => c.season === 'Spring' && c.periods.length >= 3)
+    const summerCard = buildTimelineCards(
+      [
+        {
+          id: 'x',
+          name: 'X',
+          plannedCredits: 5,
+          parsedPlannedPeriods: [],
+        },
+      ],
+      new Date('2026-04-04T12:00:00Z'),
+      { periodIndex: idx }
+    ).find((c) => c.season === 'Summer')
+    expect(springCard).toBeDefined()
+    expect(summerCard).toBeDefined()
+    const springCols = springCard!.periods.map((p) => p.plannedPeriod)
+    const summerLoc = summerCard!.periods[0]!.plannedPeriod
+    const crossSemester = [...springCols.slice(0, 3), summerLoc]
+    expect(findConsecutiveLocatorSpanOnCard(springCard!, crossSemester, idx, root)).toEqual({
+      startCol: 0,
+      span: 3,
+    })
+    expect(findConsecutiveLocatorSpanOnCard(summerCard!, crossSemester, idx, root)).toEqual({
+      startCol: 0,
+      span: 1,
     })
   })
 })
