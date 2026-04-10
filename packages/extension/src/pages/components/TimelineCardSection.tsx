@@ -169,7 +169,7 @@ function PeriodColumnDropOverlays({
   if (interactionKind === 'unscheduled' || interactionKind === 'click-unscheduled') {
     if (squeezeForDesignatedRow) {
       return (
-        <div className="pointer-events-auto relative z-10 flex w-full min-h-14 shrink-0 flex-col">
+        <div className="pointer-events-auto relative z-10 flex h-full min-h-0 w-full min-w-0 flex-1 flex-col">
           <TimelineDropTile
             id={`timeline-move-${periodKey}`}
             action="move"
@@ -443,7 +443,7 @@ const TimelineMainGrid = ({
                 </div>
                 {activeInteractionKind !== 'none' ? (
                   <div
-                    className={`pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col ${
+                    className={`pointer-events-none absolute inset-0 z-10 flex h-full min-h-0 flex-col ${
                       showDesignatedRow ? 'justify-start gap-0' : 'gap-y-1'
                     }`}
                   >
@@ -451,6 +451,7 @@ const TimelineMainGrid = ({
                       <div className="pointer-events-auto flex shrink-0 flex-col gap-y-1">
                         {designatedEntries.map((entry, idx) => {
                           const primaryLocator = entry.sortedLocators[0] ?? ''
+                          const moveToLabel = `Move to ${entry.option.label}`
                           const designatedClickActive =
                             clickPlacementTarget?.kind === 'designated' &&
                             locatorSpansMatch(
@@ -477,9 +478,14 @@ const TimelineMainGrid = ({
                                   action="designated"
                                   plannedPeriod={primaryLocator}
                                   spanLocators={entry.sortedLocators}
-                                  label={entry.option.label}
-                                  ariaLabel={`Move to designated period: ${entry.option.label}`}
-                                  icon={<IconExtendToPeriod className="size-5 shrink-0 opacity-95" />}
+                                  label={moveToLabel}
+                                  ariaLabel={moveToLabel}
+                                  icon={
+                                    <span className="flex shrink-0 items-center justify-center gap-0.5">
+                                      <IconMoveToPeriod className="size-5 shrink-0 opacity-95" />
+                                      <IconExtendToPeriod className="size-5 shrink-0 opacity-95" />
+                                    </span>
+                                  }
                                   tone="designated"
                                   onClick={
                                     clickModeEnabled
@@ -499,11 +505,10 @@ const TimelineMainGrid = ({
                       </div>
                     ) : null}
                     <div
-                      className={`pointer-events-none grid min-h-0 gap-x-2 ${
-                        showDesignatedRow ? 'shrink-0 items-start' : 'flex-1'
-                      }`}
+                      className="pointer-events-none grid min-h-0 flex-1 gap-x-2"
                       style={{
                         gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
+                        ...(showDesignatedRow ? { gridTemplateRows: 'minmax(0, 1fr)' } : {}),
                       }}
                     >
                       {card.periods.map((p, colIndex) => {
@@ -525,10 +530,8 @@ const TimelineMainGrid = ({
                         return (
                           <div
                             key={p.periodKey}
-                            className={`relative flex flex-col self-start ${
-                              showDesignatedRow
-                                ? 'min-h-14'
-                                : 'min-h-20 flex-1 self-stretch'
+                            className={`relative flex min-h-0 flex-col self-stretch ${
+                              showDesignatedRow ? 'h-full min-h-14' : 'min-h-20 flex-1'
                             } ${
                               overlayPointerEventsNone ? 'pointer-events-none' : 'pointer-events-auto'
                             }`}
