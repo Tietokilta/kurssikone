@@ -1,0 +1,14 @@
+[
+  {
+    "id": "example-course-unit-id",
+    "groupId": "example-group",
+    "code": "CS-E1234",
+    "name": { "en": "Example", "fi": "Esimerkki" },
+    "credits": { "min": 5, "max": 5 },
+    "validityPeriod": { "startDate": "2023-08-01", "endDate": null },
+    "additional": {
+      "teachingPeriodEn": "2023-2024 Autumn II; 2023-2024 Spring III - V; 2023-2024 Summer",
+      "teachingPeriodFi": "2023-2024 Syksy II"
+    }
+  }
+]

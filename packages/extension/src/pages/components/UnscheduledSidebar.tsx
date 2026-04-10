@@ -11,16 +11,22 @@ function UnscheduledCourseItem({
   isMoveModeActive,
   variableCreditOverrides,
   onVariableCreditChange,
+  onQuickScheduleToSpan,
 }: {
   selection: ParsedCourseUnitSelection
   onToggleMoveMode: (selectionIndex: number) => void
   isMoveModeActive: boolean
   variableCreditOverrides: Record<string, number>
   onVariableCreditChange: (courseId: string, credits: number) => void
+  onQuickScheduleToSpan: (selectionIndex: number, locators: string[]) => void
 }) {
   const creditUncertain =
     isVariableCreditRange(s.creditsMin, s.creditsMax) &&
     !creditChoiceIsUserSet(s.id, variableCreditOverrides)
+
+  const quickWithLocators = s.teachingPeriodQuickOptions.filter(
+    (o) => o.plannedPeriodLocators && o.plannedPeriodLocators.length > 0
+  )
 
   return (
     <TimelineDraggableCard
@@ -28,7 +34,7 @@ function UnscheduledCourseItem({
       data={{ selectionIndex: s.selectionIndex, fromUnscheduled: true as const }}
     >
       {({ isDragging }) => (
-        <div className={`relative ${isDragging ? 'h-full opacity-0' : 'h-full'}`}>
+        <div className={`relative flex min-w-0 gap-1 ${isDragging ? 'h-full opacity-0' : 'h-full'}`}>
           {isMoveModeActive && isVariableCreditRange(s.creditsMin, s.creditsMax) ? (
             <VariableCreditsEditPopup
               min={s.creditsMin}
@@ -39,29 +45,58 @@ function UnscheduledCourseItem({
               className="absolute bottom-full left-0 right-0 z-30 mb-1"
             />
           ) : null}
-          <TimelineCourseCard
-            name={s.name}
-            plannedCredits={s.plannedCredits}
-            creditsMin={s.creditsMin}
-            creditsMax={s.creditsMax}
-            variant="unscheduled"
-            isDragging={isDragging}
-            highlightActive={isMoveModeActive}
-            creditUncertain={creditUncertain}
-            onEditActivate={
-              !isMoveModeActive ? () => onToggleMoveMode(s.selectionIndex) : undefined
-            }
-            actionButtonsLayout={isMoveModeActive ? 'cover' : 'corner'}
-            actionButtons={
-              isMoveModeActive ? (
-                <TimelineMoveModeButton
-                  isActive
-                  inactiveLabel="Enter edit mode to schedule"
-                  onClick={() => onToggleMoveMode(s.selectionIndex)}
-                />
-              ) : undefined
-            }
-          />
+          {isMoveModeActive && quickWithLocators.length > 0 ? (
+            <div
+              className="flex max-w-[7.5rem] shrink-0 flex-col justify-center gap-1 py-0.5"
+              data-timeline-quick-schedule=""
+            >
+              <span className="text-[9px] font-semibold tracking-wide text-neutral-500 uppercase">
+                Quick schedule
+              </span>
+              {quickWithLocators.map((o) => (
+                <button
+                  key={o.label}
+                  type="button"
+                  title={o.label}
+                  className="max-w-[7rem] cursor-pointer truncate rounded border border-timeline-accent/40 bg-white px-1.5 py-0.5 text-left text-[10px] font-medium leading-tight text-timeline-accent hover:bg-neutral-50"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (o.plannedPeriodLocators?.length) {
+                      onQuickScheduleToSpan(s.selectionIndex, o.plannedPeriodLocators)
+                    }
+                  }}
+                >
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <TimelineCourseCard
+              name={s.name}
+              teachingPeriodLines={s.teachingPeriodLabels}
+              plannedCredits={s.plannedCredits}
+              creditsMin={s.creditsMin}
+              creditsMax={s.creditsMax}
+              variant="unscheduled"
+              isDragging={isDragging}
+              highlightActive={isMoveModeActive}
+              creditUncertain={creditUncertain}
+              onEditActivate={
+                !isMoveModeActive ? () => onToggleMoveMode(s.selectionIndex) : undefined
+              }
+              actionButtonsLayout={isMoveModeActive ? 'cover' : 'corner'}
+              actionButtons={
+                isMoveModeActive ? (
+                  <TimelineMoveModeButton
+                    isActive
+                    inactiveLabel="Enter edit mode to schedule"
+                    onClick={() => onToggleMoveMode(s.selectionIndex)}
+                  />
+                ) : undefined
+              }
+            />
+          </div>
         </div>
       )}
     </TimelineDraggableCard>
@@ -76,6 +111,7 @@ type Props = {
   isMoveModeActiveForUnscheduled: (selectionIndex: number) => boolean
   variableCreditOverrides: Record<string, number>
   onVariableCreditChange: (courseId: string, credits: number) => void
+  onQuickScheduleToSpan: (selectionIndex: number, locators: string[]) => void
 }
 
 const UnscheduledSidebar = ({
@@ -86,6 +122,7 @@ const UnscheduledSidebar = ({
   isMoveModeActiveForUnscheduled,
   variableCreditOverrides,
   onVariableCreditChange,
+  onQuickScheduleToSpan,
 }: Props) => {
   if (selections.length === 0) {
     return null
@@ -133,6 +170,7 @@ const UnscheduledSidebar = ({
                     isMoveModeActive={isMoveModeActiveForUnscheduled(s.selectionIndex)}
                     variableCreditOverrides={variableCreditOverrides}
                     onVariableCreditChange={onVariableCreditChange}
+                    onQuickScheduleToSpan={onQuickScheduleToSpan}
                   />
                 ))}
               </ul>

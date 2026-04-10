@@ -5,6 +5,7 @@ import path from 'path'
 import {
   addPlannedPeriodIfMissing,
   applyPlannedPeriodAdd,
+  applyPlannedPeriodAddSpan,
   applyPlannedPeriodExtend,
   applyPlannedPeriodMove,
   applyPlannedPeriodUnschedule,
@@ -291,6 +292,41 @@ describe('applyPlannedPeriodAdd', () => {
     const plan = studyPlan([selection([])], 4)
     const r = applyPlannedPeriodAdd(plan, 99, p1, index)
     expect(r).toEqual({ ok: false, reason: 'invalid_index' })
+  })
+})
+
+describe('applyPlannedPeriodAddSpan', () => {
+  const springIII = `${ROOT}/2025/1/0`
+  const springIV = `${ROOT}/2025/1/1`
+  const springV = `${ROOT}/2025/1/2`
+
+  it('schedules Spring III–V in one step', () => {
+    const plan = studyPlan([selection([])], 4)
+    const r = applyPlannedPeriodAddSpan(plan, 0, [springIII, springIV, springV], index)
+    expect(r.ok).toBe(true)
+    if (!r.ok) {
+      return
+    }
+    expect(r.plan.courseUnitSelections[0].plannedPeriods).toEqual([springIII, springIV, springV])
+    expect(r.plan.metadata.revision).toBe(5)
+  })
+
+  it('returns invalid_span when slots are not consecutive', () => {
+    const plan = studyPlan([selection([])], 4)
+    const r = applyPlannedPeriodAddSpan(plan, 0, [springIII, springV], index)
+    expect(r).toEqual({ ok: false, reason: 'invalid_span' })
+  })
+
+  it('returns empty_span for empty locator list', () => {
+    const plan = studyPlan([selection([])], 4)
+    const r = applyPlannedPeriodAddSpan(plan, 0, [], index)
+    expect(r).toEqual({ ok: false, reason: 'empty_span' })
+  })
+
+  it('returns already_scheduled when row already has periods', () => {
+    const plan = studyPlan([selection([springIII])], 4)
+    const r = applyPlannedPeriodAddSpan(plan, 0, [springIII, springIV], index)
+    expect(r).toEqual({ ok: false, reason: 'already_scheduled' })
   })
 })
 

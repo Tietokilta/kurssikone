@@ -12,6 +12,7 @@ import {
 } from '@dnd-kit/core'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { initSisuAuth, updateStudyPlan } from '../requestHandlers'
+import type { TeachingPeriodQuickOption } from '../utils/parseKoriTeachingPeriods'
 import {
   aggregateTimelineCreditsByCompletion,
   buildTimelineCards,
@@ -33,7 +34,7 @@ import {
   resolveDragStartState,
   resolveTimelineDrop,
 } from '../utils/timelinePageLogic'
-import { resolveTimelineMoveRun } from '../utils/planPeriodDrag'
+import { applyPlannedPeriodAddSpan, resolveTimelineMoveRun } from '../utils/planPeriodDrag'
 import { loadTimelineData } from '../utils/timelinePageLoad'
 import {
   applyPlannedCreditOverrides,
@@ -72,6 +73,10 @@ export type ParsedCourseUnitSelection = {
   /** Index into `SisuStudyPlan.courseUnitSelections` for PUT updates; `-1` for completed-only rows. */
   selectionIndex: number
   completed?: boolean
+  /** Display lines from Kori `additional` (e.g. `2023-2024 Autumn II`). */
+  teachingPeriodLabels: string[]
+  /** Resolved quick-schedule targets; locators null when not in loaded study years. */
+  teachingPeriodQuickOptions: TeachingPeriodQuickOption[]
 }
 
 const timelineCollisionDetection: CollisionDetection = (args) => {
@@ -94,6 +99,7 @@ function UnscheduledCourseDragPreview({
       creditsMax={s.creditsMax}
       variant="dragPreview"
       creditUncertain={creditUncertain}
+      teachingPeriodLines={s.teachingPeriodLabels}
     />
   )
 }
@@ -318,6 +324,40 @@ const TimelinePage = ({ planId }: Props) => {
       return true
     },
     [fullPlan, periodIndex, planId]
+  )
+
+  const handleQuickScheduleToSpan = useCallback(
+    async (selectionIndex: number, locators: string[]) => {
+      if (!fullPlan || !periodIndex) {
+        return
+      }
+      const applied = applyPlannedPeriodAddSpan(fullPlan, selectionIndex, locators, periodIndex)
+      if (!applied.ok) {
+        const message = mapApplyFailureToSaveError(applied.reason)
+        if (message) {
+          setSaveError(message)
+        }
+        return
+      }
+      setSaveError(null)
+      setIsSaving(true)
+      const result = await updateStudyPlan(planId, applied.plan)
+      setIsSaving(false)
+      if (!result.ok) {
+        if (result.error === 'no_sisu_token') {
+          setSaveError('Could not get Sisu auth')
+        } else {
+          const statusPart = result.status != null ? ` (${result.status})` : ''
+          const raw = result.message ?? ''
+          const detail = raw.length > 200 ? `${raw.slice(0, 200)}…` : raw
+          setSaveError(detail ? `Save failed${statusPart}: ${detail}` : `Save failed${statusPart}`)
+        }
+        return
+      }
+      setFullPlan(applied.plan)
+      resetInteraction()
+    },
+    [fullPlan, periodIndex, planId, resetInteraction]
   )
 
   const handleDragStart = useCallback(
@@ -681,7 +721,11 @@ const TimelinePage = ({ planId }: Props) => {
     const onDocumentClick = (event: MouseEvent) => {
       const node = event.target
       const el = node instanceof Element ? node : (node as Node | null)?.parentElement
-      if (el?.closest('[data-timeline-drop-zone],[data-timeline-credits-popup]')) {
+      if (
+        el?.closest(
+          '[data-timeline-drop-zone],[data-timeline-credits-popup],[data-timeline-quick-schedule]'
+        )
+      ) {
         return
       }
       resetInteraction()
@@ -727,6 +771,7 @@ const TimelinePage = ({ planId }: Props) => {
                 isMoveModeActiveForUnscheduled={isMoveModeActiveForUnscheduled}
                 variableCreditOverrides={variableCreditOverrides}
                 onVariableCreditChange={handleVariableCreditChange}
+                onQuickScheduleToSpan={handleQuickScheduleToSpan}
               />
 
               <div

@@ -173,6 +173,9 @@ export function mapApplyFailureToSaveError(reason: string): string | null {
   if (reason === 'already_scheduled') {
     return 'Could not schedule (course already has a planned period).'
   }
+  if (reason === 'invalid_span' || reason === 'empty_span') {
+    return 'Could not schedule (periods are not consecutive on the timeline).'
+  }
   if (reason === 'invalid_index') {
     return 'Could not update plan.'
   }

@@ -50,6 +50,7 @@ const TimelinePeriodCourseItem = ({
       {({ isDragging }) => (
         <TimelineCourseCard
           name={s.name}
+          teachingPeriodLines={s.teachingPeriodLabels}
           plannedCredits={s.plannedCredits}
           creditsMin={s.creditsMin}
           creditsMax={s.creditsMax}

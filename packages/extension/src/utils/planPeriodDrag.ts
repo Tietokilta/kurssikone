@@ -359,3 +359,40 @@ export function applyPlannedPeriodAdd(
   }
   return { ok: true, plan: updated }
 }
+
+export type ApplyPlannedPeriodAddSpanResult =
+  | { ok: false; reason: 'invalid_index' | 'already_scheduled' | 'invalid_span' | 'empty_span' }
+  | { ok: true; plan: SisuStudyPlan }
+
+/**
+ * Schedule an unscheduled row to multiple consecutive timeline slots in one update (e.g. Spring III–V).
+ */
+export function applyPlannedPeriodAddSpan(
+  plan: SisuStudyPlan,
+  selectionIndex: number,
+  targetPlannedPeriods: string[],
+  index: StudyPeriodIndex
+): ApplyPlannedPeriodAddSpanResult {
+  const row = plan.courseUnitSelections[selectionIndex]
+  if (!row) {
+    return { ok: false, reason: 'invalid_index' }
+  }
+  if (row.plannedPeriods.length > 0) {
+    return { ok: false, reason: 'already_scheduled' }
+  }
+  const trimmed = targetPlannedPeriods.map((p) => p.trim()).filter(Boolean)
+  if (trimmed.length === 0) {
+    return { ok: false, reason: 'empty_span' }
+  }
+  const sorted = sortLocatorsByTimelineOrder(index, trimmed)
+  if (!plannedPeriodSlotsAreTimelineConsecutive(index, sorted)) {
+    return { ok: false, reason: 'invalid_span' }
+  }
+  const updated = structuredClone(plan) as SisuStudyPlan
+  updated.courseUnitSelections[selectionIndex] = { ...row, plannedPeriods: sorted }
+  updated.metadata = {
+    ...updated.metadata,
+    revision: updated.metadata.revision + 1,
+  }
+  return { ok: true, plan: updated }
+}

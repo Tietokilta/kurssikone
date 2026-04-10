@@ -1,4 +1,6 @@
 import { Course } from '@kurssikompassi/shared/src/types'
+import { buildTeachingPeriodQuickOptions } from './parseKoriTeachingPeriods'
+import { getTodayDateIso, prepareTeachingPeriodsForTimeline } from './teachingPeriodTimeline'
 import { parseCourseUnitPlannedPeriods, type StudyPeriodIndex } from './parsePlannedPeriods'
 import { findPeriodByDate } from './studyYearPeriods'
 import type {
@@ -115,6 +117,13 @@ export function buildParsedCourseUnitSelections(
     const plannedCredits =
       creditsMax === creditsMin ? creditsMax : Math.round((creditsMax + creditsMin) / 2)
 
+    const todayIso = getTodayDateIso()
+    const prepared = prepareTeachingPeriodsForTimeline(course, periodIndex, todayIso)
+    const teachingPeriodQuickOptions = buildTeachingPeriodQuickOptions(
+      periodIndex,
+      prepared.quickGroups
+    )
+
     return {
       id: s.courseUnitId,
       name,
@@ -128,6 +137,8 @@ export function buildParsedCourseUnitSelections(
       ),
       rawData: s,
       selectionIndex,
+      teachingPeriodLabels: prepared.displayLabels,
+      teachingPeriodQuickOptions,
     }
   })
 }
@@ -197,6 +208,8 @@ export function buildCompletedSelections(
         rawData: emptySelectionRow(att.id),
         selectionIndex: -1,
         completed: true,
+        teachingPeriodLabels: [],
+        teachingPeriodQuickOptions: [],
       })
       continue
     }
@@ -217,6 +230,13 @@ export function buildCompletedSelections(
     const plannedCredits =
       creditsMax === creditsMin ? creditsMax : Math.round((creditsMax + creditsMin) / 2)
 
+    const todayIso = getTodayDateIso()
+    const prepared = prepareTeachingPeriodsForTimeline(course, periodIndex, todayIso)
+    const teachingPeriodQuickOptions = buildTeachingPeriodQuickOptions(
+      periodIndex,
+      prepared.quickGroups
+    )
+
     out.push({
       id: att.courseUnitId,
       name,
@@ -227,6 +247,8 @@ export function buildCompletedSelections(
       rawData: emptySelectionRow(att.courseUnitId),
       selectionIndex: -1,
       completed: true,
+      teachingPeriodLabels: prepared.displayLabels,
+      teachingPeriodQuickOptions,
     })
   }
   return out

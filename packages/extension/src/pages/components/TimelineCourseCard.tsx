@@ -5,6 +5,8 @@ type TimelineCourseCardVariant = 'scheduled' | 'unscheduled' | 'completed' | 'dr
 
 type Props = {
   name: string
+  /** Lines from Kori teaching period hints (shown under the title). */
+  teachingPeriodLines?: string[]
   /** Total planned credits for the course (display only; row height still follows per-period layout in the grid). */
   plannedCredits: number
   /** Kori min/max; when they differ, shown as small italic “min–max” under the credits in the colored strip. */
@@ -27,6 +29,7 @@ type Props = {
 
 const TimelineCourseCard = ({
   name,
+  teachingPeriodLines,
   plannedCredits,
   creditsMin,
   creditsMax,
@@ -96,7 +99,16 @@ const TimelineCourseCard = ({
         </div>
 
         <div className="relative min-w-0 flex-1 p-2">
-          {name}
+          <div className="min-w-0 break-words leading-snug">{name}</div>
+          {teachingPeriodLines && teachingPeriodLines.length > 0 ? (
+            <ul className="mt-1 list-inside list-disc space-y-0.5 text-[11px] leading-snug text-neutral-500">
+              {teachingPeriodLines.map((line, i) => (
+                <li key={`${i}-${line}`} className="break-words">
+                  {line}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           {completed ? (
             <span className="mt-0.5 block text-xs text-neutral-600">Completed</span>
           ) : null}

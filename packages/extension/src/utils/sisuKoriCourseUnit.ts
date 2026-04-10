@@ -1,5 +1,7 @@
 import type { Course } from '@kurssikompassi/shared'
 
+import { parseKoriTeachingPeriodsFromAdditional } from './parseKoriTeachingPeriods'
+import { getTodayDateIso, isCourseValidityEnded } from './teachingPeriodTimeline'
 import type { SisuKoriCourseUnit } from './types'
 
 function isoDatePrefix(d: string | null | undefined): string | null {
@@ -9,7 +11,12 @@ function isoDatePrefix(d: string | null | undefined): string | null {
 
 export function koriCourseUnitToSharedCourse(unit: SisuKoriCourseUnit): Course {
   const vp = unit.validityPeriod
-  return {
+  const { groups, noTeachingAcademicYearStarts } =
+    parseKoriTeachingPeriodsFromAdditional(unit.additional)
+  const todayIso = getTodayDateIso()
+  const validityEnd = isoDatePrefix(vp?.endDate ?? undefined)
+  const hideTeachingBecauseCourseEnded = isCourseValidityEnded(validityEnd, todayIso)
+  const base: Course = {
     id: unit.id,
     code: unit.code,
     groupId: unit.groupId ?? null,
@@ -18,9 +25,18 @@ export function koriCourseUnitToSharedCourse(unit: SisuKoriCourseUnit): Course {
     creditsMin: unit.credits?.min ?? null,
     creditsMax: unit.credits?.max ?? null,
     validityStart: isoDatePrefix(vp?.startDate),
-    validityEnd: isoDatePrefix(vp?.endDate ?? undefined),
+    validityEnd,
     avgQualityScore: null,
     avgWorkloadScore: null,
     reviewCount: 0,
   }
+  if (!hideTeachingBecauseCourseEnded && groups.length > 0) {
+    base.teachingPeriodGroups = groups
+  }
+  if (!hideTeachingBecauseCourseEnded && noTeachingAcademicYearStarts.length > 0) {
+    base.teachingPeriodNoTeachingYears = noTeachingAcademicYearStarts.map((academicYearStart) => ({
+      academicYearStart,
+    }))
+  }
+  return base
 }

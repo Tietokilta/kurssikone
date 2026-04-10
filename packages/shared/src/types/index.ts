@@ -31,6 +31,28 @@ export type CourseListSortBy = 'alphabetical' | 'credits' | 'quality' | 'workloa
 
 export type ListSortOrder = 'asc' | 'desc'
 
+/** Roman period labels within Autumn (I–II) or Spring (III–V), or Summer. */
+export type CourseTeachingPeriodToken = 'I' | 'II' | 'III' | 'IV' | 'V' | 'Summer'
+
+/** Timeline season (same encoding as the extension study-year grid). */
+export type CourseTeachingTimelineSeason = 'Fall' | 'Spring' | 'Summer'
+
+/**
+ * A contiguous run of periods on the timeline (may be a single period or e.g. III–V).
+ * `timelineYear` is the calendar year used on the timeline for that season (see extension study-year grid).
+ */
+export type CourseTeachingPeriodGroup = {
+  timelineYear: number
+  season: CourseTeachingTimelineSeason
+  periodFrom: CourseTeachingPeriodToken
+  periodTo: CourseTeachingPeriodToken
+}
+
+/** Academic years where Kori states there is no teaching (from `additional` text). */
+export type CourseTeachingNoTeachingYear = {
+  academicYearStart: number
+}
+
 export type Course = {
   id: string
   code: string
@@ -44,6 +66,10 @@ export type Course = {
   avgQualityScore: number | null
   avgWorkloadScore: number | null
   reviewCount: number
+  /** Period ranges from Kori `additional` (extension timeline). */
+  teachingPeriodGroups?: CourseTeachingPeriodGroup[] | null
+  /** Academic years listed as having no teaching in Kori `additional`. */
+  teachingPeriodNoTeachingYears?: CourseTeachingNoTeachingYear[] | null
 }
 
 export type CourseRealisation = {

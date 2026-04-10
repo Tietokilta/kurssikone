@@ -242,6 +242,8 @@ export interface SisuKoriCourseUnit {
   name: SisuLocalizedName
   credits: { min: number; max: number }
   validityPeriod?: { startDate?: string; endDate?: string | null }
+  /** Localised teaching period hints; shape varies — see `parseKoriTeachingPeriods`. */
+  additional?: unknown
 }
 
 export type SisuKoriCourseUnitsResponse = SisuKoriCourseUnit[]
