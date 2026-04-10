@@ -169,20 +169,17 @@ function PeriodColumnDropOverlays({
   if (interactionKind === 'unscheduled' || interactionKind === 'click-unscheduled') {
     if (squeezeForDesignatedRow) {
       return (
-        <div className="pointer-events-auto absolute inset-0 z-10 flex min-h-0 flex-col">
-          <div className="min-h-0 flex-1" aria-hidden />
-          <div className="flex min-h-14 shrink-0">
-            <TimelineDropTile
-              id={`timeline-move-${periodKey}`}
-              action="move"
-              plannedPeriod={plannedPeriod}
-              label="Move to period"
-              icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
-              tone="move"
-              onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
-              clickActive={moveClickActive}
-            />
-          </div>
+        <div className="pointer-events-auto relative z-10 flex w-full min-h-14 shrink-0 flex-col">
+          <TimelineDropTile
+            id={`timeline-move-${periodKey}`}
+            action="move"
+            plannedPeriod={plannedPeriod}
+            label="Move to period"
+            icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
+            tone="move"
+            onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
+            clickActive={moveClickActive}
+          />
         </div>
       )
     }
@@ -445,7 +442,11 @@ const TimelineMainGrid = ({
                   })}
                 </div>
                 {activeInteractionKind !== 'none' ? (
-                  <div className="pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col gap-y-1">
+                  <div
+                    className={`pointer-events-none absolute inset-0 z-10 flex min-h-0 flex-col ${
+                      showDesignatedRow ? 'justify-start gap-0' : 'gap-y-1'
+                    }`}
+                  >
                     {showDesignatedRow && periodIndex && activeUnscheduledSelection ? (
                       <div className="pointer-events-auto flex shrink-0 flex-col gap-y-1">
                         {designatedEntries.map((entry, idx) => {
@@ -498,7 +499,9 @@ const TimelineMainGrid = ({
                       </div>
                     ) : null}
                     <div
-                      className="pointer-events-none grid min-h-0 flex-1 gap-x-2"
+                      className={`pointer-events-none grid min-h-0 gap-x-2 ${
+                        showDesignatedRow ? 'shrink-0 items-start' : 'flex-1'
+                      }`}
                       style={{
                         gridTemplateColumns: `repeat(${maxPeriodCols}, minmax(0, 1fr))`,
                       }}
@@ -522,7 +525,11 @@ const TimelineMainGrid = ({
                         return (
                           <div
                             key={p.periodKey}
-                            className={`relative flex min-h-20 flex-1 flex-col self-stretch ${
+                            className={`relative flex flex-col self-start ${
+                              showDesignatedRow
+                                ? 'min-h-14'
+                                : 'min-h-20 flex-1 self-stretch'
+                            } ${
                               overlayPointerEventsNone ? 'pointer-events-none' : 'pointer-events-auto'
                             }`}
                           >
