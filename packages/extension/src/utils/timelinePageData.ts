@@ -6,7 +6,9 @@ import type {
   SisuAttainment,
   SisuCourseUnitAttainment,
   SisuCourseUnitSelection,
+  SisuCustomCourseUnitAttainment,
 } from './types'
+import type { ParsedPlannedPeriod } from './parsePlannedPeriods'
 import type { ParsedCourseUnitSelection } from '../pages/TimelinePage'
 
 export const DEFAULT_SISU_ROOT_ID = 'aalto-university-root-id'
@@ -33,6 +35,65 @@ function emptySelectionRow(courseUnitId: string): SisuCourseUnitSelection {
     plannedPeriods: [],
     gradeRaiseAttempt: null,
   }
+}
+
+/** States that should not appear as completed on the timeline (failed / voided). */
+const TIMELINE_NON_COMPLETION_STATES = new Set(
+  ['FAILED', 'CANCELLED', 'WITHDRAWN', 'REJECTED', 'DRAFT'].map((s) => s.toUpperCase())
+)
+
+function normState(s: string | undefined | null): string {
+  return (s ?? '').trim().toUpperCase()
+}
+
+/** ISO date for ordering / placement; prefers attainment date, then registration. */
+export function placementSortKey(a: { attainmentDate: string; registrationDate: string }): string {
+  const ad = a.attainmentDate?.trim()
+  if (ad) {
+    return ad
+  }
+  return a.registrationDate?.trim() ?? ''
+}
+
+function findSlotForAttainment(
+  periodIndex: StudyPeriodIndex,
+  a: { attainmentDate: string; registrationDate: string }
+): ParsedPlannedPeriod | null {
+  const ad = a.attainmentDate?.trim()
+  const rd = a.registrationDate?.trim()
+  if (ad) {
+    const slot = findPeriodByDate(periodIndex, ad)
+    if (slot) {
+      return slot
+    }
+  }
+  if (rd && rd !== ad) {
+    return findPeriodByDate(periodIndex, rd)
+  }
+  return null
+}
+
+export type TimelineCompletionAttainment =
+  | SisuCourseUnitAttainment
+  | SisuAssessmentItemAttainment
+  | SisuCustomCourseUnitAttainment
+
+/**
+ * Whether an ORI attainment should contribute a “completed course” row on the timeline.
+ * Counts credit-bearing rows such as {@link SisuAttainmentBase.state} `INCLUDED` (e.g. transfer / aggregation).
+ * Matching is case-insensitive for `state` and `primaryStatus`.
+ */
+export function countsAsTimelineCompletion(a: TimelineCompletionAttainment): boolean {
+  if (TIMELINE_NON_COMPLETION_STATES.has(normState(a.state))) {
+    return false
+  }
+  if (normState(a.state) === 'INCLUDED') {
+    return true
+  }
+  if (a.type === 'AssessmentItemAttainment' && normState(a.primaryStatus) === 'INCLUDED') {
+    return true
+  }
+  return true
 }
 
 export function buildParsedCourseUnitSelections(
@@ -79,20 +140,69 @@ export function buildCompletedSelections(
   if (!periodIndex) {
     return []
   }
-  const best = new Map<string, SisuCourseUnitAttainment | SisuAssessmentItemAttainment>()
+  type Best =
+    | { kind: 'standard'; att: SisuCourseUnitAttainment | SisuAssessmentItemAttainment }
+    | { kind: 'custom'; att: SisuCustomCourseUnitAttainment }
+  const best = new Map<string, Best>()
   for (const a of attainments) {
-    if (a.type !== 'CourseUnitAttainment' && a.type !== 'AssessmentItemAttainment') {
+    if (a.type === 'CourseUnitAttainment' || a.type === 'AssessmentItemAttainment') {
+      if (!countsAsTimelineCompletion(a)) {
+        continue
+      }
+      const key = `std:${a.courseUnitId}`
+      const prev = best.get(key)
+      const prevKey = prev?.kind === 'standard' ? placementSortKey(prev.att) : ''
+      if (!prev || placementSortKey(a).localeCompare(prevKey) < 0) {
+        best.set(key, { kind: 'standard', att: a })
+      }
       continue
     }
-    const prev = best.get(a.courseUnitId)
-    if (!prev || a.attainmentDate.localeCompare(prev.attainmentDate) < 0) {
-      best.set(a.courseUnitId, a)
+    if (a.type === 'CustomCourseUnitAttainment') {
+      if (!countsAsTimelineCompletion(a)) {
+        continue
+      }
+      const key = `cust:${a.id}`
+      const prev = best.get(key)
+      const prevKey = prev?.kind === 'custom' ? placementSortKey(prev.att) : ''
+      if (!prev || placementSortKey(a).localeCompare(prevKey) < 0) {
+        best.set(key, { kind: 'custom', att: a })
+      }
     }
   }
 
   const out: ParsedCourseUnitSelection[] = []
-  for (const [, att] of best) {
-    const slot = findPeriodByDate(periodIndex, att.attainmentDate)
+  for (const [, entry] of best) {
+    if (entry.kind === 'custom') {
+      const att = entry.att
+      const slot = findSlotForAttainment(periodIndex, att)
+      if (!slot) {
+        continue
+      }
+      const name =
+        (att.name.en && att.name.en.trim()) ||
+        (att.name.fi && att.name.fi.trim()) ||
+        att.code ||
+        att.id
+      const creditsMin = att.credits || 0
+      const creditsMax = att.credits || 0
+      const plannedCredits =
+        creditsMax === creditsMin ? creditsMax : Math.round((creditsMax + creditsMin) / 2)
+      out.push({
+        id: att.id,
+        name,
+        creditsMin,
+        creditsMax,
+        plannedCredits,
+        parsedPlannedPeriods: [slot],
+        rawData: emptySelectionRow(att.id),
+        selectionIndex: -1,
+        completed: true,
+      })
+      continue
+    }
+
+    const att = entry.att
+    const slot = findSlotForAttainment(periodIndex, att)
     if (!slot) {
       continue
     }
