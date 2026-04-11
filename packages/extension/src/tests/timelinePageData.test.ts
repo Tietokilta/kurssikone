@@ -246,6 +246,7 @@ describe('buildCompletedSelections', () => {
     expect(rows[0]).toMatchObject({
       id: oid,
       name: 'DevOps with Docker',
+      code: 'CS-E4190',
       completed: true,
     })
   })

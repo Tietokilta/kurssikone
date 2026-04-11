@@ -112,6 +112,8 @@ export function buildParsedCourseUnitSelections(
       course?.code ||
       s.courseUnitId
 
+    const code = (course?.code && course.code.trim()) || ''
+
     const creditsMin = course?.creditsMin || 0
     const creditsMax = course?.creditsMax || 0
     const plannedCredits =
@@ -127,6 +129,7 @@ export function buildParsedCourseUnitSelections(
     return {
       id: s.courseUnitId,
       name,
+      code,
       creditsMin,
       creditsMax,
       plannedCredits,
@@ -194,6 +197,7 @@ export function buildCompletedSelections(
         (att.name.fi && att.name.fi.trim()) ||
         att.code ||
         att.id
+      const code = (att.code && att.code.trim()) || ''
       const creditsMin = att.credits || 0
       const creditsMax = att.credits || 0
       const plannedCredits =
@@ -201,6 +205,7 @@ export function buildCompletedSelections(
       out.push({
         id: att.id,
         name,
+        code,
         creditsMin,
         creditsMax,
         plannedCredits,
@@ -225,6 +230,7 @@ export function buildCompletedSelections(
       (course?.nameFi && course.nameFi.trim()) ||
       course?.code ||
       att.courseUnitId
+    const code = (course?.code && course.code.trim()) || ''
     const creditsMin = course?.creditsMin || att.credits || 0
     const creditsMax = course?.creditsMax || att.credits || 0
     const plannedCredits =
@@ -240,6 +246,7 @@ export function buildCompletedSelections(
     out.push({
       id: att.courseUnitId,
       name,
+      code,
       creditsMin,
       creditsMax,
       plannedCredits,

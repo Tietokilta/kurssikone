@@ -69,6 +69,8 @@ export type ClickPlacementTarget =
 export type ParsedCourseUnitSelection = {
   id: string
   name: string
+  /** Course unit code from Kori / attainment (e.g. CS-C1000); may be empty if unknown. */
+  code: string
   creditsMin: number
   creditsMax: number
   plannedCredits: number
@@ -98,6 +100,7 @@ function UnscheduledCourseDragPreview({
   return (
     <TimelineCourseCard
       name={s.name}
+      courseCode={s.code}
       plannedCredits={s.plannedCredits}
       creditsMin={s.creditsMin}
       creditsMax={s.creditsMax}

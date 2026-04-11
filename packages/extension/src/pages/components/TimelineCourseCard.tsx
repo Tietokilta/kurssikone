@@ -5,6 +5,8 @@ type TimelineCourseCardVariant = 'scheduled' | 'unscheduled' | 'completed' | 'dr
 
 type Props = {
   name: string
+  /** Course unit code (e.g. CS-C1000); shown under the title when set. */
+  courseCode?: string
   /** Lines from Kori teaching period hints (shown under the title). */
   teachingPeriodLines?: string[]
   /** Total planned credits for the course (display only; row height still follows per-period layout in the grid). */
@@ -29,6 +31,7 @@ type Props = {
 
 const TimelineCourseCard = ({
   name,
+  courseCode,
   teachingPeriodLines,
   plannedCredits,
   creditsMin,
@@ -45,10 +48,9 @@ const TimelineCourseCard = ({
 }: Props) => {
   const completed = variant === 'completed'
   const preview = variant === 'dragPreview'
-  const showVariableRange =
-    creditsMin != null &&
-    creditsMax != null &&
-    creditsMax !== creditsMin
+  const showCourseCode =
+    !!courseCode && courseCode.trim() !== '' && courseCode.trim() !== name.trim()
+  const showVariableRange = creditsMin != null && creditsMax != null && creditsMax !== creditsMin
   const rootClassName = completed
     ? 'cursor-default bg-timeline-surface text-neutral-700'
     : `bg-timeline-surface ${preview ? 'cursor-grabbing shadow-lg ring-1 ring-neutral-900/15' : isDragging ? 'cursor-grabbing opacity-60' : 'cursor-grab'}`
@@ -100,6 +102,11 @@ const TimelineCourseCard = ({
 
         <div className="relative min-w-0 flex-1 p-2">
           <div className="min-w-0 break-words leading-snug">{name}</div>
+          {showCourseCode ? (
+            <div className="mt-0.5 text-[11px] font-normal leading-tight text-neutral-500">
+              {courseCode}
+            </div>
+          ) : null}
           {teachingPeriodLines && teachingPeriodLines.length > 0 ? (
             <ul className="mt-1 list-inside list-disc space-y-0.5 text-[11px] leading-snug text-neutral-500">
               {teachingPeriodLines.map((line, i) => (
