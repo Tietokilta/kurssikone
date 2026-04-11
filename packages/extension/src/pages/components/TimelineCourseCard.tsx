@@ -27,6 +27,12 @@ type Props = {
   actionButtonsLayout?: 'corner' | 'cover'
   /** Variable-credit course with no user-picked value yet (show ? after the estimate). */
   creditUncertain?: boolean
+  /** Sisu course unit id (e.g. `aalto-CU-1150973069-20240801`); title links to completion methods in a new tab. */
+  courseUnitId?: string
+}
+
+function sisuCourseUnitCompletionMethodsUrl(courseUnitId: string): string {
+  return `https://sisu.aalto.fi/student/courseunit/${encodeURIComponent(courseUnitId)}/completion-methods`
 }
 
 const TimelineCourseCard = ({
@@ -45,6 +51,7 @@ const TimelineCourseCard = ({
   onEditActivate,
   actionButtonsLayout = 'corner',
   creditUncertain = false,
+  courseUnitId,
 }: Props) => {
   const completed = variant === 'completed'
   const preview = variant === 'dragPreview'
@@ -55,8 +62,14 @@ const TimelineCourseCard = ({
     ? 'cursor-default bg-timeline-surface text-neutral-700'
     : `bg-timeline-surface ${preview ? 'cursor-grabbing shadow-lg ring-1 ring-neutral-900/15' : isDragging ? 'cursor-grabbing opacity-60' : 'cursor-grab'}`
 
+  const canEdit = onEditActivate !== undefined
+  const trimmedCourseUnitId = courseUnitId?.trim() ?? ''
+  const hasTitleLink = trimmedCourseUnitId.length > 0
+  /** Title is a link → edit activation is on credits strip + body below title, not the whole card. */
+  const splitEditRegions = canEdit && hasTitleLink
+
   const editActivateProps =
-    onEditActivate !== undefined
+    canEdit && onEditActivate
       ? {
           role: 'button' as const,
           tabIndex: 0 as const,
@@ -77,17 +90,45 @@ const TimelineCourseCard = ({
         }
       : {}
 
+  const rootEditProps = !splitEditRegions && canEdit ? editActivateProps : {}
+
+  const titleClassName = 'min-w-0 break-words leading-snug'
+  const titleLinkClassName = `${titleClassName} cursor-pointer text-inherit underline-offset-2 hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-timeline-accent`
+
+  const bodyBlock = (
+    <>
+      {showCourseCode ? (
+        <div className="mt-0.5 text-[11px] font-normal leading-tight text-neutral-500">
+          {courseCode}
+        </div>
+      ) : null}
+      {teachingPeriodLines && teachingPeriodLines.length > 0 ? (
+        <ul className="mt-1 list-inside list-disc space-y-0.5 text-[11px] leading-snug text-neutral-500">
+          {teachingPeriodLines.map((line, i) => (
+            <li key={`${i}-${line}`} className="break-words">
+              {line}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {completed ? (
+        <span className="mt-0.5 block text-xs text-neutral-600">Completed</span>
+      ) : null}
+    </>
+  )
+
   return (
     <div
       style={!fillContainer && minHeight ? { minHeight } : undefined}
       className={`group relative box-border flex w-full min-w-0 ${fillContainer ? 'h-full min-h-0' : 'h-full'} ${rootClassName} ${highlightActive ? 'ring-2 ring-inset ring-timeline-move/80' : ''}`}
-      {...editActivateProps}
+      {...rootEditProps}
     >
       <div className="flex min-h-0 w-full flex-1">
         <div
           className={`flex w-12 shrink-0 flex-col items-center justify-center px-1 py-2 text-center text-white ${
             completed ? 'bg-neutral-500' : 'bg-timeline-accent'
           }`}
+          {...(splitEditRegions ? editActivateProps : {})}
         >
           <span className="text-sm font-medium leading-tight tabular-nums">
             {plannedCredits % 1 === 0 ? plannedCredits : plannedCredits.toFixed(1)}
@@ -100,25 +141,30 @@ const TimelineCourseCard = ({
           ) : null}
         </div>
 
-        <div className="relative min-w-0 flex-1 p-2">
-          <div className="min-w-0 break-words leading-snug">{name}</div>
-          {showCourseCode ? (
-            <div className="mt-0.5 text-[11px] font-normal leading-tight text-neutral-500">
-              {courseCode}
+        <div
+          className={`relative min-w-0 flex-1 p-2 ${splitEditRegions ? 'flex min-h-0 flex-col' : ''}`}
+        >
+          {hasTitleLink ? (
+            <a
+              href={sisuCourseUnitCompletionMethodsUrl(trimmedCourseUnitId)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={titleLinkClassName}
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
+              {name}
+            </a>
+          ) : (
+            <div className={titleClassName}>{name}</div>
+          )}
+          {splitEditRegions ? (
+            <div className="flex min-h-0 flex-1 flex-col" {...editActivateProps}>
+              {bodyBlock}
             </div>
-          ) : null}
-          {teachingPeriodLines && teachingPeriodLines.length > 0 ? (
-            <ul className="mt-1 list-inside list-disc space-y-0.5 text-[11px] leading-snug text-neutral-500">
-              {teachingPeriodLines.map((line, i) => (
-                <li key={`${i}-${line}`} className="break-words">
-                  {line}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {completed ? (
-            <span className="mt-0.5 block text-xs text-neutral-600">Completed</span>
-          ) : null}
+          ) : (
+            bodyBlock
+          )}
         </div>
       </div>
 

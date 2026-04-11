@@ -100,6 +100,7 @@ function UnscheduledCourseDragPreview({
   return (
     <TimelineCourseCard
       name={s.name}
+      courseUnitId={s.id}
       courseCode={s.code}
       plannedCredits={s.plannedCredits}
       creditsMin={s.creditsMin}

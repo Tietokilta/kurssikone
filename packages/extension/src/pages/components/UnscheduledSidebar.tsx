@@ -42,6 +42,7 @@ function UnscheduledCourseItem({
           <div className="min-w-0 flex-1">
             <TimelineCourseCard
               name={s.name}
+              courseUnitId={s.id}
               courseCode={s.code}
               teachingPeriodLines={s.teachingPeriodLabels}
               plannedCredits={s.plannedCredits}
