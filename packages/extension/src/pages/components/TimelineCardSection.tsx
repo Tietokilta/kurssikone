@@ -15,7 +15,13 @@ import {
 } from '../../utils/parsePlannedPeriods'
 import { isVariableCreditRange } from '../../utils/timelineVariableCredits'
 import type { ClickPlacementTarget, ParsedCourseUnitSelection } from '../TimelinePage'
-import { formatMoveAndExpandTo, TIMELINE_PLACEMENT_LABELS } from './timelineActionLabels'
+import {
+  formatExtendToPeriod,
+  formatKeepInPeriod,
+  formatMoveAndExpandTo,
+  formatMoveToPeriod,
+  resolveTimelinePlacementLabel,
+} from './timelineActionLabels'
 import { IconExtendToPeriod, IconKeepInPeriod, IconMoveToPeriod } from './TimelineIcons'
 import TimelineDropTile from './TimelineDropTile'
 import TimelineEditColumnStrip from './TimelineEditColumnStrip'
@@ -107,6 +113,7 @@ function locatorSpansMatch(
 function PeriodColumnDropOverlays({
   periodKey,
   plannedPeriod,
+  periodDisplayName,
   interactionKind,
   periodIndex,
   dragRow,
@@ -117,6 +124,8 @@ function PeriodColumnDropOverlays({
 }: {
   periodKey: string
   plannedPeriod: string
+  /** Semester + period column, e.g. `Spring 2025 — P3` (see {@link resolveTimelinePlacementLabel}). */
+  periodDisplayName: string
   interactionKind: TimelineInteractionKind
   periodIndex: StudyPeriodIndex | null
   dragRow: TimelineDragRowSnapshot | null
@@ -137,7 +146,7 @@ function PeriodColumnDropOverlays({
             id={`timeline-keep-${periodKey}`}
             action="keep"
             plannedPeriod={plannedPeriod}
-            label={TIMELINE_PLACEMENT_LABELS.keepInCurrentPeriod}
+            label={formatKeepInPeriod(periodDisplayName)}
             icon={<IconKeepInPeriod className="size-5 shrink-0 opacity-95" />}
             tone="keep"
           />
@@ -151,7 +160,7 @@ function PeriodColumnDropOverlays({
             id={`timeline-reanchor-${periodKey}`}
             action="move"
             plannedPeriod={plannedPeriod}
-            label={TIMELINE_PLACEMENT_LABELS.moveToPeriod}
+            label={formatMoveToPeriod(periodDisplayName)}
             icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
             tone="move"
             onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
@@ -175,7 +184,7 @@ function PeriodColumnDropOverlays({
             id={`timeline-move-${periodKey}`}
             action="move"
             plannedPeriod={plannedPeriod}
-            label={TIMELINE_PLACEMENT_LABELS.moveToPeriod}
+            label={formatMoveToPeriod(periodDisplayName)}
             icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
             tone="move"
             onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
@@ -190,7 +199,7 @@ function PeriodColumnDropOverlays({
           id={`timeline-move-${periodKey}`}
           action="move"
           plannedPeriod={plannedPeriod}
-          label={TIMELINE_PLACEMENT_LABELS.moveToPeriod}
+          label={formatMoveToPeriod(periodDisplayName)}
           icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
           tone="move"
           onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
@@ -205,7 +214,7 @@ function PeriodColumnDropOverlays({
         id={`timeline-move-${periodKey}`}
         action="move"
         plannedPeriod={plannedPeriod}
-        label={TIMELINE_PLACEMENT_LABELS.moveToPeriod}
+        label={formatMoveToPeriod(periodDisplayName)}
         icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
         tone="move"
         layout="half"
@@ -220,7 +229,7 @@ function PeriodColumnDropOverlays({
         id={`timeline-extend-${periodKey}`}
         action="extend"
         plannedPeriod={plannedPeriod}
-        label={TIMELINE_PLACEMENT_LABELS.extendToPeriod}
+        label={formatExtendToPeriod(periodDisplayName)}
         icon={<IconExtendToPeriod className="size-5 shrink-0 opacity-95" />}
         tone="extend"
         layout="half"
@@ -369,6 +378,12 @@ const TimelineMainGrid = ({
                   periodIndex,
                   sisuRootId
                 )
+                const periodDisplayName = resolveTimelinePlacementLabel(
+                  card.year,
+                  card.season,
+                  p.period,
+                  resolved
+                )
                 const editPl = findEditModePlacementForColumn(
                   placements,
                   colIndex,
@@ -391,6 +406,7 @@ const TimelineMainGrid = ({
                       <div className="pointer-events-auto absolute inset-0 z-25 flex min-h-0 flex-col">
                         <TimelineEditColumnStrip
                           plannedPeriod={resolved}
+                          periodDisplayName={periodDisplayName}
                           isAnchorColumn={colIndex === editPl.startCol}
                           onRemove={(pp) =>
                             onCardUnschedule(editPl.selection.selectionIndex, pp)
@@ -430,6 +446,7 @@ const TimelineMainGrid = ({
                       <PeriodColumnDropOverlays
                         periodKey={p.periodKey}
                         plannedPeriod={resolved}
+                        periodDisplayName={periodDisplayName}
                         interactionKind={activeInteractionKind}
                         periodIndex={periodIndex}
                         dragRow={dragRowSnapshot}

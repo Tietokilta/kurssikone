@@ -1,5 +1,9 @@
 import type { MouseEvent } from 'react'
-import { TIMELINE_PLACEMENT_LABELS } from './timelineActionLabels'
+import {
+  formatKeepInPeriod,
+  formatMoveToPeriod,
+  formatRemoveFromPeriod,
+} from './timelineActionLabels'
 import { IconKeepInPeriod, IconMoveToPeriod, IconScissors } from './TimelineIcons'
 import { timelineToneButtonClasses, type TimelineDropTone } from './timelineDropTones'
 import VariableCreditsEditPopup from './VariableCreditsEditPopup'
@@ -18,6 +22,8 @@ export type TimelineVariableCreditsEdit = {
 
 export type TimelineEditColumnStripProps = {
   plannedPeriod: string
+  /** Semester + period column label for actions (e.g. `Spring 2025 — P3`). */
+  periodDisplayName: string
   isAnchorColumn: boolean
   onRemove: (plannedPeriod: string) => void
   onMoveToPeriod?: (plannedPeriod: string) => void
@@ -28,6 +34,7 @@ export type TimelineEditColumnStripProps = {
 /** One period column: keep | move (top) + remove (bottom). Parent should use same shell as drop overlays (`absolute inset-0 flex flex-col`). */
 const TimelineEditColumnStrip = ({
   plannedPeriod,
+  periodDisplayName,
   isAnchorColumn,
   onRemove,
   onMoveToPeriod,
@@ -36,8 +43,8 @@ const TimelineEditColumnStrip = ({
 }: TimelineEditColumnStripProps) => {
   const secondaryTone: TimelineDropTone = isAnchorColumn ? 'keep' : 'move'
   const secondaryLabel = isAnchorColumn
-    ? TIMELINE_PLACEMENT_LABELS.keepInCurrentPeriod
-    : TIMELINE_PLACEMENT_LABELS.moveToPeriod
+    ? formatKeepInPeriod(periodDisplayName)
+    : formatMoveToPeriod(periodDisplayName)
   const secondaryIcon = isAnchorColumn ? (
     <IconKeepInPeriod className="size-5 shrink-0 opacity-95" />
   ) : (
@@ -75,14 +82,14 @@ const TimelineEditColumnStrip = ({
       <button
         type="button"
         className={`${stripHalfShell} ${timelineToneButtonClasses('unschedule', false, true)}`}
-        aria-label={TIMELINE_PLACEMENT_LABELS.removeFromThisPeriodAria}
+        aria-label={formatRemoveFromPeriod(periodDisplayName)}
         onClick={(e: MouseEvent<HTMLButtonElement>) => {
           e.stopPropagation()
           onRemove(plannedPeriod)
         }}
       >
         <IconScissors className="size-5 shrink-0 opacity-95" />
-        <span>{TIMELINE_PLACEMENT_LABELS.removeFromPeriod}</span>
+        <span>{formatRemoveFromPeriod(periodDisplayName)}</span>
       </button>
     </div>
   )
