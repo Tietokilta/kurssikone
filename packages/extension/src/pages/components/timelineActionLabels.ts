@@ -23,6 +23,11 @@ export function resolveTimelinePlacementLabel(
   plannedPeriodLocator: string
 ): string {
   const period = resolvePeriodColumnLabel(columnPeriodHeading, plannedPeriodLocator)
+
+  if (season === period) {
+    return `${season} ${year}`
+  }
+
   return `${season} ${year} ${period}`
 }
 
