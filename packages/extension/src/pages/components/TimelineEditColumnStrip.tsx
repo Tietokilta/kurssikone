@@ -24,6 +24,8 @@ export type TimelineEditColumnStripProps = {
   plannedPeriod: string
   /** Semester + period column label for actions (e.g. `Spring 2025 — P3`). */
   periodDisplayName: string
+  /** When false, the move action is `Move to {column}` without “start from” (single-period row). */
+  moveLabelLongForm?: boolean
   isAnchorColumn: boolean
   onRemove: (plannedPeriod: string) => void
   onMoveToPeriod?: (plannedPeriod: string) => void
@@ -35,6 +37,7 @@ export type TimelineEditColumnStripProps = {
 const TimelineEditColumnStrip = ({
   plannedPeriod,
   periodDisplayName,
+  moveLabelLongForm = true,
   isAnchorColumn,
   onRemove,
   onMoveToPeriod,
@@ -44,7 +47,7 @@ const TimelineEditColumnStrip = ({
   const secondaryTone: TimelineDropTone = isAnchorColumn ? 'keep' : 'move'
   const secondaryLabel = isAnchorColumn
     ? formatKeepInPeriod(periodDisplayName)
-    : formatMoveToPeriod(periodDisplayName)
+    : formatMoveToPeriod(periodDisplayName, moveLabelLongForm)
   const secondaryIcon = isAnchorColumn ? (
     <IconKeepInPeriod className="size-5 shrink-0 opacity-95" />
   ) : (

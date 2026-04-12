@@ -88,6 +88,19 @@ function occupiedColumnDragOverlayKind(
   return 'reanchor-move'
 }
 
+/** `Move to {col}` vs `Move to start from {col}` for scheduled / click-scheduled placement UI. */
+function longMoveToStartLabel(
+  interactionKind: TimelineInteractionKind,
+  dragRow: TimelineDragRowSnapshot | null,
+  activePlacementSpanOnCard: number
+): boolean {
+  if (interactionKind === 'unscheduled' || interactionKind === 'click-unscheduled') {
+    return false
+  }
+  const runLen = dragRow?.movingRunPlannedPeriods?.length ?? 0
+  return runLen > 1 || activePlacementSpanOnCard > 1
+}
+
 function locatorSpansMatch(
   periodIndex: StudyPeriodIndex,
   a: string[],
@@ -121,6 +134,7 @@ function PeriodColumnDropOverlays({
   onClickAction,
   singleClick,
   squeezeForDesignatedRow,
+  useLongMoveLabel,
 }: {
   periodKey: string
   plannedPeriod: string
@@ -133,6 +147,7 @@ function PeriodColumnDropOverlays({
   onClickAction: (action: 'move' | 'extend', plannedPeriod: string) => void
   singleClick: { action: 'move' | 'extend'; plannedPeriod: string } | null
   squeezeForDesignatedRow: boolean
+  useLongMoveLabel: boolean
 }) {
   if (interactionKind === 'none' || !plannedPeriod.trim()) {
     return null
@@ -160,7 +175,7 @@ function PeriodColumnDropOverlays({
             id={`timeline-reanchor-${periodKey}`}
             action="move"
             plannedPeriod={plannedPeriod}
-            label={formatMoveToPeriod(periodDisplayName)}
+            label={formatMoveToPeriod(periodDisplayName, useLongMoveLabel)}
             icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
             tone="move"
             onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
@@ -184,7 +199,7 @@ function PeriodColumnDropOverlays({
             id={`timeline-move-${periodKey}`}
             action="move"
             plannedPeriod={plannedPeriod}
-            label={formatMoveToPeriod(periodDisplayName)}
+            label={formatMoveToPeriod(periodDisplayName, useLongMoveLabel)}
             icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
             tone="move"
             onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
@@ -199,7 +214,7 @@ function PeriodColumnDropOverlays({
           id={`timeline-move-${periodKey}`}
           action="move"
           plannedPeriod={plannedPeriod}
-          label={formatMoveToPeriod(periodDisplayName)}
+          label={formatMoveToPeriod(periodDisplayName, useLongMoveLabel)}
           icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
           tone="move"
           onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
@@ -214,7 +229,7 @@ function PeriodColumnDropOverlays({
         id={`timeline-move-${periodKey}`}
         action="move"
         plannedPeriod={plannedPeriod}
-        label={formatMoveToPeriod(periodDisplayName)}
+        label={formatMoveToPeriod(periodDisplayName, useLongMoveLabel)}
         icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
         tone="move"
         layout="half"
@@ -279,6 +294,8 @@ type Props = {
   sisuRootId: string
   periodIndex: StudyPeriodIndex | null
   activeInteractionKind: TimelineInteractionKind
+  /** Selection driving move/extend overlays; used to detect single- vs multi-period rows. */
+  activeSelectionIndex: number | null
   dragRowSnapshot: TimelineDragRowSnapshot | null
   clickModeEnabled: boolean
   onCardUnschedule: (selectionIndex: number, sourcePlannedPeriod: string) => void
@@ -303,6 +320,7 @@ const TimelineMainGrid = ({
   sisuRootId,
   periodIndex,
   activeInteractionKind,
+  activeSelectionIndex,
   dragRowSnapshot,
   clickModeEnabled,
   onCardUnschedule,
@@ -329,6 +347,16 @@ const TimelineMainGrid = ({
       >
         {cards.map((card) => {
           const placements = computeSemesterCoursePlacements(card, sisuRootId, periodIndex)
+          const activePlacementSpanOnCard =
+            activeSelectionIndex === null
+              ? 1
+              : placements.find((pl) => pl.selection.selectionIndex === activeSelectionIndex)?.span ??
+                1
+          const useLongMoveLabel = longMoveToStartLabel(
+            activeInteractionKind,
+            dragRowSnapshot,
+            activePlacementSpanOnCard
+          )
           const seasonCreditsTotal = totalPlannedCreditsFromPlacements(placements)
           /** Columns where the period overlay must not steal clicks (so edit-mode scissors work). */
           const columnsWithActiveEditCard = new Set<number>()
@@ -407,6 +435,7 @@ const TimelineMainGrid = ({
                         <TimelineEditColumnStrip
                           plannedPeriod={resolved}
                           periodDisplayName={periodDisplayName}
+                          moveLabelLongForm={editPl.span > 1}
                           isAnchorColumn={colIndex === editPl.startCol}
                           onRemove={(pp) =>
                             onCardUnschedule(editPl.selection.selectionIndex, pp)
@@ -454,6 +483,7 @@ const TimelineMainGrid = ({
                         onClickAction={onClickPlacementAction}
                         singleClick={singleClick}
                         squeezeForDesignatedRow={showDesignatedRow}
+                        useLongMoveLabel={useLongMoveLabel}
                       />
                     )}
                   </div>

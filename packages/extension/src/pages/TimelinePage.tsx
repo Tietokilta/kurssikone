@@ -809,6 +809,7 @@ const TimelinePage = ({ planId }: Props) => {
                   sisuRootId={sisuRootId}
                   periodIndex={periodIndex}
                   activeInteractionKind={interactionKind}
+                  activeSelectionIndex={activeSelectionIndex}
                   dragRowSnapshot={timelineDragRowSnapshot}
                   clickModeEnabled={
                     interactionKind === 'click-scheduled' || interactionKind === 'click-unscheduled'
