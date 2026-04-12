@@ -70,7 +70,6 @@
   },
   "scripts": {
     "dev": "nodemon scripts/build.js",
-    "dev-release": "nodemon --exec npm run make-release",
     "bruh": "tsc --skipLibCheck \background.ts --outDir /home/otju/git/sisu-course-reviewer/build",
     "make-release": "node scripts/build.js && node scripts/make-release.js",
     "lint": "eslint src && tsc --noEmit",
