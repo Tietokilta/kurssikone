@@ -38,7 +38,7 @@ export function formatMoveToPeriod(periodName: string, longForm = true): string 
   if (!longForm) {
     return `Move to ${periodName}`
   }
-  return `Move to start from ${periodName}`
+  return `Move start to ${periodName}`
 }
 
 export function formatExtendToPeriod(periodName: string): string {
@@ -50,5 +50,5 @@ export function formatRemoveFromPeriod(periodName: string): string {
 }
 
 export function formatMoveAndExpandTo(optionLabel: string): string {
-  return `Schedule for ${optionLabel}`
+  return `Move to teaching period ${optionLabel}`
 }
