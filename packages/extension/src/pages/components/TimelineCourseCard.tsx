@@ -93,7 +93,7 @@ const TimelineCourseCard = ({
   const rootEditProps = !splitEditRegions && canEdit ? editActivateProps : {}
 
   const titleClassName = 'min-w-0 break-words leading-snug'
-  const titleLinkClassName = `${titleClassName} cursor-pointer text-inherit underline-offset-2 hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-timeline-accent`
+  const titleLinkClassName = `${titleClassName} cursor-pointer text-inherit underline-offset-2 hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-timeline-accent w-fit`
 
   const bodyBlock = (
     <>
@@ -105,15 +105,13 @@ const TimelineCourseCard = ({
       {teachingPeriodLines && teachingPeriodLines.length > 0 ? (
         <ul className="mt-1 list-inside list-disc space-y-0.5 text-[11px] leading-snug text-neutral-500">
           {teachingPeriodLines.map((line, i) => (
-            <li key={`${i}-${line}`} className="break-words">
+            <li key={`${i}-${line}`} className="wrap-break-word">
               {line}
             </li>
           ))}
         </ul>
       ) : null}
-      {completed ? (
-        <span className="mt-0.5 block text-xs text-neutral-600">Completed</span>
-      ) : null}
+      {completed ? <span className="mt-0.5 block text-xs text-neutral-600">Completed</span> : null}
     </>
   )
 
@@ -170,7 +168,7 @@ const TimelineCourseCard = ({
 
       {onEditActivate ? (
         <div
-          className="pointer-events-none absolute inset-0 z-[15] flex items-center justify-center bg-timeline-move/70 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+          className="pointer-events-none absolute inset-0 z-15 flex items-center justify-center bg-timeline-move/70 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
           aria-hidden
         >
           <IconEdit className="size-8 text-white" />
