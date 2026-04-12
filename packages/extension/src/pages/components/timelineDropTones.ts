@@ -1,4 +1,7 @@
-/** Shared Tailwind class groups for timeline drop tiles and edit-mode strip buttons. */
+/**
+ * Shared Tailwind class groups for timeline drop tiles and edit-mode strip buttons.
+ * Hue tokens (`bg-timeline-move`, etc.) come from `@theme` in `packages/shared/src/styles/global.css`.
+ */
 export type TimelineDropTone = 'move' | 'extend' | 'keep' | 'designated' | 'unschedule'
 
 /** Tones used by {@link TimelineDropTile} (droppable). */
@@ -53,3 +56,12 @@ export function timelineToneButtonClasses(
   const layer = TIMELINE_DROP_TONE_CLASSES[tone]
   return `${active ? layer.active : layer.base} ${enableHover ? layer.hover : ''}`.trim()
 }
+
+/** Non–drop-tile UI that uses the same semantic “move” palette as {@link TIMELINE_DROP_TONE_CLASSES.move}. */
+export const TIMELINE_MOVE_CHROME_CLASSES = {
+  courseCardPlacementHighlightRing: 'ring-2 ring-inset ring-timeline-move/80',
+  courseCardEditHoverOverlay:
+    'pointer-events-none absolute inset-0 z-15 flex items-center justify-center bg-timeline-move/70 opacity-0 transition-opacity duration-150 group-hover:opacity-100',
+  moveModeButtonInactive:
+    'pointer-events-auto flex size-7 items-center justify-center rounded bg-timeline-move/90 text-white shadow hover:bg-timeline-move focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+} as const

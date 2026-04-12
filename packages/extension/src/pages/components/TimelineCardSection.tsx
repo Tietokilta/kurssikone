@@ -15,6 +15,7 @@ import {
 } from '../../utils/parsePlannedPeriods'
 import { isVariableCreditRange } from '../../utils/timelineVariableCredits'
 import type { ClickPlacementTarget, ParsedCourseUnitSelection } from '../TimelinePage'
+import { formatMoveAndExpandTo, TIMELINE_PLACEMENT_LABELS } from './timelineActionLabels'
 import { IconExtendToPeriod, IconKeepInPeriod, IconMoveToPeriod } from './TimelineIcons'
 import TimelineDropTile from './TimelineDropTile'
 import TimelineEditColumnStrip from './TimelineEditColumnStrip'
@@ -136,7 +137,7 @@ function PeriodColumnDropOverlays({
             id={`timeline-keep-${periodKey}`}
             action="keep"
             plannedPeriod={plannedPeriod}
-            label="Keep in current period"
+            label={TIMELINE_PLACEMENT_LABELS.keepInCurrentPeriod}
             icon={<IconKeepInPeriod className="size-5 shrink-0 opacity-95" />}
             tone="keep"
           />
@@ -150,7 +151,7 @@ function PeriodColumnDropOverlays({
             id={`timeline-reanchor-${periodKey}`}
             action="move"
             plannedPeriod={plannedPeriod}
-            label="Move to period"
+            label={TIMELINE_PLACEMENT_LABELS.moveToPeriod}
             icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
             tone="move"
             onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
@@ -174,7 +175,7 @@ function PeriodColumnDropOverlays({
             id={`timeline-move-${periodKey}`}
             action="move"
             plannedPeriod={plannedPeriod}
-            label="Move to period"
+            label={TIMELINE_PLACEMENT_LABELS.moveToPeriod}
             icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
             tone="move"
             onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
@@ -189,7 +190,7 @@ function PeriodColumnDropOverlays({
           id={`timeline-move-${periodKey}`}
           action="move"
           plannedPeriod={plannedPeriod}
-          label="Move to period"
+          label={TIMELINE_PLACEMENT_LABELS.moveToPeriod}
           icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
           tone="move"
           onClick={clickModeEnabled ? () => onClickAction('move', plannedPeriod) : undefined}
@@ -204,7 +205,7 @@ function PeriodColumnDropOverlays({
         id={`timeline-move-${periodKey}`}
         action="move"
         plannedPeriod={plannedPeriod}
-        label="Move to period"
+        label={TIMELINE_PLACEMENT_LABELS.moveToPeriod}
         icon={<IconMoveToPeriod className="size-5 shrink-0 opacity-95" />}
         tone="move"
         layout="half"
@@ -219,7 +220,7 @@ function PeriodColumnDropOverlays({
         id={`timeline-extend-${periodKey}`}
         action="extend"
         plannedPeriod={plannedPeriod}
-        label="Extend to period"
+        label={TIMELINE_PLACEMENT_LABELS.extendToPeriod}
         icon={<IconExtendToPeriod className="size-5 shrink-0 opacity-95" />}
         tone="extend"
         layout="half"
@@ -557,7 +558,7 @@ const TimelineMainGrid = ({
                         <div className="pointer-events-auto flex min-h-0 min-w-0 flex-1 basis-0 flex-col gap-y-1">
                           {designatedEntries.map((entry, idx) => {
                             const primaryLocator = entry.sortedLocators[0] ?? ''
-                            const moveToLabel = `Move and expand to ${entry.option.label}`
+                            const moveToLabel = formatMoveAndExpandTo(entry.option.label)
                             const designatedClickActive =
                               clickPlacementTarget?.kind === 'designated' &&
                               locatorSpansMatch(

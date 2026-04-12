@@ -1,4 +1,5 @@
 import type { MouseEvent } from 'react'
+import { TIMELINE_PLACEMENT_LABELS } from './timelineActionLabels'
 import { IconKeepInPeriod, IconMoveToPeriod, IconScissors } from './TimelineIcons'
 import { timelineToneButtonClasses, type TimelineDropTone } from './timelineDropTones'
 import VariableCreditsEditPopup from './VariableCreditsEditPopup'
@@ -34,7 +35,9 @@ const TimelineEditColumnStrip = ({
   variableCreditsEdit = null,
 }: TimelineEditColumnStripProps) => {
   const secondaryTone: TimelineDropTone = isAnchorColumn ? 'keep' : 'move'
-  const secondaryLabel = isAnchorColumn ? 'Keep in current period' : 'Move to period'
+  const secondaryLabel = isAnchorColumn
+    ? TIMELINE_PLACEMENT_LABELS.keepInCurrentPeriod
+    : TIMELINE_PLACEMENT_LABELS.moveToPeriod
   const secondaryIcon = isAnchorColumn ? (
     <IconKeepInPeriod className="size-5 shrink-0 opacity-95" />
   ) : (
@@ -72,14 +75,14 @@ const TimelineEditColumnStrip = ({
       <button
         type="button"
         className={`${stripHalfShell} ${timelineToneButtonClasses('unschedule', false, true)}`}
-        aria-label="Remove from this period"
+        aria-label={TIMELINE_PLACEMENT_LABELS.removeFromThisPeriodAria}
         onClick={(e: MouseEvent<HTMLButtonElement>) => {
           e.stopPropagation()
           onRemove(plannedPeriod)
         }}
       >
         <IconScissors className="size-5 shrink-0 opacity-95" />
-        <span>Remove from period</span>
+        <span>{TIMELINE_PLACEMENT_LABELS.removeFromPeriod}</span>
       </button>
     </div>
   )

@@ -1,4 +1,5 @@
 import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
+import { TIMELINE_MOVE_CHROME_CLASSES } from './timelineDropTones'
 import { IconEdit } from './TimelineIcons'
 
 type TimelineCourseCardVariant = 'scheduled' | 'unscheduled' | 'completed' | 'dragPreview'
@@ -118,7 +119,9 @@ const TimelineCourseCard = ({
   return (
     <div
       style={!fillContainer && minHeight ? { minHeight } : undefined}
-      className={`group relative box-border flex w-full min-w-0 ${fillContainer ? 'h-full min-h-0' : 'h-full'} ${rootClassName} ${highlightActive ? 'ring-2 ring-inset ring-timeline-move/80' : ''}`}
+      className={`group relative box-border flex w-full min-w-0 ${fillContainer ? 'h-full min-h-0' : 'h-full'} ${rootClassName} ${
+        highlightActive ? TIMELINE_MOVE_CHROME_CLASSES.courseCardPlacementHighlightRing : ''
+      }`}
       {...rootEditProps}
     >
       <div className="flex min-h-0 w-full flex-1">
@@ -167,10 +170,7 @@ const TimelineCourseCard = ({
       </div>
 
       {onEditActivate ? (
-        <div
-          className="pointer-events-none absolute inset-0 z-15 flex items-center justify-center bg-timeline-move/70 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-          aria-hidden
-        >
+        <div className={TIMELINE_MOVE_CHROME_CLASSES.courseCardEditHoverOverlay} aria-hidden>
           <IconEdit className="size-8 text-white" />
         </div>
       ) : null}

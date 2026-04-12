@@ -1,3 +1,4 @@
+import { TIMELINE_MOVE_CHROME_CLASSES } from './timelineDropTones'
 import { IconCancelMove, IconEdit } from './TimelineIcons'
 
 type Props = {
@@ -17,7 +18,7 @@ const TimelineMoveModeButton = ({
       className={
         isActive
           ? 'pointer-events-auto flex h-full w-full min-h-0 flex-col items-center justify-center rounded-none border-0 bg-neutral-500/35 text-white shadow-none transition-colors hover:bg-neutral-500/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/80'
-          : 'pointer-events-auto flex size-7 items-center justify-center rounded bg-timeline-move/90 text-white shadow hover:bg-timeline-move focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white'
+          : TIMELINE_MOVE_CHROME_CLASSES.moveModeButtonInactive
       }
       aria-label={isActive ? 'Exit edit mode' : inactiveLabel}
       aria-pressed={isActive}
