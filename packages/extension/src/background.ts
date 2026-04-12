@@ -131,7 +131,7 @@ const filter = {
   urls: ['https://sisu.aalto.fi/*'],
 }
 
-const LOG = '[Kurssikompassi/Sisu]'
+const LOG = '[KurssiKone/Sisu]'
 const SISU_PREAUTH_URL = 'https://sisu.aalto.fi/ori/preauth'
 const EXPIRY_SAFETY_BUFFER_MS = 15_000
 const FALLBACK_CAPTURED_TOKEN_TTL_MS = 2 * 60 * 1000
@@ -606,9 +606,7 @@ async function fetchCourseUnitsChunkFromSisu(ids: string[]): Promise<FetchCourse
 }
 
 async function fetchCourseUnitsFromSisu(ids: string[]): Promise<FetchCourseUnitsResult> {
-  const unique = Array.from(
-    new Set(ids.filter((id) => typeof id === 'string' && id.trim() !== ''))
-  )
+  const unique = Array.from(new Set(ids.filter((id) => typeof id === 'string' && id.trim() !== '')))
   if (unique.length === 0) {
     return { ok: true, data: [] }
   }

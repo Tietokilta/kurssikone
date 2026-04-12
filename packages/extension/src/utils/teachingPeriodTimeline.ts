@@ -1,9 +1,6 @@
-import type { Course, CourseTeachingPeriodGroup } from '@kurssikompassi/shared'
+import type { Course, CourseTeachingPeriodGroup } from '@kurssikone/shared'
 import type { Season, StudyPeriodIndex } from './parsePlannedPeriods'
-import {
-  expandSummerGroupsByGridYear,
-  formatTeachingPeriodGroup,
-} from './parseKoriTeachingPeriods'
+import { expandSummerGroupsByGridYear, formatTeachingPeriodGroup } from './parseKoriTeachingPeriods'
 
 export function getTodayDateIso(): string {
   return new Date().toISOString().slice(0, 10)
@@ -57,11 +54,7 @@ function isGroupPastHeuristic(g: CourseTeachingPeriodGroup, todayIso: string): b
   const touched = seasonsTouchedByGroup(g)
   for (const { y, season } of touched) {
     const approxEnd =
-      season === 'Fall'
-        ? `${y + 1}-02-28`
-        : season === 'Spring'
-          ? `${y}-08-31`
-          : `${y}-09-30`
+      season === 'Fall' ? `${y + 1}-02-28` : season === 'Spring' ? `${y}-08-31` : `${y}-09-30`
     if (todayIso <= approxEnd) {
       return false
     }

@@ -1,7 +1,7 @@
 import type {
   CourseTeachingPeriodGroup,
   CourseTeachingPeriodToken,
-} from '@kurssikompassi/shared/src/types'
+} from '@kurssikone/shared/src/types'
 import { PERIODS_FOR_SEASON, type Season, type StudyPeriodIndex } from './parsePlannedPeriods'
 
 const AUTUMN_TERMS = /^(autumn|fall|syksy|höst|host)$/i
@@ -90,11 +90,7 @@ export function resolveGroupToLocators(
   index: StudyPeriodIndex,
   g: CourseTeachingPeriodGroup
 ): string[] | null {
-  if (
-    g.season === 'Spring' &&
-    g.periodTo === 'Summer' &&
-    g.periodFrom !== 'Summer'
-  ) {
+  if (g.season === 'Spring' && g.periodTo === 'Summer' && g.periodFrom !== 'Summer') {
     const springYear = g.timelineYear
     const springCols = index.periodsByCard.get(`${springYear}|Spring`)
     const summerCols = index.periodsByCard.get(`${springYear}|Summer`)
@@ -166,7 +162,10 @@ export function resolveGroupToLocators(
 }
 
 function parseRomanOrSummer(s: string): CourseTeachingPeriodToken | null {
-  const t = s.trim().replace(/[,;.):]+$/g, '').trim()
+  const t = s
+    .trim()
+    .replace(/[,;.):]+$/g, '')
+    .trim()
   if (SUMMER_TERMS.test(t)) {
     return 'Summer'
   }
@@ -179,7 +178,9 @@ function parseRomanOrSummer(s: string): CourseTeachingPeriodToken | null {
   return null
 }
 
-function parsePeriodRange(rest: string): { from: CourseTeachingPeriodToken; to: CourseTeachingPeriodToken } | null {
+function parsePeriodRange(
+  rest: string
+): { from: CourseTeachingPeriodToken; to: CourseTeachingPeriodToken } | null {
   let compact = rest.replace(/\s+/g, ' ').trim()
   compact = compact.replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-')
   compact = compact.replace(/([IV]+)\s*,\s*([IV]+)/gi, '$1 - $2')
@@ -343,8 +344,7 @@ function splitLines(text: string): string[] {
 
 const AFTER_TEACHING_PERIOD_BLOCK = /\b(?:Registration|Ilmoittautuminen|Anmälan)\s*:/i
 
-const TEACHING_PERIOD_HEADER =
-  /(?:Teaching\s+Period|Opetusperiodi|Undervisningsperiod)\s*:\s*/i
+const TEACHING_PERIOD_HEADER = /(?:Teaching\s+Period|Opetusperiodi|Undervisningsperiod)\s*:\s*/i
 
 const NO_TEACHING_REST = /^(no\s*teaching|ei\s*opetusta|ingen\s*undervisning)\s*$/i
 

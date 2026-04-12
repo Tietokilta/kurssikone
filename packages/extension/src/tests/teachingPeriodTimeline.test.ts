@@ -2,7 +2,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import type { Course } from '@kurssikompassi/shared/src/types'
+import type { Course } from '@kurssikone/shared/src/types'
 import { expandSummerGroupsByGridYear } from '../utils/parseKoriTeachingPeriods'
 import {
   isAcademicYearFullyPast,

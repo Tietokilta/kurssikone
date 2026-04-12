@@ -6,7 +6,7 @@ import SearchResultPage from './pages/SearchResultPage'
 import { waitForElement } from './utils/waitForElement'
 import TimelinePage from './pages/TimelinePage'
 
-console.log('[Kurssikompassi] Extension loaded successfully')
+console.log('[KurssiKone] Extension loaded successfully')
 
 // Transform Tailwind CSS for shadow DOM compatibility
 // 1. Replace :root with :host so CSS custom properties work in shadow DOM
@@ -66,7 +66,7 @@ const handleTimeline = (node: Node) => {
   const timelineBody = node as HTMLElement
 
   const shadowHost = document.createElement('div')
-  shadowHost.setAttribute('class', 'kurssikompassi-shadow-host')
+  shadowHost.setAttribute('class', 'kurssikone-shadow-host')
   timelineBody?.prepend(shadowHost)
 
   const shadow = createShadowRoot(shadowHost)
@@ -84,7 +84,7 @@ const handleSearchResult = (node: Node) => {
   const searchResultColumnParent = searchResultColumn?.parentElement
 
   const shadowHost = document.createElement('div')
-  shadowHost.setAttribute('class', 'col-12 col-md-5 kurssikompassi-shadow-host')
+  shadowHost.setAttribute('class', 'col-12 col-md-5 kurssikone-shadow-host')
   searchResultColumnParent?.append(shadowHost)
 
   for (const child of searchResultColumnParent?.children || []) {
@@ -101,11 +101,11 @@ const handleSearchResult = (node: Node) => {
 }
 
 const handleCoursePage = async (isModal: boolean) => {
-  console.log('[Kurssikompassi] handleCoursePage called, isModal:', isModal)
+  console.log('[KurssiKone] handleCoursePage called, isModal:', isModal)
   try {
     const shadowHost = document.createElement('div')
     shadowHost.setAttribute('id', 'review-root-host')
-    shadowHost.setAttribute('class', 'kurssikompassi-shadow-host')
+    shadowHost.setAttribute('class', 'kurssikone-shadow-host')
     shadowHost.setAttribute('role', 'tabpanel')
 
     const pageMainBody = (await waitForElement('[role="tabpanel"]'))?.parentElement
@@ -119,11 +119,11 @@ const handleCoursePage = async (isModal: boolean) => {
     shadow.appendChild(reactRoot)
 
     const courseCode = getCourseCode()
-    console.log('[Kurssikompassi] courseCode:', courseCode)
+    console.log('[KurssiKone] courseCode:', courseCode)
 
     const root = ReactDOM.createRoot(reactRoot)
     root.render(<CoursePage courseCode={courseCode} />)
-    console.log('[Kurssikompassi] React render called')
+    console.log('[KurssiKone] React render called')
 
     const listElement = document.createElement('li')
 
@@ -140,12 +140,12 @@ const handleCoursePage = async (isModal: boolean) => {
     listElement.append(button)
 
     const tabList = await waitForElement('[role="tablist"]')
-    console.log('[Kurssikompassi] tabList found:', tabList)
+    console.log('[KurssiKone] tabList found:', tabList)
 
     await waitForElement('[role="tablist"] > li')
 
     const tabListElements = document.querySelectorAll('[role="tablist"] > li')
-    console.log('[Kurssikompassi] tabListElements:', tabListElements.length)
+    console.log('[KurssiKone] tabListElements:', tabListElements.length)
 
     tabListElements.forEach((element) => {
       element.addEventListener('click', function () {
@@ -161,7 +161,7 @@ const handleCoursePage = async (isModal: boolean) => {
     })
 
     tabList?.append(listElement)
-    console.log('[Kurssikompassi] Reviews tab added')
+    console.log('[KurssiKone] Reviews tab added')
 
     button.onclick = () => {
       tabListElements.forEach((element) => {
@@ -176,7 +176,7 @@ const handleCoursePage = async (isModal: boolean) => {
       shadowHost.style.display = 'block'
     }
   } catch (error) {
-    console.error('[Kurssikompassi] Error in handleCoursePage:', error)
+    console.error('[KurssiKone] Error in handleCoursePage:', error)
   }
 }
 
@@ -186,7 +186,7 @@ const getReviewListElement = () => {
 
 const getOldModalContents = () => {
   return document.querySelectorAll(
-    `[role="tabpanel"]:not(.kurssikompassi-shadow-host)`
+    `[role="tabpanel"]:not(.kurssikone-shadow-host)`
   ) as unknown as HTMLElement[]
 }
 

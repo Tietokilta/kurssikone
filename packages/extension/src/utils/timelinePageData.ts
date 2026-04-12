@@ -1,4 +1,4 @@
-import { Course } from '@kurssikompassi/shared/src/types'
+import { Course } from '@kurssikone/shared/src/types'
 import { buildTeachingPeriodQuickOptions } from './parseKoriTeachingPeriods'
 import { getTodayDateIso, prepareTeachingPeriodsForTimeline } from './teachingPeriodTimeline'
 import { parseCourseUnitPlannedPeriods, type StudyPeriodIndex } from './parsePlannedPeriods'

@@ -1,4 +1,4 @@
-# Kurssikompassi
+# KurssiKone
 
 Monorepo for a course review/tracking system with browser extension, web app, and backend.
 

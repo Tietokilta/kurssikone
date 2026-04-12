@@ -12,9 +12,7 @@ async function resetTestingBackend(): Promise<void> {
     const res = await fetch('http://localhost:3001/api/testing/reset', { method: 'POST' })
     if (!res.ok) {
       throw new Error(
-        res.status === 404
-          ? '404 (is ALLOW_RESET=true set for the backend?)'
-          : `HTTP ${res.status}`
+        res.status === 404 ? '404 (is ALLOW_RESET=true set for the backend?)' : `HTTP ${res.status}`
       )
     }
   } catch (e) {
@@ -30,11 +28,7 @@ async function waitForCourseReviewPanelReady(page: Page): Promise<void> {
   await page.waitForFunction(
     () => {
       const t = document.querySelector('#review-root-host')?.shadowRoot?.textContent ?? ''
-      return (
-        t.includes('Quality') ||
-        t.includes('Course code not found') ||
-        t.includes('Error:')
-      )
+      return t.includes('Quality') || t.includes('Course code not found') || t.includes('Error:')
     },
     { timeout: 45_000 }
   )
@@ -117,7 +111,7 @@ async function expectSearchResultReviewText(page: Page, condensedNeedle: string)
     (sub: string) => {
       const n = (s: string) => s.replace(/\s+/g, '')
       const target = n(sub)
-      for (const h of document.querySelectorAll('.kurssikompassi-shadow-host')) {
+      for (const h of document.querySelectorAll('.kurssikone-shadow-host')) {
         const panel = h.shadowRoot?.querySelector('div')
         const t = panel?.textContent ?? ''
         if (n(t).includes(target)) {

@@ -1,4 +1,4 @@
-import { Course } from '@kurssikompassi/shared/src/types'
+import { Course } from '@kurssikone/shared/src/types'
 import {
   fetchAttainments,
   fetchCourseUnits,
@@ -32,7 +32,7 @@ export type TimelineLoadResult = TimelineLoadSuccess | TimelineLoadFailure
 export async function loadTimelineData(planId: string): Promise<TimelineLoadResult> {
   const plansResult = await fetchStudyPlans()
   if (!plansResult.ok) {
-    console.error('[Kurssikompassi/Timeline]', 'Study plans fetch failed', {
+    console.error('[KurssiKone/Timeline]', 'Study plans fetch failed', {
       error: plansResult.error,
       message: plansResult.error === 'fetch_failed' ? plansResult.message : undefined,
     })
@@ -52,7 +52,7 @@ export async function loadTimelineData(planId: string): Promise<TimelineLoadResu
 
   const attainmentsResult = await fetchAttainments(plan.userId)
   if (!attainmentsResult.ok) {
-    console.warn('[Kurssikompassi/Timeline]', 'Attainments fetch failed', {
+    console.warn('[KurssiKone/Timeline]', 'Attainments fetch failed', {
       error: attainmentsResult.error,
       message: attainmentsResult.error === 'fetch_failed' ? attainmentsResult.message : undefined,
     })
@@ -69,7 +69,7 @@ export async function loadTimelineData(planId: string): Promise<TimelineLoadResu
   if (studyYearsResult.ok) {
     studyYears = studyYearsResult.data
   } else {
-    console.warn('[Kurssikompassi/Timeline]', 'Study years fetch failed', {
+    console.warn('[KurssiKone/Timeline]', 'Study years fetch failed', {
       error: studyYearsResult.error,
       message: studyYearsResult.error === 'fetch_failed' ? studyYearsResult.message : undefined,
       organisationId: DEFAULT_SISU_ROOT_ID,
@@ -93,7 +93,7 @@ export async function loadTimelineData(planId: string): Promise<TimelineLoadResu
   const allIds = [...new Set([...plannedIds, ...attainmentCourseIds])]
   const courseUnitsResult = await fetchCourseUnits(allIds)
   if (!courseUnitsResult.ok) {
-    console.error('[Kurssikompassi/Timeline]', 'Course units fetch failed', {
+    console.error('[KurssiKone/Timeline]', 'Course units fetch failed', {
       error: courseUnitsResult.error,
       message: courseUnitsResult.error === 'fetch_failed' ? courseUnitsResult.message : undefined,
     })

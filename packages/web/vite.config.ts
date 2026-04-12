@@ -10,7 +10,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@kurssikompassi/shared': path.resolve(__dirname, '../shared/src'),
+      '@kurssikone/shared': path.resolve(__dirname, '../shared/src'),
     },
   },
 })

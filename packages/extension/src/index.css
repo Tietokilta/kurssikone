@@ -1,8 +1,8 @@
-@import "../../shared/src/styles/global.css";
+@import '../../shared/src/styles/global.css';
 
 @source "../../shared/src/**/*.tsx";
 
-@keyframes kurssikompassi-unscheduled-open {
+@keyframes kurssikone-unscheduled-open {
   from {
     opacity: 0;
     transform: translateX(-12px);
@@ -13,11 +13,11 @@
   }
 }
 
-.kurssikompassi-unscheduled-open {
-  animation: kurssikompassi-unscheduled-open 0.35s ease-out both;
+.kurssikone-unscheduled-open {
+  animation: kurssikone-unscheduled-open 0.35s ease-out both;
 }
 
-@keyframes kurssikompassi-error-banner-in {
+@keyframes kurssikone-error-banner-in {
   from {
     opacity: 0;
     transform: translateX(28px);
@@ -28,6 +28,6 @@
   }
 }
 
-.kurssikompassi-error-banner-in {
-  animation: kurssikompassi-error-banner-in 0.28s ease-out both;
+.kurssikone-error-banner-in {
+  animation: kurssikone-error-banner-in 0.28s ease-out both;
 }

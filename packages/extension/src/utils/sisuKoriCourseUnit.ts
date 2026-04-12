@@ -1,4 +1,4 @@
-import type { Course } from '@kurssikompassi/shared'
+import type { Course } from '@kurssikone/shared'
 
 import { parseKoriTeachingPeriodsFromAdditional } from './parseKoriTeachingPeriods'
 import { getTodayDateIso, isCourseValidityEnded } from './teachingPeriodTimeline'
@@ -11,8 +11,9 @@ function isoDatePrefix(d: string | null | undefined): string | null {
 
 export function koriCourseUnitToSharedCourse(unit: SisuKoriCourseUnit): Course {
   const vp = unit.validityPeriod
-  const { groups, noTeachingAcademicYearStarts } =
-    parseKoriTeachingPeriodsFromAdditional(unit.additional)
+  const { groups, noTeachingAcademicYearStarts } = parseKoriTeachingPeriodsFromAdditional(
+    unit.additional
+  )
   const todayIso = getTodayDateIso()
   const validityEnd = isoDatePrefix(vp?.endDate ?? undefined)
   const hideTeachingBecauseCourseEnded = isCourseValidityEnded(validityEnd, todayIso)

@@ -1,4 +1,4 @@
-const USER_ID_KEY = 'kurssikompassi_userId'
+const USER_ID_KEY = 'kurssikone_userId'
 
 export const getUserId = (): string | null => {
   return localStorage.getItem(USER_ID_KEY)

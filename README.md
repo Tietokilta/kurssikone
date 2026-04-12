@@ -1,4 +1,4 @@
-# Kurssikompassi
+# KurssiKone
 
 A course review platform for Aalto University courses. Available as a browser extension and a standalone website.
 
@@ -7,7 +7,7 @@ A course review platform for Aalto University courses. Available as a browser ex
 This is a monorepo containing three packages:
 
 ```
-kurssikompassi/
+kurssikone/
 ├── packages/
 │   ├── extension/    # Browser extension (Chrome & Firefox)
 │   ├── backend/      # Express.js API server

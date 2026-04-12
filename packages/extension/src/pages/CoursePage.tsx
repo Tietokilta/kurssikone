@@ -1,5 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react'
-import { CoursePageContent, useCoursePageData } from '@kurssikompassi/shared'
+import { CoursePageContent, useCoursePageData } from '@kurssikone/shared'
 import {
   getAveragesForCourse,
   getReviewsForCourseExcludingUserReview,

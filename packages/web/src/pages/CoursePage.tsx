@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { CoursePageContent, useCoursePageData, CourseWithRealisations } from '@kurssikompassi/shared'
+import { CoursePageContent, useCoursePageData, CourseWithRealisations } from '@kurssikone/shared'
 import {
   getAveragesForCourse,
   getReviewsForCourseExcludingUserReview,

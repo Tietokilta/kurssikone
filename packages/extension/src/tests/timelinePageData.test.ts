@@ -2,10 +2,7 @@
 
 import fs from 'fs'
 import path from 'path'
-import {
-  buildCompletedSelections,
-  countsAsTimelineCompletion,
-} from '../utils/timelinePageData'
+import { buildCompletedSelections, countsAsTimelineCompletion } from '../utils/timelinePageData'
 import { createPeriodIndex } from '../utils/studyYearPeriods'
 import type {
   SisuAssessmentItemAttainment,
@@ -13,7 +10,7 @@ import type {
   SisuCourseUnitAttainment,
   SisuCustomCourseUnitAttainment,
 } from '../utils/types'
-import type { Course } from '@kurssikompassi/shared/src/types'
+import type { Course } from '@kurssikone/shared/src/types'
 
 const studyYearsPath = path.join(__dirname, 'data', 'studyYears.json')
 
@@ -193,9 +190,7 @@ describe('buildCompletedSelections', () => {
 
   it('includes CourseUnitAttainment with state INCLUDED', () => {
     const cu = 'devops-docker-cu-id'
-    const attainments: SisuAttainment[] = [
-      courseUnitAttainment(cu, '2020-09-15', 'INCLUDED'),
-    ]
+    const attainments: SisuAttainment[] = [courseUnitAttainment(cu, '2020-09-15', 'INCLUDED')]
     const rows = buildCompletedSelections(attainments, periodIndex, emptyCourseData)
     expect(rows).toHaveLength(1)
     expect(rows[0]).toMatchObject({
@@ -219,9 +214,7 @@ describe('buildCompletedSelections', () => {
   })
 
   it('omits FAILED attainments', () => {
-    const attainments: SisuAttainment[] = [
-      courseUnitAttainment('cu-fail', '2020-09-15', 'FAILED'),
-    ]
+    const attainments: SisuAttainment[] = [courseUnitAttainment('cu-fail', '2020-09-15', 'FAILED')]
     expect(buildCompletedSelections(attainments, periodIndex, emptyCourseData)).toHaveLength(0)
   })
 

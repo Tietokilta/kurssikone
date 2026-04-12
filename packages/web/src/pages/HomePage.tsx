@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Course, CourseListSortBy, ListSortOrder } from '@kurssikompassi/shared'
+import { Course, CourseListSortBy, ListSortOrder } from '@kurssikone/shared'
 import { getCourses } from '../api/client'
 import CourseCard from '../components/CourseCard'
 
@@ -98,7 +98,7 @@ const HomePage = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-medium mb-2">Kurssikompassi</h1>
+      <h1 className="text-2xl font-medium mb-2">KurssiKone</h1>
       <p className="text-gray-600 mb-6">
         Find and share course reviews & information for Aalto University courses
       </p>

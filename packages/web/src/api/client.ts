@@ -10,7 +10,7 @@ import {
   ListSortOrder,
   CourseWithRealisations,
   CourseRealisation,
-} from '@kurssikompassi/shared'
+} from '@kurssikone/shared'
 import hashIt from 'hash-it'
 
 const host = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
@@ -148,7 +148,9 @@ export const getCourses = async (
   }
   return {
     ...result,
-    courses: result.courses.map((c) => normalizeCourseRecord(c as unknown as Record<string, unknown>)),
+    courses: result.courses.map((c) =>
+      normalizeCourseRecord(c as unknown as Record<string, unknown>)
+    ),
   }
 }
 
@@ -163,9 +165,7 @@ export const getCoursesByIds = async (ids: string[]): Promise<Course[]> => {
   return result.courses.map((c) => normalizeCourseRecord(c as unknown as Record<string, unknown>))
 }
 
-export const getCourseByCode = async (
-  code: string
-): Promise<CourseWithRealisations[] | null> => {
+export const getCourseByCode = async (code: string): Promise<CourseWithRealisations[] | null> => {
   const rows = (await get(['courses', code])) as CourseWithRealisations[] | null
   if (!rows) return null
   return rows.map((c) => ({
@@ -174,9 +174,7 @@ export const getCourseByCode = async (
   }))
 }
 
-export const getCourseRealisations = async (
-  code: string
-): Promise<CourseRealisation[]> => {
+export const getCourseRealisations = async (code: string): Promise<CourseRealisation[]> => {
   const result = await get(['courses', code, 'realisations'])
   return (result || []) as CourseRealisation[]
 }

@@ -1,4 +1,4 @@
-import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikompassi/shared'
+import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikone/shared'
 import hashIt from 'hash-it'
 
 import type {
@@ -45,7 +45,10 @@ export type FetchAttainmentsResult =
 
 /** `personId` matches `SisuStudyPlan.userId` from my-plans. */
 export const fetchAttainments = async (personId: string): Promise<FetchAttainmentsResult> => {
-  return (await chrome.runtime.sendMessage({ type: 'fetchAttainments', personId })) as FetchAttainmentsResult
+  return (await chrome.runtime.sendMessage({
+    type: 'fetchAttainments',
+    personId,
+  })) as FetchAttainmentsResult
 }
 
 export type FetchStudyYearsResult =
@@ -95,7 +98,10 @@ export type FetchCourseUnitsResult =
 
 /** Kori `/kori/api/course-units` (Sisu auth); used by timeline for course names/credits. */
 export const fetchCourseUnits = async (ids: string[]): Promise<FetchCourseUnitsResult> => {
-  return (await chrome.runtime.sendMessage({ type: 'fetchCourseUnits', ids })) as FetchCourseUnitsResult
+  return (await chrome.runtime.sendMessage({
+    type: 'fetchCourseUnits',
+    ids,
+  })) as FetchCourseUnitsResult
 }
 
 export const getReviewsForCourseExcludingUserReview = async (

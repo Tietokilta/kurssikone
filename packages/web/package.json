@@ -1,5 +1,5 @@
 {
-  "name": "kurssikompassi-web",
+  "name": "kurssikone-web",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -11,7 +11,7 @@
     "test": "echo 'No tests yet' && exit 0"
   },
   "dependencies": {
-    "@kurssikompassi/shared": "file:../shared",
+    "@kurssikone/shared": "file:../shared",
     "@ramonak/react-progress-bar": "^5.2.0",
     "dayjs": "^1.11.10",
     "hash-it": "^6.0.0",

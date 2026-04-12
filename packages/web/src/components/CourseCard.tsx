@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Course } from '@kurssikompassi/shared'
+import { Course } from '@kurssikone/shared'
 
 type Props = {
   course: Course

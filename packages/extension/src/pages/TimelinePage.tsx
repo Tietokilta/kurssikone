@@ -48,7 +48,7 @@ import type {
   SisuStudyPlan,
   SisuStudyYear,
 } from '../utils/types'
-import { Course } from '@kurssikompassi/shared/src/types'
+import { Course } from '@kurssikone/shared/src/types'
 import TimelineCourseCard from './components/TimelineCourseCard'
 import TimelineMainGrid, {
   type TimelineInteractionKind,
@@ -698,7 +698,7 @@ const TimelinePage = ({ planId }: Props) => {
       const authInit = await initSisuAuth()
       if (!authInit.ok) {
         console.warn(
-          '[Kurssikompassi/Timeline]',
+          '[KurssiKone/Timeline]',
           'Initial Sisu preauth failed; continuing with lazy refresh'
         )
       }
@@ -753,9 +753,7 @@ const TimelinePage = ({ planId }: Props) => {
     const onDocumentClick = (event: MouseEvent) => {
       const node = event.target
       const el = node instanceof Element ? node : (node as Node | null)?.parentElement
-      if (
-        el?.closest('[data-timeline-drop-zone],[data-timeline-credits-popup]')
-      ) {
+      if (el?.closest('[data-timeline-drop-zone],[data-timeline-credits-popup]')) {
         return
       }
       resetInteraction()
@@ -849,7 +847,7 @@ const TimelinePage = ({ planId }: Props) => {
       )}
 
       {errorBannerMessage && isErrorBannerVisible ? (
-        <div className="kurssikompassi-error-banner-in fixed right-4 bottom-4 z-12000 w-[24rem] max-w-[calc(100vw-2rem)] rounded-lg border-2 border-red-300 bg-red-700 px-4 py-3 text-base text-white shadow-2xl">
+        <div className="kurssikone-error-banner-in fixed right-4 bottom-4 z-12000 w-[24rem] max-w-[calc(100vw-2rem)] rounded-lg border-2 border-red-300 bg-red-700 px-4 py-3 text-base text-white shadow-2xl">
           <div className="flex items-start gap-3">
             <div className="min-w-0 flex-1 leading-6">{errorBannerMessage}</div>
             <button

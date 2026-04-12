@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getAveragesForCourse } from '../requestHandlers'
-import { ReviewAverages, ScoreBar } from '@kurssikompassi/shared'
+import { ReviewAverages, ScoreBar } from '@kurssikone/shared'
 
 type Props = {
   courseCode: string

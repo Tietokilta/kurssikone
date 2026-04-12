@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CourseWithRealisations, CourseRealisation } from '@kurssikompassi/shared'
+import { CourseWithRealisations, CourseRealisation } from '@kurssikone/shared'
 
 type Props = {
   course: CourseWithRealisations
@@ -22,9 +22,7 @@ const formatLanguages = (codes: string[] | null): string => {
   return codes.map((code) => languageMap[code] || code).join(', ')
 }
 
-const getLatestRealisation = (
-  realisations: CourseRealisation[]
-): CourseRealisation | null => {
+const getLatestRealisation = (realisations: CourseRealisation[]): CourseRealisation | null => {
   if (!realisations || realisations.length === 0) return null
   return realisations.reduce((latest, current) => {
     if (!latest.startDate) return current
@@ -38,7 +36,8 @@ const CourseInfo = ({ course }: Props) => {
 
   const latestRealisation = getLatestRealisation(course.courseRealisations)
 
-  const name = course.nameEn || course.nameFi || latestRealisation?.nameEn || latestRealisation?.nameFi
+  const name =
+    course.nameEn || course.nameFi || latestRealisation?.nameEn || latestRealisation?.nameFi
   const credits = formatCredits(course.creditsMin, course.creditsMax)
   const description = latestRealisation?.contentEn || latestRealisation?.contentFi
   const teachers = latestRealisation?.teacherInCharge || latestRealisation?.teachers
@@ -51,8 +50,7 @@ const CourseInfo = ({ course }: Props) => {
   const sisuUrl = `https://sisu.aalto.fi/student/courseunit/${course.id}/brochure`
 
   const descriptionTruncateLength = 300
-  const shouldTruncateDescription =
-    description && description.length > descriptionTruncateLength
+  const shouldTruncateDescription = description && description.length > descriptionTruncateLength
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
