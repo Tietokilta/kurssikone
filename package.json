@@ -12,6 +12,7 @@
     "lint": "npm run lint --workspaces",
     "test": "npm run test --workspaces",
     "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "make-extension-release": "npm run make-release  --prefix packages/extension",
     "install-hooks": "lefthook install"
   },
   "devDependencies": {
