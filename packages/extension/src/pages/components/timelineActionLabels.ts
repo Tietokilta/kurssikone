@@ -43,5 +43,5 @@ export function formatRemoveFromPeriod(periodName: string): string {
 }
 
 export function formatMoveAndExpandTo(optionLabel: string): string {
-  return `Move and expand to ${optionLabel}`
+  return `Schedule for ${optionLabel}`
 }

@@ -1,6 +1,7 @@
 /**
  * Shared Tailwind class groups for timeline drop tiles and edit-mode strip buttons.
- * Hue tokens (`bg-timeline-move`, etc.) come from `@theme` in `packages/shared/src/styles/global.css`.
+ * Hue tokens (`bg-timeline-move`, `bg-timeline-designated`, etc.) come from `@theme` in
+ * `packages/shared/src/styles/global.css`.
  */
 export type TimelineDropTone = 'move' | 'extend' | 'keep' | 'designated' | 'unschedule'
 
@@ -32,11 +33,11 @@ export const TIMELINE_DROP_TONE_CLASSES: Record<TimelineDropTone, TimelineToneLa
       'hover:bg-timeline-keep/95 hover:ring-4 hover:ring-inset hover:ring-white hover:shadow-[0_0_0_1px_rgba(255,255,255,0.5),0_0_28px_rgba(100,116,139,0.75)]',
   },
   designated: {
-    base: 'bg-timeline-extend/55 ring-0 ring-transparent',
+    base: 'bg-timeline-designated/50 ring-0 ring-transparent',
     active:
-      'bg-timeline-extend/95 ring-4 ring-inset ring-white shadow-[0_0_0_1px_rgba(255,255,255,0.5),0_0_28px_rgba(16,185,129,0.75)]',
+      'bg-timeline-designated/95 ring-4 ring-inset ring-white shadow-[0_0_0_1px_rgba(255,255,255,0.5),0_0_28px_rgba(124,58,237,0.75)]',
     hover:
-      'hover:bg-timeline-extend/95 hover:ring-4 hover:ring-inset hover:ring-white hover:shadow-[0_0_0_1px_rgba(255,255,255,0.5),0_0_28px_rgba(16,185,129,0.75)]',
+      'hover:bg-timeline-designated/95 hover:ring-4 hover:ring-inset hover:ring-white hover:shadow-[0_0_0_1px_rgba(255,255,255,0.5),0_0_28px_rgba(124,58,237,0.75)]',
   },
   unschedule: {
     base: 'bg-timeline-unschedule/50 ring-0 ring-transparent',

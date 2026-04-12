@@ -22,7 +22,7 @@ import {
   formatMoveToPeriod,
   resolveTimelinePlacementLabel,
 } from './timelineActionLabels'
-import { IconExtendToPeriod, IconKeepInPeriod, IconMoveToPeriod } from './TimelineIcons'
+import { IconExtendToPeriod, IconKeepInPeriod, IconMoveToPeriod, IconScheduleFor } from './TimelineIcons'
 import TimelineDropTile from './TimelineDropTile'
 import TimelineEditColumnStrip from './TimelineEditColumnStrip'
 import TimelinePeriodCourseItem from './TimelinePeriodCourseItem'
@@ -606,10 +606,7 @@ const TimelineMainGrid = ({
                                     label={moveToLabel}
                                     ariaLabel={moveToLabel}
                                     icon={
-                                      <span className="flex shrink-0 items-center justify-center gap-0.5">
-                                        <IconMoveToPeriod className="size-5 shrink-0 opacity-95" />
-                                        <IconExtendToPeriod className="size-5 shrink-0 opacity-95" />
-                                      </span>
+                                      <IconScheduleFor className="size-5 shrink-0 opacity-95" />
                                     }
                                     tone="designated"
                                     onClick={
