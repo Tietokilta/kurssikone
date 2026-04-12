@@ -17,7 +17,6 @@ import {
   aggregateTimelineCreditsByCompletion,
   buildTimelineCards,
   computeSemesterCoursePlacements,
-  formatPlannedPeriodForSlot,
   type ParsedPlannedPeriod,
 } from '../utils/parsePlannedPeriods'
 import { createPeriodIndex } from '../utils/studyYearPeriods'
@@ -496,13 +495,36 @@ const TimelinePage = ({ planId }: Props) => {
       setActiveEditCardKey(kind === 'click-scheduled' ? cardKey : null)
       setClickPlacementTarget(null)
       setUnscheduledDragPreview(null)
-      setActiveMovingRun(
-        kind === 'click-scheduled' && connectedPlannedPeriods && connectedPlannedPeriods.length > 1
-          ? connectedPlannedPeriods
-          : null
-      )
+      let movingRun: string[] | null = null
+      if (
+        kind === 'click-scheduled' &&
+        fullPlan &&
+        periodIndex &&
+        typeof selectionIndex === 'number' &&
+        selectionIndex >= 0 &&
+        sourcePlannedPeriod?.trim()
+      ) {
+        const row = fullPlan.courseUnitSelections[selectionIndex]
+        if (row) {
+          const run = resolveTimelineMoveRun(
+            row,
+            sourcePlannedPeriod.trim(),
+            connectedPlannedPeriods?.length ? connectedPlannedPeriods : null,
+            periodIndex
+          )
+          movingRun = run && run.length > 1 ? run : null
+        }
+      }
+      setActiveMovingRun(movingRun)
     },
-    [interactionKind, activeSelectionIndex, activeSourcePlannedPeriod, resetInteraction]
+    [
+      interactionKind,
+      activeSelectionIndex,
+      activeSourcePlannedPeriod,
+      resetInteraction,
+      fullPlan,
+      periodIndex,
+    ]
   )
 
   const handleCardMoveModeToggle = useCallback(
@@ -630,27 +652,9 @@ const TimelinePage = ({ planId }: Props) => {
     if (pl.anchorPlannedPeriod !== activeSourcePlannedPeriod) {
       setActiveSourcePlannedPeriod(pl.anchorPlannedPeriod)
     }
-    const movingRun: string[] = []
-    for (let c = pl.startCol; c < pl.startCol + pl.span; c++) {
-      const period = card.periods[c]
-      if (period) {
-        movingRun.push(
-          period.plannedPeriod ||
-            formatPlannedPeriodForSlot(
-              sisuRootId,
-              card.year,
-              card.season,
-              period.period,
-              periodIndex
-            )
-        )
-      }
-    }
-    if (movingRun.length > 1) {
-      setActiveMovingRun(movingRun)
-    } else {
-      setActiveMovingRun(null)
-    }
+    /** Same global contiguous run as drag/apply (Spring V + Summer + Fall I, etc.); not per-card span. */
+    const run = resolveTimelineMoveRun(row, pl.anchorPlannedPeriod, null, periodIndex)
+    setActiveMovingRun(run && run.length > 1 ? run : null)
   }, [
     fullPlan,
     interactionKind,

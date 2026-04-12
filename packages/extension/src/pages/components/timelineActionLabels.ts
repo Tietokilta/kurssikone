@@ -30,15 +30,11 @@ export function formatKeepInPeriod(periodName: string): string {
   return `Keep in ${periodName}`
 }
 
-/**
- * @param longForm When false: `Move to {period}` (no “start from”). When true: `Move to start from {period}`
- *   for multi-period rows where re-anchoring matters.
- */
 export function formatMoveToPeriod(periodName: string, longForm = true): string {
   if (!longForm) {
     return `Move to ${periodName}`
   }
-  return `Move start to ${periodName}`
+  return `Move to start from ${periodName}`
 }
 
 export function formatExtendToPeriod(periodName: string): string {

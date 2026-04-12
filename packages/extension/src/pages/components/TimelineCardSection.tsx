@@ -435,7 +435,7 @@ const TimelineMainGrid = ({
                         <TimelineEditColumnStrip
                           plannedPeriod={resolved}
                           periodDisplayName={periodDisplayName}
-                          moveLabelLongForm={editPl.span > 1}
+                          moveLabelLongForm={useLongMoveLabel}
                           isAnchorColumn={colIndex === editPl.startCol}
                           onRemove={(pp) =>
                             onCardUnschedule(editPl.selection.selectionIndex, pp)
