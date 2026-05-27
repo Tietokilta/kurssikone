@@ -1,5 +1,7 @@
 # KurssiKone
 
+![Example of KurssiKone](example_1.jpg)
+
 A course review platform for Aalto University courses. Available as a browser extension and a standalone website.
 
 ## Project Structure
