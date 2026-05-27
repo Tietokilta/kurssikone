@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { isFirefox, browserName } from 'react-device-detect'
 
 type Props = {
   children: ReactNode
@@ -23,13 +24,18 @@ const Layout = ({ children }: Props) => {
         <p className="mt-2">
           Also available as a{' '}
           <a
-            href="https://github.com/otju/kurssikone"
+            href={
+              isFirefox
+                ? 'https://addons.mozilla.org/en-US/firefox/addon/kurssikone/'
+                : 'http://chromewebstore.google.com/detail/dfchpeehiilpkpikbmgkdfpenkdcpeim'
+            }
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 underline hover:text-blue-800"
           >
             browser extension
-          </a>
+          </a>{' '}
+          for {browserName}
         </p>
       </footer>
     </div>
