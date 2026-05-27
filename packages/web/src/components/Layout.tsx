@@ -1,5 +1,4 @@
 import { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import { isFirefox } from 'react-device-detect'
 
 type Props = {
@@ -9,14 +8,6 @@ type Props = {
 const Layout = ({ children }: Props) => {
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-gray-900 text-white px-6 py-4">
-        <div className="max-w-6xl mx-auto flex justify-between items-center px-6">
-          <Link to="/" className="font-medium text-white no-underline hover:text-gray-200">
-            KurssiKone
-          </Link>
-        </div>
-      </header>
-
       <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8">{children}</main>
 
       <footer className="bg-gray-100 border-t border-gray-300 text-gray-600 text-sm text-center px-6 py-6 mt-12">
