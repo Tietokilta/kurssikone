@@ -1,6 +1,11 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { CoursePageContent, useCoursePageData, CourseWithRealisations } from '@kurssikone/shared'
+import {
+  CoursePageContent,
+  useCoursePageData,
+  CourseWithRealisations,
+  GENERIC_ERROR_MESSAGE,
+} from '@kurssikone/shared'
 import {
   getAveragesForCourse,
   getReviewsForCourseExcludingUserReview,
@@ -18,11 +23,14 @@ const CoursePage = () => {
   const { courseCode } = useParams<{ courseCode: string }>()
   const [courseData, setCourseData] = useState<CourseWithRealisations | null>(null)
   const [isCourseLoading, setIsCourseLoading] = useState(true)
+  const [hasCourseFetchError, setHasCourseFetchError] = useState(false)
 
   const {
     userId,
     otherReviewsAndCount,
     averages,
+    isLoading,
+    hasError,
     isMakingNewReview,
     userReview,
     setIsMakingNewReview,
@@ -48,6 +56,7 @@ const CoursePage = () => {
 
     const fetchCourseData = async () => {
       setIsCourseLoading(true)
+      setHasCourseFetchError(false)
       try {
         const courses = await getCourseByCode(courseCode)
         if (courses && courses.length > 0) {
@@ -64,6 +73,7 @@ const CoursePage = () => {
       } catch (error) {
         console.error('Failed to fetch course data:', error)
         setCourseData(null)
+        setHasCourseFetchError(true)
       } finally {
         setIsCourseLoading(false)
       }
@@ -86,7 +96,15 @@ const CoursePage = () => {
     )
   }
 
-  if (!otherReviewsAndCount || !averages) {
+  if (hasError) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-gray-600">{GENERIC_ERROR_MESSAGE}</p>
+      </div>
+    )
+  }
+
+  if (isLoading || !otherReviewsAndCount || !averages) {
     return (
       <div className="text-center py-10">
         <p className="text-gray-600">Loading...</p>
@@ -107,6 +125,10 @@ const CoursePage = () => {
       {isCourseLoading ? (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
           <p className="text-gray-500">Loading course information...</p>
+        </div>
+      ) : hasCourseFetchError ? (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-8">
+          <p className="text-gray-600 text-sm">{GENERIC_ERROR_MESSAGE}</p>
         </div>
       ) : courseData ? (
         <CourseInfo course={courseData} />

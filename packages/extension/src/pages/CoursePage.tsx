@@ -1,5 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from 'react'
-import { CoursePageContent, useCoursePageData } from '@kurssikone/shared'
+import { CoursePageContent, useCoursePageData, GENERIC_ERROR_MESSAGE } from '@kurssikone/shared'
 import {
   getAveragesForCourse,
   getReviewsForCourseExcludingUserReview,
@@ -57,6 +57,8 @@ const CoursePageInner = ({ courseCode }: Props) => {
     userId,
     otherReviewsAndCount,
     averages,
+    isLoading,
+    hasError,
     isMakingNewReview,
     userReview,
     setIsMakingNewReview,
@@ -81,7 +83,11 @@ const CoursePageInner = ({ courseCode }: Props) => {
     return <div className="p-4 text-gray-600">Course code not found</div>
   }
 
-  if (!otherReviewsAndCount || !averages) {
+  if (hasError) {
+    return <div className="p-4 text-gray-600">{GENERIC_ERROR_MESSAGE}</div>
+  }
+
+  if (isLoading || !otherReviewsAndCount || !averages) {
     return <div className="p-4 text-gray-600">Loading...</div>
   }
 

@@ -45,7 +45,7 @@ const RoundMeter = ({ title, value, minText, maxText }: Props) => {
   }, [value])
 
   return (
-    <div className="relative w-fit">
+    <div className="relative w-fit mb-4">
       <span className="absolute text-center text-xl block w-full h-5 bottom-[113px] text-white">
         {title}
       </span>
@@ -58,7 +58,8 @@ const RoundMeter = ({ title, value, minText, maxText }: Props) => {
         height={cSize}
         className="bg-[#00103070] rounded-full"
       />
-      <span className="absolute text-center w-full -bottom-5 flex justify-center gap-1.5">
+
+      <span className="absolute text-center w-full flex justify-center gap-1.5">
         <span className="w-[75px]">{minText}</span>
         <span>-</span>
         <span className="w-[75px]">{maxText}</span>

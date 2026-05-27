@@ -25,6 +25,8 @@ export type UseCoursePageDataResult = {
   userId: string | null
   otherReviewsAndCount: ReviewsAndCount | null
   averages: ReviewAverages | null
+  isLoading: boolean
+  hasError: boolean
   isMakingNewReview: boolean
   userReview: Review | null
   setIsMakingNewReview: (value: boolean) => void
@@ -42,6 +44,8 @@ export const useCoursePageData = ({
   const [userId, setUserId] = useState<string | null>(null)
   const [otherReviewsAndCount, setOtherReviewsAndCount] = useState<ReviewsAndCount | null>(null)
   const [averages, setAverages] = useState<ReviewAverages | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
   const [isMakingNewReview, setIsMakingNewReview] = useState(false)
   const [userReview, setUserReview] = useState<Review | null>(null)
 
@@ -88,8 +92,42 @@ export const useCoursePageData = ({
     await Promise.resolve(storageRef.current.setUserId(id))
   }
 
+  const refetchData = async () => {
+    if (!courseCode) {
+      return
+    }
+
+    try {
+      await getUserIdAndFetchData()
+      setHasError(false)
+    } catch (error) {
+      console.error('Failed to refetch course page data:', error)
+      setHasError(true)
+    }
+  }
+
   useEffect(() => {
-    getUserIdAndFetchData()
+    if (!courseCode) {
+      setIsLoading(false)
+      setHasError(false)
+      return
+    }
+
+    setIsLoading(true)
+    setHasError(false)
+
+    const load = async () => {
+      try {
+        await getUserIdAndFetchData()
+      } catch (error) {
+        console.error('Failed to fetch course page data:', error)
+        setHasError(true)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseCode])
 
@@ -97,12 +135,14 @@ export const useCoursePageData = ({
     userId,
     otherReviewsAndCount,
     averages,
+    isLoading,
+    hasError,
     isMakingNewReview,
     userReview,
     setIsMakingNewReview,
     fetchAndSetUserReview,
     fetchAndSetAverages,
-    refetchData: getUserIdAndFetchData,
+    refetchData,
     setUserIdInStorage,
   }
 }
