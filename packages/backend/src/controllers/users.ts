@@ -4,11 +4,6 @@ import hashIt from 'hash-it'
 
 const router = Router()
 
-router.get('/', async (req, res) => {
-  const users = await User.findAll()
-  res.json(users)
-})
-
 router.post('/', async (req, res) => {
   try {
     let { hash, id } = req.body

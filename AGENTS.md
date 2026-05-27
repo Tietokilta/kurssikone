@@ -43,3 +43,7 @@ npm run test
 # Extension browser E2E (Puppeteer, live Sisu + API) — run separately when needed
 npm run test:e2e
 ```
+
+## Other notes
+
+User IDs are secrets, only the user themselves should know their user ID. Make sure no code logs user IDs or exposes them in any way.
