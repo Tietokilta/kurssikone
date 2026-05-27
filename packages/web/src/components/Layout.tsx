@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { isFirefox, browserName } from 'react-device-detect'
+import { isFirefox } from 'react-device-detect'
 
 type Props = {
   children: ReactNode
@@ -35,7 +35,7 @@ const Layout = ({ children }: Props) => {
           >
             browser extension
           </a>{' '}
-          for {browserName}
+          for Firefox & Chrome.
         </p>
       </footer>
     </div>
