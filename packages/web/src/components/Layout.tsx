@@ -10,7 +10,7 @@ const Layout = ({ children }: Props) => {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-gray-900 text-white px-6 py-4">
-        <div className="max-w-4xl mx-auto flex justify-between items-center">
+        <div className="max-w-6xl mx-auto flex justify-between items-center px-6">
           <Link to="/" className="font-medium text-white no-underline hover:text-gray-200">
             KurssiKone
           </Link>

@@ -5,8 +5,12 @@ import CourseCard from '../components/CourseCard'
 import { isFirefox } from 'react-device-detect'
 
 const COURSES_PER_PAGE = 20
+const EXTENSION_ALERT_DISMISSED_KEY = 'kurssikone_extensionAlertDismissed'
 
 const HomePage = () => {
+  const [extensionAlertDismissed, setExtensionAlertDismissed] = useState(
+    () => localStorage.getItem(EXTENSION_ALERT_DISMISSED_KEY) === 'true'
+  )
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [sortBy, setSortBy] = useState<CourseListSortBy>('quality')
@@ -97,6 +101,11 @@ const HomePage = () => {
     }
   }, [loadMore, isLoading, isLoadingMore, courses.length, total])
 
+  const dismissExtensionAlert = () => {
+    localStorage.setItem(EXTENSION_ALERT_DISMISSED_KEY, 'true')
+    setExtensionAlertDismissed(true)
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-medium mb-2">KurssiKone</h1>
@@ -104,29 +113,39 @@ const HomePage = () => {
         Find and share course reviews & information for Aalto University courses
       </p>
 
-      <div className="mb-4 bg-gray-300 p-4 rounded-lg">
-        <p>
-          KurssiKone is also available as a{' '}
-          <a
-            href={
-              isFirefox
-                ? 'https://addons.mozilla.org/en-US/firefox/addon/kurssikone/'
-                : 'http://chromewebstore.google.com/detail/dfchpeehiilpkpikbmgkdfpenkdcpeim'
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline hover:text-blue-800"
+      {!extensionAlertDismissed && (
+        <div className="relative mb-4 bg-gray-300 p-4 pr-10 rounded-lg">
+          <button
+            type="button"
+            onClick={dismissExtensionAlert}
+            className="absolute top-1 right-2 p-1 text-gray-600 hover:text-gray-900 leading-none"
+            aria-label="Dismiss notification"
           >
-            browser extension
-          </a>{' '}
-          for Firefox & Chrome.
-        </p>
+            <span className="text-xl leading-none">&times;</span>
+          </button>
+          <p>
+            KurssiKone is also available as a{' '}
+            <a
+              href={
+                isFirefox
+                  ? 'https://addons.mozilla.org/en-US/firefox/addon/kurssikone/'
+                  : 'http://chromewebstore.google.com/detail/dfchpeehiilpkpikbmgkdfpenkdcpeim'
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline hover:text-blue-800"
+            >
+              browser extension
+            </a>{' '}
+            for Firefox & Chrome.
+          </p>
 
-        <p>
-          The extension also features a more user friendly <b>Timeline</b> view (<b>Ajoitus</b>
-          -näkymä).
-        </p>
-      </div>
+          <p>
+            The extension also features a more user friendly <b>Timeline</b> view (<b>Ajoitus</b>
+            -näkymä).
+          </p>
+        </div>
+      )}
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
         <div className="w-full max-w-md">
