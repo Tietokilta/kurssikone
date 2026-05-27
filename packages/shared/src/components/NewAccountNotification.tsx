@@ -27,9 +27,14 @@ const NewAccountNotification = ({
   }
 
   const handleSettingPreviousUserId = async () => {
+    if (!previousUserId.trim()) {
+      setError('Please enter a user ID')
+      return
+    }
+
     const res = await getUser(previousUserId)
 
-    if (!res) {
+    if (!res || !previousUserId) {
       setError('User ID not found')
       return
     }
@@ -42,9 +47,8 @@ const NewAccountNotification = ({
   return (
     <div className="my-6">
       <h4>Looks like this is your first time making a review!</h4>
-      <p>An user ID has been generated for you.</p>
       <p>
-        Your user ID is: <b>{generatedUserId}</b>
+        Your new User ID is: <b>{generatedUserId}</b>
         <button
           className="ml-2 px-2 py-1 text-sm bg-gray-200 border border-gray-300 rounded hover:bg-gray-300"
           onClick={() => {
@@ -54,9 +58,14 @@ const NewAccountNotification = ({
           Copy
         </button>
       </p>
+
       <p>
-        If you want to be able to edit your reviews from another browser, you should{' '}
-        <b>save this ID somewhere safe.</b>
+        This ID is used to identify you, and you will need it if you want to edit or delete your
+        reviews in the future.
+      </p>
+
+      <p>
+        <b>Save this ID somewhere safe.</b>
       </p>
       <button
         className="my-2 px-3 py-1.5 text-sm bg-gray-200 border border-gray-300 rounded hover:bg-gray-300"
