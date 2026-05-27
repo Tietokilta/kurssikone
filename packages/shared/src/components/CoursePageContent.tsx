@@ -131,7 +131,7 @@ const CoursePageContent = ({
       </dl>
 
       {reviewCount === 0 && (
-        <p className="text-gray-600">No reviews yet. Be the first to write a review!</p>
+        <p className="text-gray-600 mt-4">No reviews yet. Be the first to write one!</p>
       )}
     </>
   )

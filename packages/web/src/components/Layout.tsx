@@ -17,7 +17,7 @@ const Layout = ({ children }: Props) => {
         </div>
       </header>
 
-      <main className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">{children}</main>
+      <main className="flex-1 max-w-6xl mx-auto w-full px-6 py-8">{children}</main>
 
       <footer className="bg-gray-100 border-t border-gray-300 text-gray-600 text-sm text-center px-6 py-6 mt-12">
         <p>KurssiKone - Course reviews for Aalto University</p>

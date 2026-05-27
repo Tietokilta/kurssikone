@@ -92,7 +92,20 @@ const ReviewMakeForm = ({
       <h4 className="mt-3">{isEditingOldReview ? 'Edit review' : 'New review'}</h4>
       <form className="flex gap-6 flex-col mt-4 mb-6" onSubmit={makeReview}>
         <div className="w-[90%] flex gap-9 flex-wrap">
-          <label className="flex flex-col min-w-[200px]">
+          <div className="flex flex-col gap-6 w-full">
+            {scoreTypes.map((scoreType) => (
+              <ScorePicker
+                key={scoreType.name}
+                name={scoreType.name}
+                label={scoreType.label}
+                defaultValue={currentUserReview ? currentUserReview[scoreType.name] : 3}
+                minText={scoreType.minText}
+                maxText={scoreType.maxText}
+              />
+            ))}
+          </div>
+
+          <label className="flex flex-col min-w-[200px] w-[400px]">
             Responsible teacher
             <input
               name="professor"
@@ -124,7 +137,7 @@ const ReviewMakeForm = ({
             rows={3}
             className="max-w-[700px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
             defaultValue={currentUserReview?.learnings ?? ''}
-            placeholder="What skills, concepts, or knowledge did you gain from this course?"
+            placeholder="What skills, concepts, or knowledge did you gain from this course? (optional)"
           />
         </label>
         <label className="flex flex-col">
@@ -134,7 +147,7 @@ const ReviewMakeForm = ({
             rows={3}
             className="max-w-[700px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
             defaultValue={currentUserReview?.tasks ?? ''}
-            placeholder="What kind of assignments, exercises, exams, or projects did the course have?"
+            placeholder="What kind of assignments, exercises, exams, or projects did the course have? (optional)"
           />
         </label>
         <label className="flex flex-col">
@@ -144,19 +157,10 @@ const ReviewMakeForm = ({
             rows={3}
             className="max-w-[700px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
             defaultValue={currentUserReview?.otherInfo ?? ''}
-            placeholder="Any other information, tips, or comments about the course?"
+            placeholder="Any other information, tips, or comments about the course? (optional)"
           />
         </label>
-        {scoreTypes.map((scoreType) => (
-          <ScorePicker
-            key={scoreType.name}
-            name={scoreType.name}
-            label={scoreType.label}
-            defaultValue={currentUserReview ? currentUserReview[scoreType.name] : 3}
-            minText={scoreType.minText}
-            maxText={scoreType.maxText}
-          />
-        ))}
+
         <div>
           <button
             type="submit"
