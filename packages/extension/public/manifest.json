@@ -1,6 +1,6 @@
 {
   "name": "KurssiKone",
-  "description": "Adds extra features directly to Sisu, allowing you to read other students' reviews & information on courses and write your own! It also allows you to use a custom timeline editor.",
+  "description": "Adds extra features directly to Aalto University Sisu, including course reviews and a new timeline view!",
   "version": "2.0.0",
   "manifest_version": 3,
   "permissions": ["storage", "webRequest"],
