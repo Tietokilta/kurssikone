@@ -1,4 +1,5 @@
 import React from 'react'
+import FormTextField from './FormTextField'
 import ScorePicker from './ScorePicker'
 import { NewReview, Review } from '../types'
 import Divider from './Divider'
@@ -105,15 +106,13 @@ const ReviewMakeForm = ({
             ))}
           </div>
 
-          <label className="flex flex-col min-w-[200px] w-[400px]">
-            Responsible teacher
-            <input
-              name="professor"
-              className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-              defaultValue={currentUserReview?.professor ?? ''}
-              placeholder="Name of the responsible teacher (optional)"
-            />
-          </label>
+          <FormTextField
+            label="Responsible teacher"
+            name="professor"
+            hint="Name of the responsible teacher (optional)"
+            defaultValue={currentUserReview?.professor ?? ''}
+            className="min-w-[200px] w-[400px]"
+          />
           <label className="flex flex-col min-w-[120px]">
             Year
             <select
@@ -130,36 +129,33 @@ const ReviewMakeForm = ({
             </select>
           </label>
         </div>
-        <label className="flex flex-col">
-          What you'll learn
-          <textarea
-            name="learnings"
-            rows={3}
-            className="max-w-[700px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-            defaultValue={currentUserReview?.learnings ?? ''}
-            placeholder="What skills, concepts, or knowledge did you gain from this course? (optional)"
-          />
-        </label>
-        <label className="flex flex-col">
-          What you'll need to do
-          <textarea
-            name="tasks"
-            rows={3}
-            className="max-w-[700px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-            defaultValue={currentUserReview?.tasks ?? ''}
-            placeholder="What kind of assignments, exercises, exams, or projects did the course have? (optional)"
-          />
-        </label>
-        <label className="flex flex-col">
-          Other info
-          <textarea
-            name="otherInfo"
-            rows={3}
-            className="max-w-[700px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-            defaultValue={currentUserReview?.otherInfo ?? ''}
-            placeholder="Any other information, tips, or comments about the course? (optional)"
-          />
-        </label>
+        <FormTextField
+          label="What you'll learn"
+          name="learnings"
+          hint="What skills, concepts, or knowledge did you gain from this course? (optional)"
+          multiline
+          rows={3}
+          inputClassName="max-w-[700px]"
+          defaultValue={currentUserReview?.learnings ?? ''}
+        />
+        <FormTextField
+          label="What you'll need to do"
+          name="tasks"
+          hint="What kind of assignments, exercises, exams, or projects did the course have? (optional)"
+          multiline
+          rows={3}
+          inputClassName="max-w-[700px]"
+          defaultValue={currentUserReview?.tasks ?? ''}
+        />
+        <FormTextField
+          label="Other info"
+          name="otherInfo"
+          hint="Any other information, tips, or comments about the course? (optional)"
+          multiline
+          rows={3}
+          inputClassName="max-w-[700px]"
+          defaultValue={currentUserReview?.otherInfo ?? ''}
+        />
 
         <div>
           <button
