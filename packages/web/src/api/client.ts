@@ -10,6 +10,7 @@ import {
   ListSortOrder,
   CourseWithRealisations,
   CourseRealisation,
+  TenttiarkistoCourse,
 } from '@kurssikone/shared'
 import hashIt from 'hash-it'
 
@@ -178,3 +179,6 @@ export const getCourseRealisations = async (code: string): Promise<CourseRealisa
   const result = await get(['courses', code, 'realisations'])
   return (result || []) as CourseRealisation[]
 }
+
+export const getExamsForCourse = async (courseCode: string): Promise<TenttiarkistoCourse | null> =>
+  get(['exams', courseCode]) as Promise<TenttiarkistoCourse | null>

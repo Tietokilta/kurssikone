@@ -1,4 +1,5 @@
 import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikone/shared'
+import type { TenttiarkistoCourse } from '@kurssikone/shared'
 import hashIt from 'hash-it'
 
 import type {
@@ -152,24 +153,6 @@ export const deleteReview = async (reviewId: number, userId: string) => {
     hash: hashIt(body),
     ...body,
   })
-}
-
-export type TenttiarkistoExamFile = { id: number; url: string }
-
-export type TenttiarkistoExam = {
-  id: number
-  desc: string
-  exam_date: string
-  date_added: string
-  lang: string
-  files: TenttiarkistoExamFile[]
-}
-
-export type TenttiarkistoCourse = {
-  id: number
-  code: string
-  name: string
-  exams: TenttiarkistoExam[]
 }
 
 export const getExamsForCourse = async (courseCode: string): Promise<TenttiarkistoCourse | null> =>

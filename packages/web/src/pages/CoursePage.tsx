@@ -2,6 +2,7 @@ import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import {
   CoursePageContent,
+  ExamsContent,
   useCoursePageData,
   CourseWithRealisations,
   GENERIC_ERROR_MESSAGE,
@@ -15,12 +16,16 @@ import {
   makeOrEditReview,
   deleteReview,
   getCourseByCode,
+  getExamsForCourse,
 } from '../api/client'
 import { getUserId, setUserId } from '../utils/userStorage'
 import CourseInfo from '../components/CourseInfo'
 
+type Tab = 'reviews' | 'exams'
+
 const CoursePage = () => {
   const { courseCode } = useParams<{ courseCode: string }>()
+  const [activeTab, setActiveTab] = useState<Tab>('reviews')
   const [courseData, setCourseData] = useState<CourseWithRealisations | null>(null)
   const [isCourseLoading, setIsCourseLoading] = useState(true)
   const [hasCourseFetchError, setHasCourseFetchError] = useState(false)
@@ -140,23 +145,45 @@ const CoursePage = () => {
         </div>
       )}
 
-      <CoursePageContent
-        courseCode={courseCode}
-        userId={userId}
-        otherReviewsAndCount={otherReviewsAndCount}
-        averages={averages}
-        isMakingNewReview={isMakingNewReview}
-        userReview={userReview}
-        setIsMakingNewReview={setIsMakingNewReview}
-        fetchAndSetUserReview={fetchAndSetUserReview}
-        fetchAndSetAverages={fetchAndSetAverages}
-        refetchData={refetchData}
-        setUserIdInStorage={setUserIdInStorage}
-        getUser={getUser}
-        makeUser={makeUser}
-        makeOrEditReview={makeOrEditReview}
-        deleteReview={deleteReview}
-      />
+      <div className="flex gap-0 mb-6 border-b border-gray-200">
+        {(['reviews', 'exams'] as Tab[]).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-sm font-medium capitalize border-b-2 -mb-px transition-colors ${
+              activeTab === tab
+                ? 'border-gray-900 text-gray-900'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'reviews' && (
+        <CoursePageContent
+          courseCode={courseCode}
+          userId={userId}
+          otherReviewsAndCount={otherReviewsAndCount}
+          averages={averages}
+          isMakingNewReview={isMakingNewReview}
+          userReview={userReview}
+          setIsMakingNewReview={setIsMakingNewReview}
+          fetchAndSetUserReview={fetchAndSetUserReview}
+          fetchAndSetAverages={fetchAndSetAverages}
+          refetchData={refetchData}
+          setUserIdInStorage={setUserIdInStorage}
+          getUser={getUser}
+          makeUser={makeUser}
+          makeOrEditReview={makeOrEditReview}
+          deleteReview={deleteReview}
+        />
+      )}
+
+      {activeTab === 'exams' && (
+        <ExamsContent courseCode={courseCode} getExams={getExamsForCourse} />
+      )}
     </div>
   )
 }

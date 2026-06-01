@@ -110,7 +110,7 @@ const HomePage = () => {
     <div>
       <h1 className="text-2xl font-medium mb-2">KurssiKone</h1>
       <p className="text-gray-600 mb-6">
-        Find and share course reviews & information for Aalto University courses
+        Find and share course reviews, exams & information for Aalto University courses
       </p>
 
       {!extensionAlertDismissed && (

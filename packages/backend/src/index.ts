@@ -6,6 +6,7 @@ import reviewRouter from './controllers/reviews'
 import userRouter from './controllers/users'
 import testRouter from './controllers/testing'
 import courseRouter from './controllers/courses'
+import examsRouter from './controllers/exams'
 import bodyParser from 'body-parser'
 import { PORT } from './utils/config'
 import morganBody from 'morgan-body'
@@ -26,6 +27,7 @@ morganBody(app, {
 app.use('/api/reviews', reviewRouter)
 app.use('/api/users', userRouter)
 app.use('/api/courses', courseRouter)
+app.use('/api/exams', examsRouter)
 if (process.env.ALLOW_RESET === 'true') {
   app.use('/api/testing', testRouter)
 }
