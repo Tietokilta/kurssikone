@@ -117,7 +117,7 @@ const handleCoursePage = async (isModal: boolean) => {
     const reviewShadow = createShadowRoot(reviewShadowHost)
     const reviewReactRoot = document.createElement('div')
     reviewReactRoot.setAttribute('id', 'review-root')
-    reviewReactRoot.setAttribute('class', 'review-root p-4')
+    reviewReactRoot.setAttribute('class', 'review-root px-4 pb-4 pt-2')
     reviewShadow.appendChild(reviewReactRoot)
 
     // Exams shadow host

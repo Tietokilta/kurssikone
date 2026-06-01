@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import dayjs from 'dayjs'
 import { getExamsForCourse, TenttiarkistoExam } from '../requestHandlers'
 
 type Props = {
@@ -44,12 +45,30 @@ const ExamsPage = ({ courseCode }: Props) => {
   }
 
   return (
-    <div className="p-4">
-      <h2 className="text-xl font-medium mb-4">{exams.length} Exams</h2>
+    <div className="px-4 pb-4 pt-2">
+      <p className="text-sm text-gray-500 mb-4">
+        Exam data is provided by{' '}
+        <a href="https://tenttiarkisto.fi" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+          tenttiarkisto.fi
+        </a>
+        .
+      </p>
+      <div className="flex gap-6 items-center mb-2">
+        <h2 className="text-xl font-medium">{exams.length} Exams</h2>
+        <a
+          href="https://www.tenttiarkisto.fi/exams/add/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-3 py-1.5 text-sm bg-gray-200 text-gray-900 border border-gray-300 rounded-md hover:bg-gray-300 transition-colors"
+        >
+          + Add an exam
+        </a>
+      </div>
+      <hr className="border-gray-800 mb-4" />
       <div className="flex flex-col gap-4">
         {exams.map((exam) => (
-          <div key={exam.id} className="ml-4 border-b border-gray-200 pb-4">
-            <h3 className="font-medium">{exam.exam_date}</h3>
+          <div key={exam.id} className="border-b border-gray-200 pb-4">
+            <h3 className="font-medium">{dayjs(exam.exam_date).format('DD/MM/YYYY')}</h3>
             <p className="text-sm text-gray-600 mt-0.5">
               {exam.desc} · {exam.lang}
             </p>
