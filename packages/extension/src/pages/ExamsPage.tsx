@@ -65,28 +65,43 @@ const ExamsPage = ({ courseCode }: Props) => {
         </a>
       </div>
       <hr className="border-gray-800 mb-4" />
-      <div className="flex flex-col gap-4">
-        {exams.map((exam) => (
-          <div key={exam.id} className="border-b border-gray-200 pb-4">
-            <h3 className="font-medium">{dayjs(exam.exam_date).format('DD/MM/YYYY')}</h3>
-            <p className="text-sm text-gray-600 mt-0.5">
-              {exam.desc} · {exam.lang}
-            </p>
-            <div className="flex flex-col gap-1 mt-2">
-              {exam.files.map((file, i) => (
-                <a
-                  key={file.id}
-                  href={file.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:underline"
-                >
-                  File {i + 1}
-                </a>
-              ))}
+      <div className="flex flex-col gap-6">
+        {Object.entries(
+          exams.reduce<Record<string, TenttiarkistoExam[]>>((groups, exam) => {
+            const year = dayjs(exam.exam_date).format('YYYY')
+            ;(groups[year] ??= []).push(exam)
+            return groups
+          }, {})
+        )
+          .sort(([a], [b]) => Number(b) - Number(a))
+          .map(([year, yearExams]) => (
+            <div key={year}>
+              <h3 className="text-lg font-semibold mb-2">{year}</h3>
+              <div className="flex flex-wrap gap-3">
+                {yearExams.map((exam) => (
+                  <div key={exam.id} className="border border-gray-200 rounded-md p-3 text-sm">
+                    <p className="font-medium">{dayjs(exam.exam_date).format('DD MMM')}</p>
+                    <p className="text-gray-600 mt-0.5">
+                      {exam.desc} · {exam.lang}
+                    </p>
+                    <div className="flex flex-col gap-1 mt-2">
+                      {exam.files.map((file, i) => (
+                        <a
+                          key={file.id}
+                          href={file.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:underline"
+                        >
+                          File {i + 1}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   )
