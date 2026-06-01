@@ -15,7 +15,7 @@ Node v22.19.0
 npm 10.9.3
 Windows 11 25H2
 
-## Store texts (for Chrome and Firefox extension stores)
+## Extension store info (for Chrome and Firefox extension stores)
 
 ### Short description (forced < 132 characters by Chrome Web Store)
 
@@ -31,3 +31,13 @@ Features:
 - Custom timeline view
 - Past exams for courses
 ```
+
+### Screenshots
+
+Screenshots are in Chrome mandatory size of 1,280 x 800 px. Firefox would reccomend 2400 x 1800px.
+
+![Example 1](../../example_1.jpg)
+
+![Example 2](../../example_2.jpg)
+
+![Example 3](../../example_3.jpg)
