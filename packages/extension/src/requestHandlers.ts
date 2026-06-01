@@ -153,3 +153,24 @@ export const deleteReview = async (reviewId: number, userId: string) => {
     ...body,
   })
 }
+
+export type TenttiarkistoExamFile = { id: number; url: string }
+
+export type TenttiarkistoExam = {
+  id: number
+  desc: string
+  exam_date: string
+  date_added: string
+  lang: string
+  files: TenttiarkistoExamFile[]
+}
+
+export type TenttiarkistoCourse = {
+  id: number
+  code: string
+  name: string
+  exams: TenttiarkistoExam[]
+}
+
+export const getExamsForCourse = async (courseCode: string): Promise<TenttiarkistoCourse | null> =>
+  (await chrome.runtime.sendMessage({ type: 'fetchExams', courseCode })) as TenttiarkistoCourse | null

@@ -6,8 +6,10 @@
   "permissions": ["storage", "webRequest"],
   "host_permissions": [
     "http://localhost/*",
-    "https://sisu-course-reviewer-api.otju.dev/*",
-    "https://sisu.aalto.fi/*"
+    "https://kurssikone.com/*",
+    "https://api.kurssikone.com/*",
+    "https://sisu.aalto.fi/*",
+    "https://tenttiarkisto.fi/*"
   ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self';"

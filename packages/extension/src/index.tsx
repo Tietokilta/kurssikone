@@ -2,6 +2,7 @@ import ReactDOM from 'react-dom/client'
 // @ts-expect-error - CSS imported as string via ?inline query
 import styles from './index.css?inline'
 import CoursePage from './pages/CoursePage'
+import ExamsPage from './pages/ExamsPage'
 import SearchResultPage from './pages/SearchResultPage'
 import { waitForElement } from './utils/waitForElement'
 import TimelinePage from './pages/TimelinePage'
@@ -103,41 +104,65 @@ const handleSearchResult = (node: Node) => {
 const handleCoursePage = async (isModal: boolean) => {
   console.log('[KurssiKone] handleCoursePage called, isModal:', isModal)
   try {
-    const shadowHost = document.createElement('div')
-    shadowHost.setAttribute('id', 'review-root-host')
-    shadowHost.setAttribute('class', 'kurssikone-shadow-host')
-    shadowHost.setAttribute('role', 'tabpanel')
-
     const pageMainBody = (await waitForElement('[role="tabpanel"]'))?.parentElement
-    pageMainBody?.append(shadowHost)
-    shadowHost.style.display = 'none'
 
-    const shadow = createShadowRoot(shadowHost)
-    const reactRoot = document.createElement('div')
-    reactRoot.setAttribute('id', 'review-root')
-    reactRoot.setAttribute('class', 'review-root p-4')
-    shadow.appendChild(reactRoot)
+    // Reviews shadow host
+    const reviewShadowHost = document.createElement('div')
+    reviewShadowHost.setAttribute('id', 'review-root-host')
+    reviewShadowHost.setAttribute('class', 'kurssikone-shadow-host')
+    reviewShadowHost.setAttribute('role', 'tabpanel')
+    pageMainBody?.append(reviewShadowHost)
+    reviewShadowHost.style.display = 'none'
+
+    const reviewShadow = createShadowRoot(reviewShadowHost)
+    const reviewReactRoot = document.createElement('div')
+    reviewReactRoot.setAttribute('id', 'review-root')
+    reviewReactRoot.setAttribute('class', 'review-root p-4')
+    reviewShadow.appendChild(reviewReactRoot)
+
+    // Exams shadow host
+    const examsShadowHost = document.createElement('div')
+    examsShadowHost.setAttribute('id', 'exams-root-host')
+    examsShadowHost.setAttribute('class', 'kurssikone-shadow-host')
+    examsShadowHost.setAttribute('role', 'tabpanel')
+    pageMainBody?.append(examsShadowHost)
+    examsShadowHost.style.display = 'none'
+
+    const examsShadow = createShadowRoot(examsShadowHost)
+    const examsReactRoot = document.createElement('div')
+    examsReactRoot.setAttribute('id', 'exams-root')
+    examsShadow.appendChild(examsReactRoot)
 
     const courseCode = getCourseCode()
     console.log('[KurssiKone] courseCode:', courseCode)
 
-    const root = ReactDOM.createRoot(reactRoot)
-    root.render(<CoursePage courseCode={courseCode} />)
+    ReactDOM.createRoot(reviewReactRoot).render(<CoursePage courseCode={courseCode} />)
+    ReactDOM.createRoot(examsReactRoot).render(<ExamsPage courseCode={courseCode} />)
     console.log('[KurssiKone] React render called')
 
-    const listElement = document.createElement('li')
+    // Reviews tab button
+    const reviewListElement = document.createElement('li')
+    reviewListElement.setAttribute('role', 'presentation')
+    reviewListElement.setAttribute('class', 'review-list-element')
+    const reviewButton = document.createElement('button')
+    reviewButton.setAttribute('type', 'button')
+    reviewButton.setAttribute('role', 'tab')
+    reviewButton.setAttribute('class', 'link-button')
+    reviewButton.setAttribute('tabindex', '-1')
+    reviewButton.textContent = 'Reviews'
+    reviewListElement.append(reviewButton)
 
-    listElement.setAttribute('role', 'presentation')
-    listElement.setAttribute('class', 'review-list-element')
-
-    const button = document.createElement('button')
-    button.setAttribute('type', 'button')
-    button.setAttribute('role', 'tab')
-    button.setAttribute('class', 'link-button')
-    button.setAttribute('tabindex', '-1')
-    button.textContent = 'Reviews'
-
-    listElement.append(button)
+    // Exams tab button
+    const examsListElement = document.createElement('li')
+    examsListElement.setAttribute('role', 'presentation')
+    examsListElement.setAttribute('class', 'exams-list-element')
+    const examsButton = document.createElement('button')
+    examsButton.setAttribute('type', 'button')
+    examsButton.setAttribute('role', 'tab')
+    examsButton.setAttribute('class', 'link-button')
+    examsButton.setAttribute('tabindex', '-1')
+    examsButton.textContent = 'Exams'
+    examsListElement.append(examsButton)
 
     const tabList = await waitForElement('[role="tablist"]')
     console.log('[KurssiKone] tabList found:', tabList)
@@ -149,39 +174,46 @@ const handleCoursePage = async (isModal: boolean) => {
 
     tabListElements.forEach((element) => {
       element.addEventListener('click', function () {
-        getOldModalContents().forEach((element) => {
-          element.style.display = 'block'
+        getOldModalContents().forEach((el) => {
+          el.style.display = 'block'
         })
-        shadowHost.style.display = 'none'
-
+        reviewShadowHost.style.display = 'none'
+        examsShadowHost.style.display = 'none'
         element.classList.add('active')
         element.classList.add('focusedTab')
-        getReviewListElement().classList.remove('active')
+        reviewListElement.classList.remove('active')
+        examsListElement.classList.remove('active')
       })
     })
 
-    tabList?.append(listElement)
-    console.log('[KurssiKone] Reviews tab added')
+    tabList?.append(reviewListElement)
+    tabList?.append(examsListElement)
+    console.log('[KurssiKone] Reviews and Exams tabs added')
 
-    button.onclick = () => {
-      tabListElements.forEach((element) => {
-        element.classList.remove('active')
+    reviewButton.onclick = () => {
+      tabListElements.forEach((element) => element.classList.remove('active'))
+      reviewListElement.classList.add('active')
+      examsListElement.classList.remove('active')
+      getOldModalContents().forEach((el) => {
+        el.style.display = 'none'
       })
+      reviewShadowHost.style.display = 'block'
+      examsShadowHost.style.display = 'none'
+    }
 
-      getReviewListElement().classList.add('active')
-
-      getOldModalContents().forEach((element) => {
-        element.style.display = 'none'
+    examsButton.onclick = () => {
+      tabListElements.forEach((element) => element.classList.remove('active'))
+      examsListElement.classList.add('active')
+      reviewListElement.classList.remove('active')
+      getOldModalContents().forEach((el) => {
+        el.style.display = 'none'
       })
-      shadowHost.style.display = 'block'
+      examsShadowHost.style.display = 'block'
+      reviewShadowHost.style.display = 'none'
     }
   } catch (error) {
     console.error('[KurssiKone] Error in handleCoursePage:', error)
   }
-}
-
-const getReviewListElement = () => {
-  return document.querySelector('.review-list-element') as HTMLElement
 }
 
 const getOldModalContents = () => {

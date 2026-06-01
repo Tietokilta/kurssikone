@@ -124,6 +124,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const ids = Array.isArray(raw) ? raw.filter((x: unknown) => typeof x === 'string') : []
     fetchCourseUnitsFromSisu(ids as string[]).then((res) => sendResponse(res))
   }
+  if (request.type === 'fetchExams') {
+    fetch(`https://tenttiarkisto.fi/api/courses/${request.courseCode}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => sendResponse(data))
+  }
   return true
 })
 
