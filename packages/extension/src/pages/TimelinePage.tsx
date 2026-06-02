@@ -222,7 +222,9 @@ const TimelinePage = ({ planId }: Props) => {
     if (!plannedSelections) {
       return null
     }
-    return [...plannedSelections, ...completedSelections]
+    const completedIds = new Set(completedSelections.map((s) => s.id))
+    const uncompletedPlanned = plannedSelections.filter((s) => !completedIds.has(s.id))
+    return [...uncompletedPlanned, ...completedSelections]
   }, [plannedSelections, completedSelections])
 
   const timelineCards = useMemo(
