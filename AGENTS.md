@@ -46,4 +46,4 @@ npm run test:e2e
 
 ## Other notes
 
-User IDs are secrets, only the user themselves should know their user ID. Make sure no code logs user IDs or exposes them in any way.
+User IDs are secrets, only the user themselves should know their user ID. Make sure no change makes user IDs visible in the frontend or extension.
