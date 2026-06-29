@@ -28,11 +28,10 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
-      - run: npm run lint --workspace=packages/backend
-      - run: npm run lint --workspace=packages/web
+      - run: npm run lint
+      - run: npm run test
       - run: npm run build --workspace=packages/backend
       - run: npm run build --workspace=packages/web
-      - run: npm run test --workspace=packages/backend
 
   docker-backend:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

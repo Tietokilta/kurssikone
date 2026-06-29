@@ -14,20 +14,18 @@ kurssikone/
 │   ├── extension/    # Browser extension (Chrome & Firefox)
 │   ├── backend/      # Express.js API server
 │   └── web/          # Standalone React website (Vite)
-├── lefthook.yml      # Git hooks configuration
 └── package.json      # Root package with shared scripts
 ```
 
 ## Getting Started
 
-Install dependencies in each package you want to work with, then install git hooks:
+Install dependencies:
 
 ```bash
 npm install
-npm run install-hooks
 ```
 
-The hooks will run lint tests before allowing commits
+Lint and tests are run automatically via CI on all pull requests.
 
 ## Packages
 

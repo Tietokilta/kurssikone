@@ -12,12 +12,10 @@
     "lint": "npm run lint --workspaces",
     "test": "npm run test --workspaces",
     "test:e2e": "npm run test:e2e --workspaces --if-present",
-    "make-extension-release": "npm run make-release  --prefix packages/extension",
-    "install-hooks": "lefthook install"
+    "make-extension-release": "npm run make-release  --prefix packages/extension"
   },
   "devDependencies": {
     "@aikidosec/safe-chain": "^1.4.4",
-    "concurrently": "^9.0.0",
-    "lefthook": "^1.7.15"
+    "concurrently": "^9.0.0"
   }
 }
