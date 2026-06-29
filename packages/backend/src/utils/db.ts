@@ -4,7 +4,14 @@ import { Sequelize } from 'sequelize'
 import { Umzug, SequelizeStorage } from 'umzug'
 import { POSTGRES_URL } from './config'
 
-const sequelize = new Sequelize(POSTGRES_URL, { dialect: 'postgres', logging: false })
+const sequelize = new Sequelize(POSTGRES_URL, {
+  dialect: 'postgres',
+  logging: false,
+  dialectOptions:
+    process.env.NODE_ENV === 'production'
+      ? { ssl: { require: true, rejectUnauthorized: false } }
+      : undefined,
+})
 
 const migrationConf = {
   migrations: { glob: 'src/migrations/*' },

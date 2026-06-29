@@ -1,0 +1,13 @@
+**/.git
+**/.gitignore
+**/.env
+**/.vscode
+**/node_modules
+**/dist
+**/build
+**/docker-compose*
+**/Dockerfile*
+**/.dockerignore
+**/npm-debug.log
+**/README.md
+**/LICENSE

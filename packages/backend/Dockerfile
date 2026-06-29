@@ -1,13 +1,28 @@
 # syntax=docker/dockerfile:1
-FROM node:20.11.0-alpine
+FROM node:20.11.0-alpine AS builder
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
 COPY package-lock.json .
 COPY packages/backend/package.json .
-COPY packages/backend/nodemon.json .
 COPY packages/backend/tsconfig.json .
 
 RUN npm ci
 
-CMD ["npm", "run", "dev"]
+COPY packages/backend/src ./src
+
+RUN npm run build
+
+FROM node:20.11.0-alpine
+
+WORKDIR /app
+
+COPY package-lock.json .
+COPY packages/backend/package.json .
+
+RUN npm ci --omit=dev
+
+COPY --from=builder /app/dist ./dist
+
+WORKDIR /app/dist
+CMD ["node", "src/index.js"]
