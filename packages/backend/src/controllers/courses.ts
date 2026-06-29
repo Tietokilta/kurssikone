@@ -150,7 +150,7 @@ router.get('/:code', async (req, res) => {
 
 router.post('/sync', async (req, res) => {
   const authHeader = req.headers.authorization
-  const expectedSecret = process.env.GET_ALL_SECRET
+  const expectedSecret = process.env.ADMIN_SECRET
 
   if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
     return res.status(401).json({ error: 'Unauthorized' })
