@@ -104,7 +104,9 @@ const handleSearchResult = (node: Node) => {
 const handleCoursePage = async (isModal: boolean) => {
   console.log('[KurssiKone] handleCoursePage called, isModal:', isModal)
   try {
-    const pageMainBody = (await waitForElement('[role="tabpanel"]'))?.parentElement
+    const match = await waitForElement('[role="tabpanel"], .modal-body')
+    const pageMainBody =
+      match.getAttribute('role') === 'tabpanel' ? match.parentElement : match
 
     // Reviews shadow host
     const reviewShadowHost = document.createElement('div')
@@ -217,8 +219,16 @@ const handleCoursePage = async (isModal: boolean) => {
 }
 
 const getOldModalContents = () => {
-  return document.querySelectorAll(
+  const tabPanels = document.querySelectorAll(
     `[role="tabpanel"]:not(.kurssikone-shadow-host)`
+  )
+  if (tabPanels.length > 0) {
+    return tabPanels as unknown as HTMLElement[]
+  }
+  const modalBody = document.querySelector('.modal-body')
+  if (!modalBody) return [] as unknown as HTMLElement[]
+  return Array.from(modalBody.children).filter(
+    (el) => !el.classList.contains('kurssikone-shadow-host')
   ) as unknown as HTMLElement[]
 }
 
