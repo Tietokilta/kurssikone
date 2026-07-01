@@ -9,8 +9,12 @@ permissions:
   contents: write
 
 jobs:
-  publish:
-    name: Build and Publish Extension
+  lint-and-test:
+    name: Lint & Test
+    uses: ./.github/workflows/lint_and_test.yml
+
+  build:
+    name: Build Extension
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -31,7 +35,6 @@ jobs:
         working-directory: packages/extension
         run: |
           VERSION="${GITHUB_REF_NAME#extension-v}"
-          # Extract the section for this version from CHANGELOG.md
           NOTES=$(sed -n "/^## \[$VERSION\]/,/^## \[/{ /^## \[$VERSION\]/d; /^## \[/d; p; }" CHANGELOG.md | sed '/^$/d')
           echo "release_notes<<EOF" >> "$GITHUB_OUTPUT"
           echo "$NOTES" >> "$GITHUB_OUTPUT"
@@ -48,8 +51,24 @@ jobs:
         env:
           RELEASE_NOTES: ${{ steps.notes.outputs.release_notes }}
 
-      - name: Upload to Chrome Web Store
-        working-directory: packages/extension
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-builds
+          path: |
+            packages/extension/builds/
+            packages/extension/amo-metadata.json
+
+  publish-chrome:
+    name: Publish to Chrome Web Store
+    needs: [lint-and-test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: extension-builds
+
+      - name: Upload and publish
         env:
           EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
           CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
@@ -68,8 +87,16 @@ jobs:
             --client-secret "$CLIENT_SECRET" \
             --refresh-token "$REFRESH_TOKEN"
 
-      - name: Upload to Firefox Add-ons (AMO)
-        working-directory: packages/extension
+  publish-firefox:
+    name: Publish to Firefox Add-ons
+    needs: [lint-and-test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: extension-builds
+
+      - name: Upload and sign
         env:
           WEB_EXT_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
           WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
@@ -77,5 +104,4 @@ jobs:
           npx web-ext@8 sign \
             --source-dir builds/release-firefox \
             --channel listed \
-            --id "{8e5de4e6-d470-4f89-b4d4-1d9b129028af}" \
             --amo-metadata amo-metadata.json
