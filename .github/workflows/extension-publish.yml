@@ -45,7 +45,7 @@ jobs:
         run: |
           node -e "
             const notes = process.env.RELEASE_NOTES || '';
-            const metadata = { release_notes: { 'en-US': notes } };
+            const metadata = { version: { release_notes: { 'en-US': notes } } };
             require('fs').writeFileSync('amo-metadata.json', JSON.stringify(metadata, null, 2));
           "
         env:
