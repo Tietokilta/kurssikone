@@ -27,7 +27,7 @@ const COURSE_UNITS_CHUNK_MAX = 45
 const IS_PRODUCTION = false
 
 const host = IS_PRODUCTION
-  ? 'https://sisu-course-reviewer-api.otju.dev/api'
+  ? 'https://api.kurssikone.com/api'
   : 'http://localhost:3001/api'
 
 const get = async (
