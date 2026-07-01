@@ -26,7 +26,7 @@ const ExamsContent = ({ courseCode, getExams }: Props) => {
       })
       .catch(() => setHasError(true))
       .finally(() => setIsLoading(false))
-  }, [courseCode])
+  }, [courseCode, getExams])
 
   if (hasError) {
     return <div className="text-gray-600">Failed to load exams</div>
