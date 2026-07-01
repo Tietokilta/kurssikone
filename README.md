@@ -128,9 +128,9 @@ All secrets are configured in the repo (Settings > Secrets and variables > Actio
 
 | Secret | Used by | Description | How to get |
 |---|---|---|---|
-| `AZURE_CLIENT_ID` | `build.yml` | Azure AD app (service principal) client ID | [Azure Portal](https://portal.azure.com/) > App registrations |
-| `AZURE_SUBSCRIPTION_ID` | `build.yml` | Azure subscription ID | [Azure Portal](https://portal.azure.com/) > Subscriptions |
-| `AZURE_TENANT_ID` | `build.yml` | Azure AD tenant ID | [Azure Portal](https://portal.azure.com/) > Azure Active Directory |
+| `AZURE_CLIENT_ID` | `deploy.yml` | Azure AD app (service principal) client ID | [Azure Portal](https://portal.azure.com/) > App registrations |
+| `AZURE_SUBSCRIPTION_ID` | `deploy.yml` | Azure subscription ID | [Azure Portal](https://portal.azure.com/) > Subscriptions |
+| `AZURE_TENANT_ID` | `deploy.yml` | Azure AD tenant ID | [Azure Portal](https://portal.azure.com/) > Azure Active Directory |
 | `CHROME_EXTENSION_ID` | `extension-publish.yml` | Extension ID from Chrome Web Store URL | `https://chromewebstore.google.com/detail/kurssikone/<ID>` |
 | `CHROME_CLIENT_ID` | `extension-publish.yml` | Google Cloud OAuth 2.0 client ID | [Google Cloud Console](https://console.cloud.google.com/) > APIs & Services > Credentials > OAuth 2.0 Client (Desktop app) |
 | `CHROME_CLIENT_SECRET` | `extension-publish.yml` | Google Cloud OAuth 2.0 client secret | Same as above |
