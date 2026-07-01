@@ -4,7 +4,7 @@ To build the production code, run
 
 ```bash
 npm ci
-npm  run make-release
+npm run build-release
 ```
 
 ## Operating system & environment

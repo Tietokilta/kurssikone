@@ -1,0 +1,81 @@
+name: Publish Extension
+
+on:
+  push:
+    tags:
+      - 'extension-v*'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Build and Publish Extension
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build extension release artifacts
+        working-directory: packages/extension
+        run: node scripts/build.js && node scripts/make-release.js
+
+      - name: Extract release notes from CHANGELOG
+        id: notes
+        working-directory: packages/extension
+        run: |
+          VERSION="${GITHUB_REF_NAME#extension-v}"
+          # Extract the section for this version from CHANGELOG.md
+          NOTES=$(sed -n "/^## \[$VERSION\]/,/^## \[/{ /^## \[$VERSION\]/d; /^## \[/d; p; }" CHANGELOG.md | sed '/^$/d')
+          echo "release_notes<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NOTES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Write AMO metadata
+        working-directory: packages/extension
+        run: |
+          node -e "
+            const notes = process.env.RELEASE_NOTES || '';
+            const metadata = { release_notes: { 'en-US': notes } };
+            require('fs').writeFileSync('amo-metadata.json', JSON.stringify(metadata, null, 2));
+          "
+        env:
+          RELEASE_NOTES: ${{ steps.notes.outputs.release_notes }}
+
+      - name: Upload to Chrome Web Store
+        working-directory: packages/extension
+        env:
+          EXTENSION_ID: ${{ secrets.CHROME_EXTENSION_ID }}
+          CLIENT_ID: ${{ secrets.CHROME_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CHROME_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CHROME_REFRESH_TOKEN }}
+        run: |
+          npx chrome-webstore-upload-cli@3 upload \
+            --source builds/release-chrome.zip \
+            --extension-id "$EXTENSION_ID" \
+            --client-id "$CLIENT_ID" \
+            --client-secret "$CLIENT_SECRET" \
+            --refresh-token "$REFRESH_TOKEN"
+          npx chrome-webstore-upload-cli@3 publish \
+            --extension-id "$EXTENSION_ID" \
+            --client-id "$CLIENT_ID" \
+            --client-secret "$CLIENT_SECRET" \
+            --refresh-token "$REFRESH_TOKEN"
+
+      - name: Upload to Firefox Add-ons (AMO)
+        working-directory: packages/extension
+        env:
+          WEB_EXT_API_KEY: ${{ secrets.FIREFOX_API_KEY }}
+          WEB_EXT_API_SECRET: ${{ secrets.FIREFOX_API_SECRET }}
+        run: |
+          npx web-ext@8 sign \
+            --source-dir builds/release-firefox \
+            --channel listed \
+            --id "{8e5de4e6-d470-4f89-b4d4-1d9b129028af}" \
+            --amo-metadata amo-metadata.json

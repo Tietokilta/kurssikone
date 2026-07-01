@@ -1,0 +1,33 @@
+{
+  "git": {
+    "commitMessage": "chore(extension): release v${version}",
+    "tagName": "extension-v${version}",
+    "tagAnnotation": "Extension release ${version}",
+    "pushRepo": "origin",
+    "requireCleanWorkingDir": true,
+    "requireUpstream": true
+  },
+  "npm": {
+    "publish": false
+  },
+  "github": {
+    "release": true,
+    "releaseName": "Extension v${version}",
+    "assets": [
+      "builds/release-chrome.zip",
+      "builds/release-firefox.zip"
+    ]
+  },
+  "hooks": {
+    "before:bump": "node scripts/sync-manifest-version.js ${version}",
+    "after:bump": "npm run build-release"
+  },
+  "plugins": {
+    "@release-it/keep-a-changelog": {
+      "filename": "CHANGELOG.md",
+      "head": "## [Unreleased]",
+      "addUnchanged": false,
+      "strictLatest": false
+    }
+  }
+}

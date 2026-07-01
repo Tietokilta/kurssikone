@@ -41,10 +41,10 @@ npm install
 npm run dev
 ```
 
-**Build:**
+**Build extension**
 
 ```bash
-npm run make-release
+npm run build:extension
 ```
 
 The extension will be built in the `builds` folder.
@@ -107,3 +107,35 @@ VITE_API_URL=http://localhost:3001/api
 - Read detailed course reviews
 - Write and edit your own reviews
 - Anonymous user system with portable user IDs
+- Browsing exams for courses
+
+## Releases & deployment
+
+The website and the backend are deployed to production on every push to main automatically.
+
+### Browser extension releases
+
+1. Add release notes under `## [Unreleased]` in `packages/extension/CHANGELOG.md` as you work.
+2. Run `npm run release:extension` from the repo root (append `-- minor` or `-- major` for non-patch bumps).
+3. `release-it` bumps the version in `package.json` and `manifest.json`, builds the extension, updates the changelog, commits, tags (`extension-vX.Y.Z`), pushes, and creates a GitHub Release with zip artifacts.
+4. The tag triggers the `extension-publish.yml` workflow, which publishes to Chrome Web Store and Firefox Add-ons automatically.
+
+For development, this also means that all backend changes have to be backend compatible. So if API has a breaking change, might need to make a v2 of the API.
+
+## GitHub Secrets
+
+All secrets are configured in the repo (Settings > Secrets and variables > Actions).
+
+| Secret | Used by | Description | How to get |
+|---|---|---|---|
+| `AZURE_CLIENT_ID` | `build.yml` | Azure AD app (service principal) client ID | [Azure Portal](https://portal.azure.com/) > App registrations |
+| `AZURE_SUBSCRIPTION_ID` | `build.yml` | Azure subscription ID | [Azure Portal](https://portal.azure.com/) > Subscriptions |
+| `AZURE_TENANT_ID` | `build.yml` | Azure AD tenant ID | [Azure Portal](https://portal.azure.com/) > Azure Active Directory |
+| `CHROME_EXTENSION_ID` | `extension-publish.yml` | Extension ID from Chrome Web Store URL | `https://chromewebstore.google.com/detail/kurssikone/<ID>` |
+| `CHROME_CLIENT_ID` | `extension-publish.yml` | Google Cloud OAuth 2.0 client ID | [Google Cloud Console](https://console.cloud.google.com/) > APIs & Services > Credentials > OAuth 2.0 Client (Desktop app) |
+| `CHROME_CLIENT_SECRET` | `extension-publish.yml` | Google Cloud OAuth 2.0 client secret | Same as above |
+| `CHROME_REFRESH_TOKEN` | `extension-publish.yml` | OAuth 2.0 refresh token | Run `npx chrome-webstore-upload-keys` |
+| `FIREFOX_API_KEY` | `extension-publish.yml` | AMO JWT issuer | [addons.mozilla.org/developers/addon/api/key/](https://addons.mozilla.org/developers/addon/api/key/) |
+| `FIREFOX_API_SECRET` | `extension-publish.yml` | AMO JWT secret | Same as above |
+
+Chrome Web Store notes: enable the **Chrome Web Store API** in Google Cloud Console, and set the OAuth consent screen to **"In production"** (not "Testing") — otherwise the refresh token expires after 7 days.

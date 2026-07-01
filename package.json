@@ -12,7 +12,8 @@
     "lint": "npm run lint --workspaces",
     "test": "npm run test --workspaces",
     "test:e2e": "npm run test:e2e --workspaces --if-present",
-    "make-extension-release": "npm run make-release  --prefix packages/extension"
+    "build:extension": "npm run build-release  --prefix packages/extension",
+    "release:extension": "npm run release --prefix packages/extension"
   },
   "devDependencies": {
     "@aikidosec/safe-chain": "^1.4.4",
