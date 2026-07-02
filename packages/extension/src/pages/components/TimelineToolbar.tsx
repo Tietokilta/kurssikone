@@ -18,7 +18,7 @@ const TimelineToolbar = ({
   setShowEmptySummerPeriods,
 }: Props) => {
   return (
-    <div className="space-y-2 text-sm text-neutral-700">
+    <div className="mb-4 space-y-2 text-sm text-neutral-700">
       <div className="grid max-w-sm grid-cols-[1fr_auto] gap-x-4 gap-y-1 tabular-nums">
         <span>Completed credits</span>
         <span className="text-right">{formatCreditAmount(creditSummary.completed)}</span>

@@ -57,6 +57,9 @@ import TimelineMainGrid, {
 import TimelineToolbar from './components/TimelineToolbar'
 import UnscheduledSidebar from './components/UnscheduledSidebar'
 
+const TIMELINE_COLLAPSED_KEY = 'kurssikone_timelineCollapsed'
+const TIMELINE_INFO_DISMISSED_KEY = 'kurssikone_timelineInfoDismissed'
+
 type Props = {
   planId: string
 }
@@ -137,6 +140,24 @@ const TimelinePage = ({ planId }: Props) => {
   /** Contiguous planned-period locators moved together (multi-column card); drives drop overlay rules. */
   const [activeMovingRun, setActiveMovingRun] = useState<string[] | null>(null)
   const [variableCreditOverrides, setVariableCreditOverrides] = useState<Record<string, number>>({})
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem(TIMELINE_COLLAPSED_KEY) === 'true'
+  )
+  const [infoDismissed, setInfoDismissed] = useState(
+    () => localStorage.getItem(TIMELINE_INFO_DISMISSED_KEY) === 'true'
+  )
+  const toggleCollapsed = useCallback(() => {
+    setCollapsed((prev) => {
+      const next = !prev
+      localStorage.setItem(TIMELINE_COLLAPSED_KEY, String(next))
+      return next
+    })
+  }, [])
+
+  const dismissInfo = useCallback(() => {
+    localStorage.setItem(TIMELINE_INFO_DISMISSED_KEY, 'true')
+    setInfoDismissed(true)
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -769,84 +790,135 @@ const TimelinePage = ({ planId }: Props) => {
   }
 
   return (
-    <div className="space-y-3 p-3">
-      {isSaving ? <div className="text-sm text-neutral-600">Saving plan…</div> : null}
-      {studyYearsWarning ? <div className="text-sm text-amber-700">{studyYearsWarning}</div> : null}
-
-      {error ? (
-        <div className="text-sm text-neutral-600">Timeline unavailable.</div>
-      ) : (
-        <>
-          <TimelineToolbar
-            creditSummary={timelineCreditSummary}
-            showPastPeriods={showPastPeriods}
-            setShowPastPeriods={setShowPastPeriods}
-            showEmptySummerPeriods={showEmptySummerPeriods}
-            setShowEmptySummerPeriods={setShowEmptySummerPeriods}
-          />
-
-          <DndContext
-            sensors={sensors}
-            collisionDetection={timelineCollisionDetection}
-            onDragStart={handleDragStart}
-            onDragCancel={handleDragCancel}
-            onDragEnd={handleDragEnd}
+    <div className="space-y-3 pr-3 pt-3 pb-3">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={toggleCollapsed}
+          className="shrink-0 rounded px-1.5 py-0.5 text-sm font-medium text-neutral-600 hover:bg-neutral-200 focus:outline-none"
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? 'Expand KurssiKone timeline' : 'Collapse KurssiKone timeline'}
+        >
+          <svg
+            className="h-4 w-4 transition-transform duration-200"
+            style={{ transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}
+            viewBox="0 0 20 20"
+            fill="currentColor"
           >
-            <div className="relative min-h-dvh">
-              <UnscheduledSidebar
-                open={unscheduledSidebarOpen}
-                setOpen={setUnscheduledSidebarOpen}
-                selections={unscheduledSelections}
-                onToggleMoveMode={handleUnscheduledMoveModeToggle}
-                isMoveModeActiveForUnscheduled={isMoveModeActiveForUnscheduled}
-                variableCreditOverrides={variableCreditOverrides}
-                onVariableCreditChange={handleVariableCreditChange}
+            <path
+              fillRule="evenodd"
+              d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+              clipRule="evenodd"
+            />
+          </svg>
+        </button>
+        <h2 className="text-base font-semibold text-neutral-800">KurssiKone Timeline</h2>
+      </div>
+
+      <div
+        className="grid transition-[grid-template-rows] duration-300 ease-out"
+        style={{ gridTemplateRows: collapsed ? '0fr' : '1fr' }}
+      >
+        <div className="overflow-hidden">
+          {!infoDismissed && (
+            <div className="relative mb-3 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 pr-10 text-sm text-amber-900">
+              <button
+                type="button"
+                onClick={dismissInfo}
+                className="absolute top-0 right-2 p-1 text-amber-600 hover:text-amber-900 leading-none"
+                aria-label="Dismiss info"
+              >
+                <span className="text-3xl leading-none">&times;</span>
+              </button>
+              <p>
+                <strong>NOTE:</strong> This editor directly modifies your real Sisu timeline.
+                Although tested, use at your own risk as unexpected errors may affect your data.
+              </p>
+            </div>
+          )}
+
+          {isSaving ? <div className="text-sm text-neutral-600">Saving plan…</div> : null}
+          {studyYearsWarning ? (
+            <div className="text-sm text-amber-700">{studyYearsWarning}</div>
+          ) : null}
+
+          {error ? (
+            <div className="text-sm text-neutral-600">Timeline unavailable.</div>
+          ) : (
+            <>
+              <TimelineToolbar
+                creditSummary={timelineCreditSummary}
+                showPastPeriods={showPastPeriods}
+                setShowPastPeriods={setShowPastPeriods}
+                showEmptySummerPeriods={showEmptySummerPeriods}
+                setShowEmptySummerPeriods={setShowEmptySummerPeriods}
               />
 
-              <div
-                className={`relative z-20 min-h-dvh min-w-0 transition-[padding-left] duration-300 ease-out ${
-                  unscheduledSidebarOpen ? 'pl-48 2xl:pl-0' : 'pl-0'
-                }`}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={timelineCollisionDetection}
+                onDragStart={handleDragStart}
+                onDragCancel={handleDragCancel}
+                onDragEnd={handleDragEnd}
               >
-                <TimelineMainGrid
-                  cards={timelineCards}
-                  sisuRootId={sisuRootId}
-                  periodIndex={periodIndex}
-                  activeInteractionKind={interactionKind}
-                  activeSelectionIndex={activeSelectionIndex}
-                  dragRowSnapshot={timelineDragRowSnapshot}
-                  clickModeEnabled={
-                    interactionKind === 'click-scheduled' || interactionKind === 'click-unscheduled'
-                  }
-                  onCardUnschedule={handleCardUnschedule}
-                  onCardMoveModeToggle={handleCardMoveModeToggle}
-                  isMoveModeActiveFor={isMoveModeActiveFor}
-                  onClickPlacementAction={handleClickPlacementAction}
-                  clickPlacementTarget={clickPlacementTarget}
-                  activeUnscheduledSelection={activeUnscheduledSelection}
-                  onQuickScheduleToSpan={handleQuickScheduleToSpan}
-                  variableCreditOverrides={variableCreditOverrides}
-                  onVariableCreditChange={handleVariableCreditChange}
-                />
-              </div>
-              <DragOverlay adjustScale={false} dropAnimation={null} zIndex={11000}>
-                {unscheduledDragPreview ? (
-                  <UnscheduledCourseDragPreview
-                    selection={unscheduledDragPreview}
-                    creditUncertain={
-                      isVariableCreditRange(
-                        unscheduledDragPreview.creditsMin,
-                        unscheduledDragPreview.creditsMax
-                      ) &&
-                      !creditChoiceIsUserSet(unscheduledDragPreview.id, variableCreditOverrides)
-                    }
+                <div className="relative min-h-dvh">
+                  <UnscheduledSidebar
+                    open={unscheduledSidebarOpen}
+                    setOpen={setUnscheduledSidebarOpen}
+                    selections={unscheduledSelections}
+                    onToggleMoveMode={handleUnscheduledMoveModeToggle}
+                    isMoveModeActiveForUnscheduled={isMoveModeActiveForUnscheduled}
+                    variableCreditOverrides={variableCreditOverrides}
+                    onVariableCreditChange={handleVariableCreditChange}
                   />
-                ) : null}
-              </DragOverlay>
-            </div>
-          </DndContext>
-        </>
-      )}
+
+                  <div
+                    className={`relative z-20 min-h-dvh min-w-0 transition-[padding-left] duration-300 ease-out ${
+                      unscheduledSidebarOpen ? 'pl-48 2xl:pl-0' : 'pl-0'
+                    }`}
+                  >
+                    <TimelineMainGrid
+                      cards={timelineCards}
+                      sisuRootId={sisuRootId}
+                      periodIndex={periodIndex}
+                      activeInteractionKind={interactionKind}
+                      activeSelectionIndex={activeSelectionIndex}
+                      dragRowSnapshot={timelineDragRowSnapshot}
+                      clickModeEnabled={
+                        interactionKind === 'click-scheduled' ||
+                        interactionKind === 'click-unscheduled'
+                      }
+                      onCardUnschedule={handleCardUnschedule}
+                      onCardMoveModeToggle={handleCardMoveModeToggle}
+                      isMoveModeActiveFor={isMoveModeActiveFor}
+                      onClickPlacementAction={handleClickPlacementAction}
+                      clickPlacementTarget={clickPlacementTarget}
+                      activeUnscheduledSelection={activeUnscheduledSelection}
+                      onQuickScheduleToSpan={handleQuickScheduleToSpan}
+                      variableCreditOverrides={variableCreditOverrides}
+                      onVariableCreditChange={handleVariableCreditChange}
+                    />
+                  </div>
+                  <DragOverlay adjustScale={false} dropAnimation={null} zIndex={11000}>
+                    {unscheduledDragPreview ? (
+                      <UnscheduledCourseDragPreview
+                        selection={unscheduledDragPreview}
+                        creditUncertain={
+                          isVariableCreditRange(
+                            unscheduledDragPreview.creditsMin,
+                            unscheduledDragPreview.creditsMax
+                          ) &&
+                          !creditChoiceIsUserSet(unscheduledDragPreview.id, variableCreditOverrides)
+                        }
+                      />
+                    ) : null}
+                  </DragOverlay>
+                </div>
+              </DndContext>
+            </>
+          )}
+        </div>
+      </div>
 
       {errorBannerMessage && isErrorBannerVisible ? (
         <div className="kurssikone-error-banner-in fixed right-4 bottom-4 z-12000 w-[24rem] max-w-[calc(100vw-2rem)] rounded-lg border-2 border-red-300 bg-red-700 px-4 py-3 text-base text-white shadow-2xl">

@@ -267,7 +267,18 @@ function distinctCalendarYearCount(start: YearSeason, end: YearSeason): number {
   return years.size
 }
 
-export function getCurrentAcademicSeason(now: Date = new Date()): YearSeason {
+export function getCurrentAcademicSeason(
+  now: Date = new Date(),
+  periodIndex?: StudyPeriodIndex | null
+): YearSeason {
+  if (periodIndex) {
+    const iso = now.toISOString().slice(0, 10)
+    for (const iv of periodIndex.intervals) {
+      if (iso >= iv.startDay && iso <= iv.endDay) {
+        return { year: iv.parsed.year, season: iv.parsed.season }
+      }
+    }
+  }
   const month = now.getMonth() + 1
   if (month >= 8) {
     return { year: now.getFullYear(), season: 'Fall' }
@@ -275,8 +286,11 @@ export function getCurrentAcademicSeason(now: Date = new Date()): YearSeason {
   return { year: now.getFullYear(), season: 'Spring' }
 }
 
-export function getCurrentSeasonStartKey(now?: Date): string {
-  const ys = getCurrentAcademicSeason(now)
+export function getCurrentSeasonStartKey(
+  now?: Date,
+  periodIndex?: StudyPeriodIndex | null
+): string {
+  const ys = getCurrentAcademicSeason(now, periodIndex)
   return makePeriodKey(ys.year, ys.season, 0)
 }
 
@@ -350,6 +364,7 @@ export type ComputeTimelineRangeOptions = {
    * When false, the range does not start before the current academic season (e.g. Spring 2026).
    */
   showPastPeriods?: boolean
+  periodIndex?: StudyPeriodIndex | null
 }
 
 export function computeTimelineRange(
@@ -358,7 +373,7 @@ export function computeTimelineRange(
   options?: ComputeTimelineRangeOptions
 ): { start: YearSeason; end: YearSeason } {
   const showPast = options?.showPastPeriods !== false
-  const nowStartKey = getCurrentSeasonStartKey(now)
+  const nowStartKey = getCurrentSeasonStartKey(now, options?.periodIndex)
   const allKeys = collectAllPeriodKeys(selections)
 
   let rangeStartKey: string
@@ -669,6 +684,7 @@ export function buildTimelineCards<
 >(selections: T[], now: Date = new Date(), options?: BuildTimelineCardsOptions): TimelineCard<T>[] {
   const { start, end } = computeTimelineRange(selections, now, {
     showPastPeriods: options?.showPastPeriods,
+    periodIndex: options?.periodIndex,
   })
   const slots = iterateYearSeasonSlots(start, end)
   const index = options?.periodIndex

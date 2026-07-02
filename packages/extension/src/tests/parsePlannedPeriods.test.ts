@@ -135,13 +135,29 @@ describe('getCurrentAcademicSeason / getCurrentSeasonStartKey', () => {
     [new Date('2026-07-31T12:00:00Z'), { year: 2026, season: 'Spring' as const }],
     [new Date('2026-08-01T12:00:00Z'), { year: 2026, season: 'Fall' as const }],
     [new Date('2026-12-20T12:00:00Z'), { year: 2026, season: 'Fall' as const }],
-  ])('getCurrentAcademicSeason(%s) → %j', (d, expected) => {
+  ])('getCurrentAcademicSeason(%s) → %j (no index)', (d, expected) => {
     expect(getCurrentAcademicSeason(d)).toEqual(expected)
   })
 
   it('getCurrentSeasonStartKey matches first period slot', () => {
     const d = new Date('2026-03-01T12:00:00Z')
     expect(getCurrentSeasonStartKey(d)).toBe(makePeriodKey(2026, 'Spring', 0))
+  })
+
+  it('uses exact dates from periodIndex when available', () => {
+    const idx = periodIndex(true)
+    expect(getCurrentAcademicSeason(new Date('2026-07-01T12:00:00Z'), idx)).toEqual({
+      year: 2026,
+      season: 'Summer',
+    })
+    expect(getCurrentAcademicSeason(new Date('2026-03-15T12:00:00Z'), idx)).toEqual({
+      year: 2026,
+      season: 'Spring',
+    })
+    expect(getCurrentAcademicSeason(new Date('2025-10-01T12:00:00Z'), idx)).toEqual({
+      year: 2025,
+      season: 'Fall',
+    })
   })
 })
 
