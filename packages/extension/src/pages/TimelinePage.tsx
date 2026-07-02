@@ -868,15 +868,17 @@ const TimelinePage = ({ planId }: Props) => {
                 onDragEnd={handleDragEnd}
               >
                 <div className="relative min-h-dvh">
-                  <UnscheduledSidebar
-                    open={unscheduledSidebarOpen}
-                    setOpen={setUnscheduledSidebarOpen}
-                    selections={unscheduledSelections}
-                    onToggleMoveMode={handleUnscheduledMoveModeToggle}
-                    isMoveModeActiveForUnscheduled={isMoveModeActiveForUnscheduled}
-                    variableCreditOverrides={variableCreditOverrides}
-                    onVariableCreditChange={handleVariableCreditChange}
-                  />
+                  {!collapsed && (
+                    <UnscheduledSidebar
+                      open={unscheduledSidebarOpen}
+                      setOpen={setUnscheduledSidebarOpen}
+                      selections={unscheduledSelections}
+                      onToggleMoveMode={handleUnscheduledMoveModeToggle}
+                      isMoveModeActiveForUnscheduled={isMoveModeActiveForUnscheduled}
+                      variableCreditOverrides={variableCreditOverrides}
+                      onVariableCreditChange={handleVariableCreditChange}
+                    />
+                  )}
 
                   <div
                     className={`relative z-20 min-h-dvh min-w-0 transition-[padding-left] duration-300 ease-out ${
