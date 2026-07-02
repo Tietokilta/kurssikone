@@ -140,22 +140,28 @@ const TimelinePage = ({ planId }: Props) => {
   /** Contiguous planned-period locators moved together (multi-column card); drives drop overlay rules. */
   const [activeMovingRun, setActiveMovingRun] = useState<string[] | null>(null)
   const [variableCreditOverrides, setVariableCreditOverrides] = useState<Record<string, number>>({})
-  const [collapsed, setCollapsed] = useState(
-    () => localStorage.getItem(TIMELINE_COLLAPSED_KEY) === 'true'
-  )
-  const [infoDismissed, setInfoDismissed] = useState(
-    () => localStorage.getItem(TIMELINE_INFO_DISMISSED_KEY) === 'true'
-  )
+  const [collapsed, setCollapsed] = useState(false)
+  const [infoDismissed, setInfoDismissed] = useState(false)
+
+  useEffect(() => {
+    void chrome.storage.sync
+      .get([TIMELINE_COLLAPSED_KEY, TIMELINE_INFO_DISMISSED_KEY])
+      .then((data) => {
+        if (data[TIMELINE_COLLAPSED_KEY] === true) setCollapsed(true)
+        if (data[TIMELINE_INFO_DISMISSED_KEY] === true) setInfoDismissed(true)
+      })
+  }, [])
+
   const toggleCollapsed = useCallback(() => {
     setCollapsed((prev) => {
       const next = !prev
-      localStorage.setItem(TIMELINE_COLLAPSED_KEY, String(next))
+      void chrome.storage.sync.set({ [TIMELINE_COLLAPSED_KEY]: next })
       return next
     })
   }, [])
 
   const dismissInfo = useCallback(() => {
-    localStorage.setItem(TIMELINE_INFO_DISMISSED_KEY, 'true')
+    void chrome.storage.sync.set({ [TIMELINE_INFO_DISMISSED_KEY]: true })
     setInfoDismissed(true)
   }, [])
 

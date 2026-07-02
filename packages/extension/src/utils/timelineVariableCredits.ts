@@ -1,4 +1,4 @@
-/** `chrome.storage.local` map: course unit id → chosen credits for variable-credit courses. */
+/** `chrome.storage.sync` map: course unit id → chosen credits for variable-credit courses. */
 export const TIMELINE_VARIABLE_CREDIT_STORAGE_KEY = 'timelineVariableCourseCredits'
 
 export function isVariableCreditRange(creditsMin: number, creditsMax: number): boolean {
@@ -57,7 +57,7 @@ export function normalizeStoredOverrides(raw: unknown): Record<string, number> {
 }
 
 export async function loadTimelineVariableCreditOverrides(): Promise<Record<string, number>> {
-  const data = await chrome.storage.local.get(TIMELINE_VARIABLE_CREDIT_STORAGE_KEY)
+  const data = await chrome.storage.sync.get(TIMELINE_VARIABLE_CREDIT_STORAGE_KEY)
   return normalizeStoredOverrides(data[TIMELINE_VARIABLE_CREDIT_STORAGE_KEY])
 }
 
@@ -67,6 +67,6 @@ export async function setTimelineVariableCreditOverride(
 ): Promise<Record<string, number>> {
   const prev = await loadTimelineVariableCreditOverrides()
   const next = { ...prev, [courseId]: Math.round(credits) }
-  await chrome.storage.local.set({ [TIMELINE_VARIABLE_CREDIT_STORAGE_KEY]: next })
+  await chrome.storage.sync.set({ [TIMELINE_VARIABLE_CREDIT_STORAGE_KEY]: next })
   return next
 }
