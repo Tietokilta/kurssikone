@@ -1,4 +1,4 @@
-import RoundMeter from './RoundMeter'
+import ScoreDisplay from './ScoreDisplay'
 import ReviewMakeForm from './ReviewMakeForm'
 import ReviewItem from './ReviewItem'
 import Divider from './Divider'
@@ -56,8 +56,7 @@ const CoursePageContent = ({
     return {
       name: scoreType.label,
       field: scoreType.name,
-      minText: scoreType.minText,
-      maxText: scoreType.maxText,
+      labels: scoreType.labels,
       value: average,
     }
   })
@@ -72,14 +71,13 @@ const CoursePageContent = ({
 
   return (
     <>
-      <div className="flex gap-8 flex-wrap mb-6">
+      <div className="flex gap-4 sm:gap-8 mb-6">
         {scoreTypesWithValues.map((scoreType) => (
-          <RoundMeter
+          <ScoreDisplay
             key={scoreType.name}
             value={scoreType.value}
             title={scoreType.name}
-            minText={scoreType.minText}
-            maxText={scoreType.maxText}
+            labels={scoreType.labels}
           />
         ))}
       </div>

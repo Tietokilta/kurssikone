@@ -5,13 +5,19 @@ export const scoreTypes = [
   {
     name: 'qualityScore',
     label: 'Quality',
-    minText: 'Horrible',
-    maxText: 'Amazing',
+    labels: ['Poor', 'Below Average', 'Average', 'Good', 'Excellent'],
   },
   {
     name: 'workloadScore',
     label: 'Workload',
-    minText: 'Trivial',
-    maxText: 'Massive',
+    labels: ['Very Light', 'Light', 'Moderate', 'Heavy', 'Very Heavy'],
   },
 ] as const
+
+export const getScoreLabel = (
+  labels: readonly string[],
+  value: number
+): string => {
+  const index = Math.round(Math.min(Math.max(value - 1, 0), labels.length - 1))
+  return labels[index]
+}

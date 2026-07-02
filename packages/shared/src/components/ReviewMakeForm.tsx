@@ -100,8 +100,7 @@ const ReviewMakeForm = ({
                 name={scoreType.name}
                 label={scoreType.label}
                 defaultValue={currentUserReview ? currentUserReview[scoreType.name] : 3}
-                minText={scoreType.minText}
-                maxText={scoreType.maxText}
+                labels={scoreType.labels}
               />
             ))}
           </div>

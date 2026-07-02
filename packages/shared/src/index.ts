@@ -2,7 +2,7 @@
 export { default as Divider } from './components/Divider'
 export { default as ScoreBar } from './components/ScoreBar'
 export { default as ScorePicker } from './components/ScorePicker'
-export { default as RoundMeter } from './components/RoundMeter'
+export { default as ScoreDisplay } from './components/ScoreDisplay'
 export { default as ReviewItem } from './components/ReviewItem'
 export { default as ReviewList } from './components/ReviewList'
 export { default as NewAccountNotification } from './components/NewAccountNotification'
