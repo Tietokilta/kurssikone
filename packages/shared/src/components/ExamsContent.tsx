@@ -36,11 +36,9 @@ const ExamsContent = ({ courseCode, getExams }: Props) => {
     return <div className="text-gray-600">Loading...</div>
   }
 
-  if (!exams || exams.length === 0) {
-    return <div className="text-gray-600">No exams found for this course</div>
-  }
+  const examList = exams ?? []
 
-  const grouped = exams.reduce<Record<string, TenttiarkistoExam[]>>((groups, exam) => {
+  const grouped = examList.reduce<Record<string, TenttiarkistoExam[]>>((groups, exam) => {
     const year = dayjs(exam.exam_date).format('YYYY')
     ;(groups[year] ??= []).push(exam)
     return groups
@@ -61,7 +59,7 @@ const ExamsContent = ({ courseCode, getExams }: Props) => {
         .
       </p>
       <div className="flex gap-6 items-center mb-2">
-        <h2 className="text-xl font-medium">{exams.length} Exams</h2>
+        <h2 className="text-xl font-medium">{examList.length} Exams</h2>
         <a
           href="https://www.tenttiarkisto.fi/exams/add/"
           target="_blank"
@@ -72,38 +70,42 @@ const ExamsContent = ({ courseCode, getExams }: Props) => {
         </a>
       </div>
       <hr className="border-gray-800 mb-4" />
-      <div className="flex flex-col gap-6">
-        {Object.entries(grouped)
-          .sort(([a], [b]) => Number(b) - Number(a))
-          .map(([year, yearExams]) => (
-            <div key={year}>
-              <h3 className="text-lg font-semibold mb-2">{year}</h3>
-              <div className="flex flex-wrap gap-3">
-                {yearExams.map((exam) => (
-                  <div key={exam.id} className="border border-gray-200 rounded-md p-3 text-sm">
-                    <p className="font-medium">{dayjs(exam.exam_date).format('DD MMM')}</p>
-                    <p className="text-gray-600 mt-0.5">
-                      {exam.desc} · {exam.lang}
-                    </p>
-                    <div className="flex flex-col gap-1 mt-2">
-                      {exam.files.map((file, i) => (
-                        <a
-                          key={file.id}
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                        >
-                          File {i + 1}
-                        </a>
-                      ))}
+      {examList.length === 0 ? (
+        <div className="text-gray-600">No exams found for this course</div>
+      ) : (
+        <div className="flex flex-col gap-6">
+          {Object.entries(grouped)
+            .sort(([a], [b]) => Number(b) - Number(a))
+            .map(([year, yearExams]) => (
+              <div key={year}>
+                <h3 className="text-lg font-semibold mb-2">{year}</h3>
+                <div className="flex flex-wrap gap-3">
+                  {yearExams.map((exam) => (
+                    <div key={exam.id} className="border border-gray-200 rounded-md p-3 text-sm">
+                      <p className="font-medium">{dayjs(exam.exam_date).format('DD MMM')}</p>
+                      <p className="text-gray-600 mt-0.5">
+                        {exam.desc} · {exam.lang}
+                      </p>
+                      <div className="flex flex-col gap-1 mt-2">
+                        {exam.files.map((file, i) => (
+                          <a
+                            key={file.id}
+                            href={file.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                          >
+                            File {i + 1}
+                          </a>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-      </div>
+            ))}
+        </div>
+      )}
     </>
   )
 }
