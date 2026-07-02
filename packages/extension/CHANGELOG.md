@@ -5,6 +5,19 @@ All notable changes to the KurssiKone browser extension will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Made it possible to hide the custom Timeline view
+- Add disclaimer to custom timeline view
+
+### Changed
+
+- Changed how score summaries are displayed, got rid of old rounded scores
+- Fixed some bugs and UI issues with the custom timeline view
+- Made scoring be 1-5 instead of 0-5
+
 ## [3.0.1] - 2026-07-02
 
 ### Changed
