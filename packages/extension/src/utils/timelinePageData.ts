@@ -231,10 +231,9 @@ export function buildCompletedSelections(
       course?.code ||
       att.courseUnitId
     const code = (course?.code && course.code.trim()) || ''
-    const creditsMin = course?.creditsMin || att.credits || 0
-    const creditsMax = course?.creditsMax || att.credits || 0
-    const plannedCredits =
-      creditsMax === creditsMin ? creditsMax : Math.round((creditsMax + creditsMin) / 2)
+    const plannedCredits = att.credits || 0
+    const creditsMin = plannedCredits
+    const creditsMax = plannedCredits
 
     const todayIso = getTodayDateIso()
     const prepared = prepareTeachingPeriodsForTimeline(course, periodIndex, todayIso)
