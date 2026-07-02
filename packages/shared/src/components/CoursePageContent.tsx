@@ -71,17 +71,6 @@ const CoursePageContent = ({
 
   return (
     <>
-      <div className="flex gap-4 sm:gap-8 mb-6">
-        {scoreTypesWithValues.map((scoreType) => (
-          <ScoreDisplay
-            key={scoreType.name}
-            value={scoreType.value}
-            title={scoreType.name}
-            labels={scoreType.labels}
-          />
-        ))}
-      </div>
-
       <div className="flex gap-6 items-center mb-4">
         <h2 className="text-xl font-medium">{reviewCount} Reviews</h2>
         <button
@@ -90,6 +79,17 @@ const CoursePageContent = ({
         >
           {buttonText}
         </button>
+      </div>
+
+      <div className="flex gap-4 sm:gap-8 mb-4">
+        {scoreTypesWithValues.map((scoreType) => (
+          <ScoreDisplay
+            key={scoreType.name}
+            value={scoreType.value}
+            title={scoreType.name}
+            labels={scoreType.labels}
+          />
+        ))}
       </div>
 
       <Divider />

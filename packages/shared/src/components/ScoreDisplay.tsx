@@ -8,7 +8,7 @@ type Props = {
 
 const ScoreDisplay = ({ title, value, labels }: Props) => {
   return (
-    <div className="flex flex-col items-center px-4 py-3 mb-4">
+    <div className="flex flex-col items-center px-4 py-3 mb-1">
       <span className="text-lg text-gray-700">{title}</span>
       <span className="text-5xl font-light text-black my-1">
         {value ? value.toFixed(1) : '-'}
