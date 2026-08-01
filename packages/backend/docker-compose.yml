@@ -4,11 +4,16 @@ services:
     build:
       context: ../..
       dockerfile: packages/backend/Dockerfile
+      target: builder
+
+    command: npm run dev
+    working_dir: /app/packages/backend
+
     restart: unless-stopped
     environment:
       - ALLOW_RESET=true
     volumes:
-      - ./src/:/usr/src/app/src/
+      - ./src/:/app/packages/backend/src/
     ports:
       - $PORT:$PORT
     env_file:
