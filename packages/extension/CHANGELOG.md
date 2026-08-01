@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Fixed "Reviews" & "Exams" tabs not loading correctly inside nested modals
+- Improved UI and UX for new users
 
 ## [3.1.0] - 2026-07-02
 
