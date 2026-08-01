@@ -71,7 +71,7 @@ const ExamsContent = ({ courseCode, getExams }: Props) => {
       </div>
       <hr className="border-gray-800 mb-4" />
       {examList.length === 0 ? (
-        <div className="text-gray-600">No exams found for this course</div>
+        <div className="text-gray-600 mb-44">No exams found for this course</div>
       ) : (
         <div className="flex flex-col gap-6">
           {Object.entries(grouped)

@@ -123,15 +123,25 @@ const CoursePageContent = ({
 
       <dl className="flex flex-col gap-4">
         {userReview && (
-          <ReviewItem review={userReview} scoreTypes={scoreTypesWithValues} isUserReview onAdminDelete={onAdminDelete} />
+          <ReviewItem
+            review={userReview}
+            scoreTypes={scoreTypesWithValues}
+            isUserReview
+            onAdminDelete={onAdminDelete}
+          />
         )}
         {reviews.map((review) => (
-          <ReviewItem key={review.id} review={review} scoreTypes={scoreTypesWithValues} onAdminDelete={onAdminDelete} />
+          <ReviewItem
+            key={review.id}
+            review={review}
+            scoreTypes={scoreTypesWithValues}
+            onAdminDelete={onAdminDelete}
+          />
         ))}
       </dl>
 
       {reviewCount === 0 && (
-        <p className="text-gray-600 mt-4">No reviews yet. Be the first to write one!</p>
+        <p className="text-gray-600 mt-4 mb-12">No reviews yet. Be the first to write one!</p>
       )}
     </>
   )
