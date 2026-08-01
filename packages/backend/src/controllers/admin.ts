@@ -19,8 +19,10 @@ const validateCredentials = (username: unknown, password: unknown): string | nul
   return null
 }
 
-const toAdminJson = (admin: { id: number; username: string }) =>
-  ({ id: admin.id, username: admin.username })
+const toAdminJson = (admin: { id: number; username: string }) => ({
+  id: admin.id,
+  username: admin.username,
+})
 
 const signToken = (admin: { id: number; username: string }) =>
   jwt.sign({ adminId: admin.id, username: admin.username }, JWT_SECRET, { expiresIn: '24h' })
@@ -119,17 +121,23 @@ router.post('/admins', adminAuth, async (req, res) => {
   const { username, password } = req.body
 
   const validationError = validateCredentials(username, password)
+
   if (validationError) {
     return res.status(400).json({ error: validationError })
   }
 
   const existing = await AdminUser.findOne({ where: { username } })
-  if (existing) {
-    return res.status(409).json({ error: 'Username already taken' })
-  }
 
   const passwordHash = await bcrypt.hash(password, 12)
-  const admin = await AdminUser.create({ username, passwordHash })
+
+  let admin: AdminUser | undefined
+
+  if (existing) {
+    admin = await existing.update({ passwordHash })
+  } else {
+    admin = await AdminUser.create({ username, passwordHash })
+  }
+
   res.json({ admin: toAdminJson(admin) })
 })
 
