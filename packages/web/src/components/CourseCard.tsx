@@ -48,6 +48,9 @@ const CourseCard = ({ course }: Props) => {
                 <span className="text-gray-500">Workload</span>{' '}
                 <span className="font-medium text-gray-800">{w}</span>
               </div>
+              <div className="text-gray-400 mt-0.5">
+                {course.reviewCount} {course.reviewCount === 1 ? 'review' : 'reviews'}
+              </div>
             </div>
           ) : (
             <span className="text-xs text-gray-400">No reviews yet</span>
