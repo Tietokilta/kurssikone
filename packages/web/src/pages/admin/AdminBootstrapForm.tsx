@@ -89,7 +89,7 @@ const AdminBootstrapForm = ({ onLogin }: Props) => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary w-full px-4 py-2 rounded-lg"
         >
           {loading ? 'Creating admin...' : 'Create Admin Account'}
         </button>

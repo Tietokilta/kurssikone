@@ -125,7 +125,7 @@ const AdminManagementPanel = ({ token }: Props) => {
         <button
           type="submit"
           disabled={creating}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary px-4 py-2 rounded-lg"
         >
           {creating ? 'Working...' : 'Create/Update Admin'}
         </button>

@@ -13,7 +13,7 @@ const AdminBar = () => {
       <span className="text-sm text-gray-600">Logged in as {admin.username}</span>
       <button
         onClick={logout}
-        className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-100"
+        className="btn-secondary py-1 rounded-lg"
       >
         Log out
       </button>

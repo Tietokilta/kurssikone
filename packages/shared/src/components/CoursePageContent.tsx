@@ -76,7 +76,7 @@ const CoursePageContent = ({
       <div className="flex gap-6 items-center mb-4">
         <h2 className="text-xl font-medium">{reviewCount} Reviews</h2>
         <button
-          className="px-3 py-1.5 text-sm bg-gray-200 text-gray-900 border border-gray-300 rounded-md hover:bg-gray-300 transition-colors"
+          className={isMakingNewReview ? 'btn-secondary' : 'btn-primary'}
           onClick={() => setIsMakingNewReview(!isMakingNewReview)}
         >
           {buttonText}

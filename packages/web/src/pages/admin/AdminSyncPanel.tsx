@@ -34,7 +34,7 @@ const AdminSyncPanel = ({ token }: Props) => {
       <button
         onClick={handleSync}
         disabled={loading}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        className="btn-primary px-4 py-2 rounded-lg"
       >
         {loading ? 'Syncing...' : 'Run Sync'}
       </button>

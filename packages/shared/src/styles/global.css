@@ -84,6 +84,23 @@
   --spacing-96: 384px;
 }
 
+@layer components {
+  .btn-primary {
+    @apply px-3 py-1.5 text-sm text-white rounded;
+    background-color: #1076db;
+  }
+  .btn-primary:hover {
+    background-color: #0c65c0;
+  }
+  .btn-primary:disabled {
+    @apply opacity-50;
+  }
+
+  .btn-secondary {
+    @apply px-3 py-1.5 text-sm bg-gray-200 border border-gray-300 rounded hover:bg-gray-300;
+  }
+}
+
 @layer base {
   :host {
     all: initial;

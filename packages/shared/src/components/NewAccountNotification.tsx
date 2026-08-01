@@ -19,6 +19,7 @@ const NewAccountNotification = ({
   const [generatedUserId] = useState<string>(uuidv4())
   const [previousUserId, setPreviousUserId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
+  const [view, setView] = useState<'new' | 'existing'>('new')
 
   const handleSettingNewUserId = async () => {
     await makeUser(generatedUserId)
@@ -46,55 +47,67 @@ const NewAccountNotification = ({
 
   return (
     <div className="my-6">
-      <h4>Looks like this is your first time making a review!</h4>
-      <p>
-        Your new User ID is: <b>{generatedUserId}</b>
-        <button
-          className="ml-2 px-2 py-1 text-sm bg-gray-200 border border-gray-300 rounded hover:bg-gray-300"
-          onClick={() => {
-            navigator.clipboard.writeText(generatedUserId)
-          }}
-        >
-          Copy
-        </button>
-      </p>
+      {view === 'new' ? (
+        <>
+          <h4>Looks like this is your first time making a review!</h4>
+          <p>
+            Your new User ID is: <i>{generatedUserId}</i>
+            <button
+              className="btn-secondary ml-2 px-2 py-1"
+              onClick={() => {
+                navigator.clipboard.writeText(generatedUserId)
+              }}
+            >
+              Copy
+            </button>
+          </p>
 
-      <p>
-        This ID is used to identify you, and you will need it if you want to edit or delete your
-        reviews in the future.
-      </p>
+          <p>This ID serves as your username & password.</p>
 
-      <p>
-        <b>Save this ID somewhere safe.</b>
-      </p>
-      <button
-        className="my-2 px-3 py-1.5 text-sm bg-gray-200 border border-gray-300 rounded hover:bg-gray-300"
-        onClick={handleSettingNewUserId}
-      >
-        Understood, I have saved my user ID
-      </button>
+          <p>
+            <b>Save this ID somewhere safe</b> if you want to be able to edit your reviews later.
+          </p>
+          <div className="my-2 flex gap-2">
+            <button className="btn-secondary" onClick={() => setView('existing')}>
+              I already have an ID
+            </button>
+            <button className="btn-primary" onClick={handleSettingNewUserId}>
+              Understood, I have saved my user ID
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <h4>Welcome back to reviewing!</h4>
 
-      <p className="mt-6">
-        Alternatively, if you already have a previously saved user ID, paste it below and click
-        submit.
-      </p>
-      {error && (
-        <p>
-          <b className="text-red-600">{error}</b>
-        </p>
+          <p>Paste your previously saved user ID below and click submit.</p>
+          {error && (
+            <p>
+              <b className="text-red-600">{error}</b>
+            </p>
+          )}
+          <input
+            type="text"
+            placeholder="Paste your user ID here"
+            className="min-w-[282px] max-w-[400px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+            onChange={(e) => setPreviousUserId(e.target.value)}
+          />
+          <button className="btn-primary ml-2" onClick={handleSettingPreviousUserId}>
+            Submit
+          </button>
+          <div className="mt-2">
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setView('new')
+                setError(null)
+              }}
+            >
+              Back
+            </button>
+          </div>
+        </>
       )}
-      <input
-        type="text"
-        placeholder="Paste your user ID here"
-        className="min-w-[282px] max-w-[400px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-        onChange={(e) => setPreviousUserId(e.target.value)}
-      />
-      <button
-        className="ml-2 px-3 py-1.5 text-sm bg-gray-200 border border-gray-300 rounded hover:bg-gray-300"
-        onClick={handleSettingPreviousUserId}
-      >
-        Submit
-      </button>
     </div>
   )
 }
