@@ -14,6 +14,7 @@ const AdminManagementPanel = ({ token }: Props) => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [creating, setCreating] = useState(false)
   const [deleting, setDeleting] = useState<number | null>(null)
 
@@ -52,9 +53,18 @@ const AdminManagementPanel = ({ token }: Props) => {
 
     try {
       const { admin } = await createAdmin(token, username, password)
-      setAdmins((prev) => [...prev, admin])
+
+      if (!admins.find((a) => a.username === admin.username)) {
+        setAdmins((prev) => [...prev, admin])
+        setSuccess(`Created new admin ${admin.username}`)
+      } else {
+        setSuccess(`Updated password for admin ${admin.username}`)
+      }
+
       setUsername('')
       setPassword('')
+
+      setTimeout(() => setSuccess(''), 5000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create admin')
     } finally {
@@ -84,7 +94,7 @@ const AdminManagementPanel = ({ token }: Props) => {
         ))}
       </ul>
 
-      <h3 className="text-lg font-semibold mb-3">Create New Admin</h3>
+      <h3 className="text-lg font-semibold mb-3">Create/Update Admin</h3>
       <form onSubmit={handleCreate} className="space-y-3 max-w-sm">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
@@ -110,12 +120,14 @@ const AdminManagementPanel = ({ token }: Props) => {
           />
         </div>
         {error && <p className="text-red-600 text-sm">{error}</p>}
+        {success && <p className="text-green-600 text-sm">{success}</p>}
+
         <button
           type="submit"
           disabled={creating}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
         >
-          {creating ? 'Creating...' : 'Create Admin'}
+          {creating ? 'Working...' : 'Create/Update Admin'}
         </button>
       </form>
     </div>
