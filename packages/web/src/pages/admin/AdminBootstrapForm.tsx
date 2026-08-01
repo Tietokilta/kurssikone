@@ -23,16 +23,6 @@ const AdminBootstrapForm = ({ onLogin }: Props) => {
       return
     }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
-    }
-
-    if (username.length < 3) {
-      setError('Username must be at least 3 characters')
-      return
-    }
-
     setLoading(true)
 
     try {

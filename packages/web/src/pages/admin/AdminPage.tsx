@@ -6,7 +6,7 @@ import AdminLoginForm from './AdminLoginForm'
 import AdminDashboard from './AdminDashboard'
 
 const AdminPage = () => {
-  const { token, admin, login, logout, isLoading: isAuthLoading } = useAdminAuth()
+  const { token, admin, login, isLoading: isAuthLoading } = useAdminAuth()
   const [bootstrapped, setBootstrapped] = useState<boolean | null>(null)
 
   useEffect(() => {
@@ -31,7 +31,7 @@ const AdminPage = () => {
   }
 
   if (token && admin) {
-    return <AdminDashboard token={token} adminUsername={admin.username} onLogout={logout} />
+    return <AdminDashboard token={token} />
   }
 
   if (!bootstrapped) {

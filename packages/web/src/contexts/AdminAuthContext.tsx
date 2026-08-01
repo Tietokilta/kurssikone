@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
-import { listAdmins } from '../api/adminClient'
 import {
   getAdminToken,
   setAdminToken,
@@ -8,6 +7,15 @@ import {
   clearAdmin,
   type AdminInfo,
 } from '../utils/adminStorage'
+
+const isTokenExpired = (token: string): boolean => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.exp * 1000 < Date.now()
+  } catch {
+    return true
+  }
+}
 
 type AdminAuthContextType = {
   token: string | null
@@ -33,21 +41,15 @@ export const AdminAuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const init = async () => {
-      const storedToken = getAdminToken()
-      const storedAdmin = getAdminUser()
-      if (storedToken && storedAdmin) {
-        try {
-          await listAdmins(storedToken)
-          setToken(storedToken)
-          setAdmin(storedAdmin)
-        } catch {
-          clearAdmin()
-        }
-      }
-      setIsLoading(false)
+    const storedToken = getAdminToken()
+    const storedAdmin = getAdminUser()
+    if (storedToken && storedAdmin && !isTokenExpired(storedToken)) {
+      setToken(storedToken)
+      setAdmin(storedAdmin)
+    } else if (storedToken) {
+      clearAdmin()
     }
-    init()
+    setIsLoading(false)
   }, [])
 
   const login = (newToken: string, adminInfo: AdminInfo) => {

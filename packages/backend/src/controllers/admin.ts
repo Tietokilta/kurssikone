@@ -9,6 +9,19 @@ import { runFullSync } from '../services/sisuSync'
 
 const router = Router()
 
+const validateCredentials = (username: unknown, password: unknown): string | null => {
+  if (!username || typeof username !== 'string' || username.length < 3 || username.length > 50) {
+    return 'Username must be 3-50 characters'
+  }
+  if (!password || typeof password !== 'string' || password.length < 8) {
+    return 'Password must be at least 8 characters'
+  }
+  return null
+}
+
+const toAdminJson = (admin: { id: number; username: string }) =>
+  ({ id: admin.id, username: admin.username })
+
 const signToken = (admin: { id: number; username: string }) =>
   jwt.sign({ adminId: admin.id, username: admin.username }, JWT_SECRET, { expiresIn: '24h' })
 
@@ -29,19 +42,16 @@ router.post('/bootstrap', async (req, res) => {
     return res.status(401).json({ error: 'Invalid secret' })
   }
 
-  if (!username || typeof username !== 'string' || username.length < 3 || username.length > 50) {
-    return res.status(400).json({ error: 'Username must be 3-50 characters' })
-  }
-
-  if (!password || typeof password !== 'string' || password.length < 8) {
-    return res.status(400).json({ error: 'Password must be at least 8 characters' })
+  const validationError = validateCredentials(username, password)
+  if (validationError) {
+    return res.status(400).json({ error: validationError })
   }
 
   const passwordHash = await bcrypt.hash(password, 12)
   const admin = await AdminUser.create({ username, passwordHash })
 
-  const token = signToken({ id: admin.id, username: admin.username })
-  res.json({ token, admin: { id: admin.id, username: admin.username } })
+  const token = signToken(admin)
+  res.json({ token, admin: toAdminJson(admin) })
 })
 
 router.post('/login', async (req, res) => {
@@ -57,8 +67,8 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Invalid credentials' })
   }
 
-  const token = signToken({ id: admin.id, username: admin.username })
-  res.json({ token, admin: { id: admin.id, username: admin.username } })
+  const token = signToken(admin)
+  res.json({ token, admin: toAdminJson(admin) })
 })
 
 router.delete('/reviews/:id', adminAuth, async (req, res) => {
@@ -108,12 +118,9 @@ router.delete('/admins/:id', adminAuth, async (req, res) => {
 router.post('/admins', adminAuth, async (req, res) => {
   const { username, password } = req.body
 
-  if (!username || typeof username !== 'string' || username.length < 3 || username.length > 50) {
-    return res.status(400).json({ error: 'Username must be 3-50 characters' })
-  }
-
-  if (!password || typeof password !== 'string' || password.length < 8) {
-    return res.status(400).json({ error: 'Password must be at least 8 characters' })
+  const validationError = validateCredentials(username, password)
+  if (validationError) {
+    return res.status(400).json({ error: validationError })
   }
 
   const existing = await AdminUser.findOne({ where: { username } })
@@ -123,7 +130,7 @@ router.post('/admins', adminAuth, async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 12)
   const admin = await AdminUser.create({ username, passwordHash })
-  res.json({ admin: { id: admin.id, username: admin.username } })
+  res.json({ admin: toAdminJson(admin) })
 })
 
 export default router

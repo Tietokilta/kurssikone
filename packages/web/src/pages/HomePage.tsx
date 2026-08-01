@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { Course, CourseListSortBy, ListSortOrder } from '@kurssikone/shared'
 import { getCourses } from '../api/client'
 import CourseCard from '../components/CourseCard'
-import AdminBar from '../components/AdminBar'
 import { isFirefox } from 'react-device-detect'
 
 const COURSES_PER_PAGE = 20
@@ -109,10 +108,7 @@ const HomePage = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl font-medium">KurssiKone</h1>
-        <AdminBar />
-      </div>
+      <h1 className="text-2xl font-medium mb-2">KurssiKone</h1>
       <p className="text-gray-600 mb-6">
         Find and share course reviews, exams & information for Aalto University courses
       </p>

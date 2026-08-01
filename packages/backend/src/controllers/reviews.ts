@@ -7,10 +7,6 @@ import { refreshCourseReviewAggregates } from '../services/reviewAggregates'
 
 const router = Router()
 
-router.get('/', async (_req, res) => {
-  res.status(404).end()
-})
-
 router.post('/', async (req, res) => {
   try {
     const { hash, ...review } = req.body

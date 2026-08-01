@@ -1,6 +1,5 @@
 import type { AdminInfo } from '../utils/adminStorage'
-
-const host = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+import { host } from './client'
 
 const authHeaders = (token: string): HeadersInit => ({
   Authorization: `Bearer ${token}`,
@@ -80,12 +79,8 @@ export const deleteAdmin = async (token: string, id: number): Promise<void> => {
     headers: authHeaders(token),
   })
   if (!res.ok) {
-    const text = await res.text()
-    let message = 'Failed to delete admin'
-    try {
-      message = JSON.parse(text).error || message
-    } catch { /* non-JSON response */ }
-    throw new Error(message)
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.error || 'Failed to delete admin')
   }
 }
 

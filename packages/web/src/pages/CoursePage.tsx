@@ -21,7 +21,6 @@ import {
 import { getUserId, setUserId } from '../utils/userStorage'
 import { useAdminAuth } from '../contexts/AdminAuthContext'
 import { deleteAdminReview } from '../api/adminClient'
-import AdminBar from '../components/AdminBar'
 import CourseInfo from '../components/CourseInfo'
 
 type Tab = 'reviews' | 'exams'
@@ -123,11 +122,10 @@ const CoursePage = () => {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4">
         <Link to="/" className="text-blue-600 underline hover:text-blue-800">
           &larr; Back to courses
         </Link>
-        <AdminBar />
       </div>
 
       <h1 className="text-2xl font-medium mb-6">{courseCode}</h1>
