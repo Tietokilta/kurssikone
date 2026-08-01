@@ -10,5 +10,7 @@ const POSTGRES_URL =
     : 'postgres://localhost:5432/kurssikone'
 
 const SISU_COURSE_API_KEY = process.env.SISU_COURSE_API_KEY || ''
+const ADMIN_SECRET = process.env.ADMIN_SECRET || ''
+const JWT_SECRET = process.env.JWT_SECRET || ''
 
-export { PORT, POSTGRES_URL, SISU_COURSE_API_KEY }
+export { PORT, POSTGRES_URL, SISU_COURSE_API_KEY, ADMIN_SECRET, JWT_SECRET }

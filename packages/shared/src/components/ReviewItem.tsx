@@ -7,9 +7,10 @@ type Props = {
   review: Review
   scoreTypes: { name: string; field: string }[]
   isUserReview?: boolean
+  onAdminDelete?: (reviewId: number) => void
 }
 
-const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
+const ReviewItem = ({ review, scoreTypes, isUserReview, onAdminDelete }: Props) => {
   const scores = scoreTypes.map(({ name, field }) => {
     return {
       name,
@@ -25,7 +26,7 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
   return (
     <>
       <div className="ml-4 max-w-[75%] mt-6">
-        <header>
+        <header className="flex items-start justify-between">
           <h3>
             {isUserReview && (
               <>
@@ -38,6 +39,14 @@ const ReviewItem = ({ review, scoreTypes, isUserReview }: Props) => {
               {editDate && editDate !== publishDate && ` (Edited ${editDate})`}
             </i>
           </h3>
+          {onAdminDelete && (
+            <button
+              onClick={() => onAdminDelete(review.id)}
+              className="px-3 py-1 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50 ml-4 shrink-0"
+            >
+              Delete
+            </button>
+          )}
         </header>
         <div className="flex flex-col gap-4">
           <span className="text-sm flex gap-2.5">

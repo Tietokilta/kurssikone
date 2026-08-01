@@ -1,23 +1,11 @@
 import { Router } from 'express'
-import { Review, User } from '../models'
+import { Review } from '../models'
 import { sequelize } from '../utils/db'
 import { Op } from 'sequelize'
 import hashIt from 'hash-it'
 import { refreshCourseReviewAggregates } from '../services/reviewAggregates'
 
 const router = Router()
-
-router.get('/', async (req, res) => {
-  const secret = req.query.secret
-
-  if (process.env.ADMIN_SECRET && secret === process.env.ADMIN_SECRET) {
-    const reviews = await Review.findAll({ attributes: { exclude: ['userId'] } })
-    const userCount = await User.count()
-    res.json({ userCount, reviews })
-  } else {
-    res.status(404).end()
-  }
-})
 
 router.post('/', async (req, res) => {
   try {
