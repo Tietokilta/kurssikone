@@ -22,6 +22,7 @@ export type CoursePageContentProps = {
   makeUser: (userId: string) => Promise<void>
   makeOrEditReview: (review: NewReview) => Promise<void>
   deleteReview: (reviewId: number, userId: string) => Promise<void>
+  onAdminDelete?: (reviewId: number) => void
 }
 
 const CoursePageContent = ({
@@ -40,6 +41,7 @@ const CoursePageContent = ({
   makeUser,
   makeOrEditReview,
   deleteReview,
+  onAdminDelete,
 }: CoursePageContentProps) => {
   const { reviews, count: otherReviewCount } = otherReviewsAndCount
 
@@ -121,10 +123,10 @@ const CoursePageContent = ({
 
       <dl className="flex flex-col gap-4">
         {userReview && (
-          <ReviewItem review={userReview} scoreTypes={scoreTypesWithValues} isUserReview />
+          <ReviewItem review={userReview} scoreTypes={scoreTypesWithValues} isUserReview onAdminDelete={onAdminDelete} />
         )}
         {reviews.map((review) => (
-          <ReviewItem key={review.id} review={review} scoreTypes={scoreTypesWithValues} />
+          <ReviewItem key={review.id} review={review} scoreTypes={scoreTypesWithValues} onAdminDelete={onAdminDelete} />
         ))}
       </dl>
 

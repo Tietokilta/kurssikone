@@ -1,7 +1,6 @@
 import express from 'express'
 import { Op, literal, OrderItem } from 'sequelize'
 import { Course, CourseRealisation } from '../models'
-import { runFullSync } from '../services/sisuSync'
 
 const router = express.Router()
 
@@ -146,26 +145,6 @@ router.get('/:code', async (req, res) => {
   }
 
   return res.json(courses)
-})
-
-router.post('/sync', async (req, res) => {
-  const authHeader = req.headers.authorization
-  const expectedSecret = process.env.ADMIN_SECRET
-
-  if (!expectedSecret || authHeader !== `Bearer ${expectedSecret}`) {
-    return res.status(401).json({ error: 'Unauthorized' })
-  }
-
-  try {
-    const result = await runFullSync()
-    return res.json({
-      message: 'Sync completed successfully',
-      ...result,
-    })
-  } catch (error) {
-    console.error('Manual sync failed:', error)
-    return res.status(500).json({ error: 'Sync failed' })
-  }
 })
 
 export default router

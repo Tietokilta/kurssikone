@@ -7,7 +7,7 @@ COPY package-lock.json .
 COPY packages/backend/package.json .
 COPY packages/backend/tsconfig.json .
 
-RUN npm ci
+RUN npm install
 
 COPY packages/backend/src ./src
 

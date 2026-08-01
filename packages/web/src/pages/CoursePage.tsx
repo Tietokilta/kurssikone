@@ -19,12 +19,16 @@ import {
   getExamsForCourse,
 } from '../api/client'
 import { getUserId, setUserId } from '../utils/userStorage'
+import { useAdminAuth } from '../contexts/AdminAuthContext'
+import { deleteAdminReview } from '../api/adminClient'
+import AdminBar from '../components/AdminBar'
 import CourseInfo from '../components/CourseInfo'
 
 type Tab = 'reviews' | 'exams'
 
 const CoursePage = () => {
   const { courseCode } = useParams<{ courseCode: string }>()
+  const { token } = useAdminAuth()
   const [activeTab, setActiveTab] = useState<Tab>('reviews')
   const [courseData, setCourseData] = useState<CourseWithRealisations | null>(null)
   const [isCourseLoading, setIsCourseLoading] = useState(true)
@@ -119,10 +123,11 @@ const CoursePage = () => {
 
   return (
     <div>
-      <div className="mb-4">
+      <div className="flex items-center justify-between mb-4">
         <Link to="/" className="text-blue-600 underline hover:text-blue-800">
           &larr; Back to courses
         </Link>
+        <AdminBar />
       </div>
 
       <h1 className="text-2xl font-medium mb-6">{courseCode}</h1>
@@ -178,6 +183,11 @@ const CoursePage = () => {
           makeUser={makeUser}
           makeOrEditReview={makeOrEditReview}
           deleteReview={deleteReview}
+          onAdminDelete={token ? async (reviewId: number) => {
+            if (!window.confirm('Delete this review?')) return
+            await deleteAdminReview(token, reviewId)
+            await refetchData()
+          } : undefined}
         />
       )}
 
