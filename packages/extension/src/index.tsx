@@ -47,7 +47,7 @@ let observer = new MutationObserver((mutations) => {
 
       if ((isModal || isAppCourseUnitInfo) && once) {
         once = false
-        handleCoursePage(isModal)
+        handleCoursePage(isModal, node as HTMLElement)
       } else if (isSearchResult) {
         handleSearchResult(node)
       } else if (isTimelinePage) {
@@ -101,10 +101,15 @@ const handleSearchResult = (node: Node) => {
   root.render(<SearchResultPage courseCode={courseCode} />)
 }
 
-const handleCoursePage = async (isModal: boolean) => {
+const findModalContainer = (node: HTMLElement): HTMLElement => {
+  return node.closest('.cdk-overlay-pane') as HTMLElement ?? document.body
+}
+
+const handleCoursePage = async (isModal: boolean, triggerNode: HTMLElement) => {
   console.log('[KurssiKone] handleCoursePage called, isModal:', isModal)
   try {
-    const match = await waitForElement('[role="tabpanel"], .modal-body')
+    const container = findModalContainer(triggerNode)
+    const match = await waitForElement('[role="tabpanel"], .modal-body', container)
     const pageMainBody =
       match.getAttribute('role') === 'tabpanel' ? match.parentElement : match
 
@@ -135,7 +140,7 @@ const handleCoursePage = async (isModal: boolean) => {
     examsReactRoot.setAttribute('id', 'exams-root')
     examsShadow.appendChild(examsReactRoot)
 
-    const courseCode = getCourseCode()
+    const courseCode = getCourseCode(container)
     console.log('[KurssiKone] courseCode:', courseCode)
 
     ReactDOM.createRoot(reviewReactRoot).render(<CoursePage courseCode={courseCode} />)
@@ -166,17 +171,17 @@ const handleCoursePage = async (isModal: boolean) => {
     examsButton.textContent = 'Exams'
     examsListElement.append(examsButton)
 
-    const tabList = await waitForElement('[role="tablist"]')
+    const tabList = await waitForElement('[role="tablist"]', container)
     console.log('[KurssiKone] tabList found:', tabList)
 
-    await waitForElement('[role="tablist"] > li')
+    await waitForElement('[role="tablist"] > li', container)
 
-    const tabListElements = document.querySelectorAll('[role="tablist"] > li')
+    const tabListElements = container.querySelectorAll('[role="tablist"] > li')
     console.log('[KurssiKone] tabListElements:', tabListElements.length)
 
     tabListElements.forEach((element) => {
       element.addEventListener('click', function () {
-        getOldModalContents().forEach((el) => {
+        getOldModalContents(container).forEach((el) => {
           el.style.display = 'block'
         })
         reviewShadowHost.style.display = 'none'
@@ -196,7 +201,7 @@ const handleCoursePage = async (isModal: boolean) => {
       tabListElements.forEach((element) => element.classList.remove('active'))
       reviewListElement.classList.add('active')
       examsListElement.classList.remove('active')
-      getOldModalContents().forEach((el) => {
+      getOldModalContents(container).forEach((el) => {
         el.style.display = 'none'
       })
       reviewShadowHost.style.display = 'block'
@@ -207,7 +212,7 @@ const handleCoursePage = async (isModal: boolean) => {
       tabListElements.forEach((element) => element.classList.remove('active'))
       examsListElement.classList.add('active')
       reviewListElement.classList.remove('active')
-      getOldModalContents().forEach((el) => {
+      getOldModalContents(container).forEach((el) => {
         el.style.display = 'none'
       })
       examsShadowHost.style.display = 'block'
@@ -218,23 +223,23 @@ const handleCoursePage = async (isModal: boolean) => {
   }
 }
 
-const getOldModalContents = () => {
-  const tabPanels = document.querySelectorAll(
+const getOldModalContents = (container: ParentNode) => {
+  const tabPanels = container.querySelectorAll(
     `[role="tabpanel"]:not(.kurssikone-shadow-host)`
   )
   if (tabPanels.length > 0) {
     return tabPanels as unknown as HTMLElement[]
   }
-  const modalBody = document.querySelector('.modal-body')
+  const modalBody = container.querySelector('.modal-body')
   if (!modalBody) return [] as unknown as HTMLElement[]
   return Array.from(modalBody.children).filter(
     (el) => !el.classList.contains('kurssikone-shadow-host')
   ) as unknown as HTMLElement[]
 }
 
-const getCourseCode = () => {
-  const courseCodeModalString = document.querySelector('.course-unit-code')?.textContent
-  const courseCodePageString = document.querySelector('.page-sub-title')?.textContent
+const getCourseCode = (container: ParentNode) => {
+  const courseCodeModalString = container.querySelector('.course-unit-code')?.textContent
+  const courseCodePageString = container.querySelector('.page-sub-title')?.textContent
   if (courseCodeModalString) {
     return courseCodeModalString.split('|')[0].trim()
   }
