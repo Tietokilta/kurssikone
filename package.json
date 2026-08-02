@@ -9,7 +9,7 @@
     "dev": "docker compose -f packages/backend/docker-compose.yml up -d && concurrently --names \"web,extension,backend\" --prefix-colors \"cyan,magenta,yellow\" \"npm run dev --prefix packages/web\" \"npm run dev --prefix packages/extension\" \"docker compose -f packages/backend/docker-compose.yml logs -f backend\"",
     "dev:extension": "npm run dev --prefix packages/extension",
     "dev:web": "npm run dev --prefix packages/web",
-    "dev:backend": "docker compose -f packages/backend/docker-compose.yml up -d && docker compose -f packages/backend/docker-compose.yml logs -f backend",
+    "dev:backend": "docker compose -f packages/backend/docker-compose.yml up",
     "lint": "npm run lint --workspaces",
     "test": "npm run test --workspaces",
     "test:e2e": "npm run test:e2e --workspaces --if-present",
