@@ -11,7 +11,9 @@ router.post('/', async (req, res) => {
     const correctHash = hashIt({ userId: id })
     if (hash === correctHash) {
       const user = await User.create({ id: hashUserId(id) })
-      res.json(user)
+      const userResponse = user.toJSON()
+      delete (userResponse as Record<string, unknown>).id
+      res.json(userResponse)
     } else {
       res.status(400).end()
     }

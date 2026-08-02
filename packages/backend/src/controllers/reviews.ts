@@ -15,7 +15,9 @@ router.post('/', async (req, res) => {
     if (hash === correctHash) {
       const [newReview] = await Review.upsert({ ...review, userId: hashUserId(review.userId) })
       await refreshCourseReviewAggregates(review.courseCode)
-      res.json(newReview)
+      const reviewResponse = newReview.toJSON()
+      delete (reviewResponse as Record<string, unknown>).userId
+      res.json(reviewResponse)
     } else {
       res.status(400).end()
     }
