@@ -1,7 +1,7 @@
 {
   "name": "KurssiKone",
   "description": "Adds extra features directly to Aalto University's Sisu, including course reviews, past exams and an improved timeline view!",
-  "version": "3.1.1",
+  "version": "3.2.0",
   "manifest_version": 3,
   "permissions": [
     "storage",
@@ -23,8 +23,12 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["icon16.png"],
-      "matches": ["https://sisu.aalto.fi/*"]
+      "resources": [
+        "icon16.png"
+      ],
+      "matches": [
+        "https://sisu.aalto.fi/*"
+      ]
     }
   ],
   "content_scripts": [
