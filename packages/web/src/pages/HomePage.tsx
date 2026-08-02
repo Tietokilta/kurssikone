@@ -108,7 +108,10 @@ const HomePage = () => {
 
   return (
     <div>
-      <h1 className="text-2xl font-medium mb-2">KurssiKone</h1>
+      <div className="flex items-center gap-1 mb-2">
+        <img src="/icon-192x192.png" alt="KurssiKone logo" className="h-12 w-12" />
+        <h1 className="text-2xl font-medium">KurssiKone</h1>
+      </div>
       <p className="text-gray-600 mb-6">
         Find and share course reviews, exams & information for Aalto University courses
       </p>
