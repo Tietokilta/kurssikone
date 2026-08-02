@@ -1,4 +1,7 @@
-# KurssiKone
+<h1>
+  <img src="kurssikone_logo.png" alt="KurssiKone Logo" width="40" align="absmiddle" />
+  KurssiKone
+</h1>
 
 ![Example of KurssiKone](example_1.jpg)
 
@@ -126,16 +129,16 @@ For development, this also means that all backend changes have to be backend com
 
 All secrets are configured in the repo (Settings > Secrets and variables > Actions).
 
-| Secret | Used by | Description | How to get |
-|---|---|---|---|
-| `AZURE_CLIENT_ID` | `deploy.yml` | Azure AD app (service principal) client ID | [Azure Portal](https://portal.azure.com/) > App registrations |
-| `AZURE_SUBSCRIPTION_ID` | `deploy.yml` | Azure subscription ID | [Azure Portal](https://portal.azure.com/) > Subscriptions |
-| `AZURE_TENANT_ID` | `deploy.yml` | Azure AD tenant ID | [Azure Portal](https://portal.azure.com/) > Azure Active Directory |
-| `CHROME_EXTENSION_ID` | `extension-publish.yml` | Extension ID from Chrome Web Store URL | `https://chromewebstore.google.com/detail/kurssikone/<ID>` |
-| `CHROME_CLIENT_ID` | `extension-publish.yml` | Google Cloud OAuth 2.0 client ID | [Google Cloud Console](https://console.cloud.google.com/) > APIs & Services > Credentials > OAuth 2.0 Client (Desktop app) |
-| `CHROME_CLIENT_SECRET` | `extension-publish.yml` | Google Cloud OAuth 2.0 client secret | Same as above |
-| `CHROME_REFRESH_TOKEN` | `extension-publish.yml` | OAuth 2.0 refresh token | Run `npx chrome-webstore-upload-keys` |
-| `FIREFOX_API_KEY` | `extension-publish.yml` | AMO JWT issuer | [addons.mozilla.org/developers/addon/api/key/](https://addons.mozilla.org/developers/addon/api/key/) |
-| `FIREFOX_API_SECRET` | `extension-publish.yml` | AMO JWT secret | Same as above |
+| Secret                  | Used by                 | Description                                | How to get                                                                                                                 |
+| ----------------------- | ----------------------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------- |
+| `AZURE_CLIENT_ID`       | `deploy.yml`            | Azure AD app (service principal) client ID | [Azure Portal](https://portal.azure.com/) > App registrations                                                              |
+| `AZURE_SUBSCRIPTION_ID` | `deploy.yml`            | Azure subscription ID                      | [Azure Portal](https://portal.azure.com/) > Subscriptions                                                                  |
+| `AZURE_TENANT_ID`       | `deploy.yml`            | Azure AD tenant ID                         | [Azure Portal](https://portal.azure.com/) > Azure Active Directory                                                         |
+| `CHROME_EXTENSION_ID`   | `extension-publish.yml` | Extension ID from Chrome Web Store URL     | `https://chromewebstore.google.com/detail/kurssikone/<ID>`                                                                 |
+| `CHROME_CLIENT_ID`      | `extension-publish.yml` | Google Cloud OAuth 2.0 client ID           | [Google Cloud Console](https://console.cloud.google.com/) > APIs & Services > Credentials > OAuth 2.0 Client (Desktop app) |
+| `CHROME_CLIENT_SECRET`  | `extension-publish.yml` | Google Cloud OAuth 2.0 client secret       | Same as above                                                                                                              |
+| `CHROME_REFRESH_TOKEN`  | `extension-publish.yml` | OAuth 2.0 refresh token                    | Run `npx chrome-webstore-upload-keys`                                                                                      |
+| `FIREFOX_API_KEY`       | `extension-publish.yml` | AMO JWT issuer                             | [addons.mozilla.org/developers/addon/api/key/](https://addons.mozilla.org/developers/addon/api/key/)                       |
+| `FIREFOX_API_SECRET`    | `extension-publish.yml` | AMO JWT secret                             | Same as above                                                                                                              |
 
 Chrome Web Store notes: enable the **Chrome Web Store API** in Google Cloud Console, and set the OAuth consent screen to **"In production"** (not "Testing") — otherwise the refresh token expires after 7 days.
