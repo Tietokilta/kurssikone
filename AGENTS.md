@@ -61,4 +61,4 @@ For development, this also means that all backend changes have to be backend com
 
 ## Other notes
 
-User IDs are secrets, only the user themselves should know their user ID. Make sure no change makes user IDs visible in the frontend or extension.
+User IDs are secrets, only the user themselves should know their user ID. Make sure no change makes user IDs visible in the frontend or extension. Backend only stores and uses hashes of user IDs.

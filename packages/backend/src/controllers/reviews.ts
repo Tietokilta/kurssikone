@@ -4,6 +4,7 @@ import { sequelize } from '../utils/db'
 import { Op } from 'sequelize'
 import hashIt from 'hash-it'
 import { refreshCourseReviewAggregates } from '../services/reviewAggregates'
+import { hashUserId } from '../utils/hashUserId'
 
 const router = Router()
 
@@ -12,9 +13,11 @@ router.post('/', async (req, res) => {
     const { hash, ...review } = req.body
     const correctHash = hashIt({ userId: review.userId, courseCode: review.courseCode })
     if (hash === correctHash) {
-      const [newReview] = await Review.upsert({ ...review })
+      const [newReview] = await Review.upsert({ ...review, userId: hashUserId(review.userId) })
       await refreshCourseReviewAggregates(review.courseCode)
-      res.json(newReview)
+      const reviewResponse = newReview.toJSON()
+      delete (reviewResponse as Record<string, unknown>).userId
+      res.json(reviewResponse)
     } else {
       res.status(400).end()
     }
@@ -49,7 +52,7 @@ router.get('/course/:courseCode/user/:userId', async (req, res) => {
     return
   }
   const review = await Review.findOne({
-    where: { courseCode, userId: userId },
+    where: { courseCode, userId: hashUserId(userId) },
     attributes: { exclude: ['userId'] },
   })
   if (review) {
@@ -79,7 +82,7 @@ router.get('/course/:courseCode/', async (req, res) => {
   if (userIdToExclude) {
     // @ts-expect-error - dynamically adding where clause
     query.where.userId = {
-      [Op.not]: userIdToExclude,
+      [Op.not]: hashUserId(userIdToExclude as string),
     }
   }
 
