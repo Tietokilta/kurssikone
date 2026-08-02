@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { User } from '../models'
 import hashIt from 'hash-it'
+import { hashUserId } from '../utils/hashUserId'
 
 const router = Router()
 
@@ -9,7 +10,7 @@ router.post('/', async (req, res) => {
     let { hash, id } = req.body
     const correctHash = hashIt({ userId: id })
     if (hash === correctHash) {
-      const user = await User.create({ id })
+      const user = await User.create({ id: hashUserId(id) })
       res.json(user)
     } else {
       res.status(400).end()
@@ -20,7 +21,7 @@ router.post('/', async (req, res) => {
 })
 
 router.get('/:id', async (req, res) => {
-  const user = await User.findByPk(req.params.id)
+  const user = await User.findByPk(hashUserId(req.params.id))
   if (user) {
     res.json(user)
   } else {
