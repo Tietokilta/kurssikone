@@ -156,7 +156,12 @@ const handleCoursePage = async (isModal: boolean, triggerNode: HTMLElement) => {
     reviewButton.setAttribute('role', 'tab')
     reviewButton.setAttribute('class', 'link-button')
     reviewButton.setAttribute('tabindex', '-1')
-    reviewButton.textContent = 'Reviews'
+    const reviewIcon = document.createElement('img')
+    reviewIcon.src = chrome.runtime.getURL('icon16.png')
+    reviewIcon.width = 16
+    reviewIcon.height = 16
+    reviewIcon.style.cssText = 'vertical-align: -2px; margin-right: 4px;'
+    reviewButton.append(reviewIcon, 'Reviews')
     reviewListElement.append(reviewButton)
 
     // Exams tab button
@@ -168,7 +173,12 @@ const handleCoursePage = async (isModal: boolean, triggerNode: HTMLElement) => {
     examsButton.setAttribute('role', 'tab')
     examsButton.setAttribute('class', 'link-button')
     examsButton.setAttribute('tabindex', '-1')
-    examsButton.textContent = 'Exams'
+    const examsIcon = document.createElement('img')
+    examsIcon.src = chrome.runtime.getURL('icon16.png')
+    examsIcon.width = 16
+    examsIcon.height = 16
+    examsIcon.style.cssText = 'vertical-align: -2px; margin-right: 4px;'
+    examsButton.append(examsIcon, 'Exams')
     examsListElement.append(examsButton)
 
     const tabList = await waitForElement('[role="tablist"]', container)

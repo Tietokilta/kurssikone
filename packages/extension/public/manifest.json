@@ -21,6 +21,12 @@
     "96": "icon96.png",
     "128": "icon128.png"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["icon16.png"],
+      "matches": ["https://sisu.aalto.fi/*"]
+    }
+  ],
   "content_scripts": [
     {
       "matches": [

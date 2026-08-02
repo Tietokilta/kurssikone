@@ -803,7 +803,7 @@ const TimelinePage = ({ planId }: Props) => {
           onClick={toggleCollapsed}
           className="shrink-0 rounded px-1.5 py-0.5 text-sm font-medium text-neutral-600 hover:bg-neutral-200 focus:outline-none"
           aria-expanded={!collapsed}
-          aria-label={collapsed ? 'Expand KurssiKone timeline' : 'Collapse KurssiKone timeline'}
+          aria-label={collapsed ? 'Expand timeline' : 'Collapse timeline'}
         >
           <svg
             className="h-4 w-4 transition-transform duration-200"
@@ -818,7 +818,10 @@ const TimelinePage = ({ planId }: Props) => {
             />
           </svg>
         </button>
-        <h2 className="text-base font-semibold text-neutral-800">KurssiKone Timeline</h2>
+        <h2 className="flex items-center gap-1.5 text-base font-semibold text-neutral-800">
+          <img src={chrome.runtime.getURL('icon16.png')} width={16} height={16} alt="" />
+          Timeline
+        </h2>
       </div>
 
       <div
