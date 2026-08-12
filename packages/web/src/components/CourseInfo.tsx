@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import DOMPurify from 'dompurify'
 import { CourseWithRealisations, CourseRealisation } from '@kurssikone/shared'
 
 type Props = {
@@ -49,8 +50,15 @@ const CourseInfo = ({ course }: Props) => {
   const gradingScale = latestRealisation?.gradingScale
   const sisuUrl = `https://sisu.aalto.fi/student/courseunit/${course.id}/brochure`
 
+  const sanitize = (html: string) => DOMPurify.sanitize(html)
+
   const descriptionTruncateLength = 300
-  const shouldTruncateDescription = description && description.length > descriptionTruncateLength
+  const getTextLength = (html: string) => {
+    const div = document.createElement('div')
+    div.innerHTML = DOMPurify.sanitize(html)
+    return div.textContent?.length || 0
+  }
+  const shouldTruncateDescription = description && getTextLength(description) > descriptionTruncateLength
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
@@ -76,11 +84,10 @@ const CourseInfo = ({ course }: Props) => {
       {description && (
         <div className="mb-4">
           <h3 className="text-sm font-medium text-gray-700 mb-1">Description</h3>
-          <p className="text-gray-600 text-sm whitespace-pre-line">
-            {shouldTruncateDescription && !isDescriptionExpanded
-              ? `${description.slice(0, descriptionTruncateLength)}...`
-              : description}
-          </p>
+          <div
+            className={`text-gray-600 text-sm course-html-content ${shouldTruncateDescription && !isDescriptionExpanded ? 'line-clamp-4' : ''}`}
+            dangerouslySetInnerHTML={{ __html: sanitize(description) }}
+          />
           {shouldTruncateDescription && (
             <button
               onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
@@ -95,14 +102,20 @@ const CourseInfo = ({ course }: Props) => {
       {learningOutcomes && (
         <div className="mb-4">
           <h3 className="text-sm font-medium text-gray-700 mb-1">Learning Outcomes</h3>
-          <p className="text-gray-600 text-sm">{learningOutcomes}</p>
+          <div
+            className="text-gray-600 text-sm course-html-content"
+            dangerouslySetInnerHTML={{ __html: sanitize(learningOutcomes) }}
+          />
         </div>
       )}
 
       {prerequisites && (
         <div className="mb-4">
           <h3 className="text-sm font-medium text-gray-700 mb-1">Prerequisites</h3>
-          <p className="text-gray-600 text-sm">{prerequisites}</p>
+          <div
+            className="text-gray-600 text-sm course-html-content"
+            dangerouslySetInnerHTML={{ __html: sanitize(prerequisites) }}
+          />
         </div>
       )}
 

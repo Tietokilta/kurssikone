@@ -14,6 +14,7 @@
     "@kurssikone/shared": "file:../shared",
     "@ramonak/react-progress-bar": "^5.2.0",
     "dayjs": "^1.11.10",
+    "dompurify": "^3.4.13",
     "hash-it": "^6.0.0",
     "react": "^18.2.0",
     "react-device-detect": "^2.2.3",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.2",
+    "@types/dompurify": "^3.0.5",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@types/uuid": "^10.0.0",
