@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import DOMPurify from 'dompurify'
 import { CourseWithRealisations, CourseRealisation } from '@kurssikone/shared'
 
@@ -33,8 +32,6 @@ const getLatestRealisation = (realisations: CourseRealisation[]): CourseRealisat
 }
 
 const CourseInfo = ({ course }: Props) => {
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
-
   const latestRealisation = getLatestRealisation(course.courseRealisations)
 
   const name =
@@ -51,14 +48,6 @@ const CourseInfo = ({ course }: Props) => {
   const sisuUrl = `https://sisu.aalto.fi/student/courseunit/${course.id}/brochure`
 
   const sanitize = (html: string) => DOMPurify.sanitize(html)
-
-  const descriptionTruncateLength = 300
-  const getTextLength = (html: string) => {
-    const div = document.createElement('div')
-    div.innerHTML = DOMPurify.sanitize(html)
-    return div.textContent?.length || 0
-  }
-  const shouldTruncateDescription = description && getTextLength(description) > descriptionTruncateLength
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
@@ -85,17 +74,9 @@ const CourseInfo = ({ course }: Props) => {
         <div className="mb-4">
           <h3 className="text-sm font-medium text-gray-700 mb-1">Description</h3>
           <div
-            className={`text-gray-600 text-sm course-html-content ${shouldTruncateDescription && !isDescriptionExpanded ? 'line-clamp-4' : ''}`}
+            className="text-gray-600 text-sm course-html-content"
             dangerouslySetInnerHTML={{ __html: sanitize(description) }}
           />
-          {shouldTruncateDescription && (
-            <button
-              onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-              className="text-blue-600 text-sm mt-1 hover:underline"
-            >
-              {isDescriptionExpanded ? 'Show less' : 'Show more'}
-            </button>
-          )}
         </div>
       )}
 
