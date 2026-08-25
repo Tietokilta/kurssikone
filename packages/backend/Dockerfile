@@ -6,6 +6,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/backend/package.json ./packages/backend/
 COPY packages/backend/tsconfig.json ./packages/backend/
+COPY packages/backend/nodemon.json ./packages/backend/
 
 RUN npm ci
 
