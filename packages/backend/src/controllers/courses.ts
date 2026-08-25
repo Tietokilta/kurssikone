@@ -262,9 +262,9 @@ router.get('/', async (req, res) => {
           `(validity_end IS NULL OR validity_end >= '${start}')`
         )
       } else if (period === 'past') {
-        const end = `${currentAcademicYear}-07-31`
+        const start = `${currentAcademicYear}-08-01`
         validityClauses.push(
-          `(validity_start IS NOT NULL AND validity_start <= '${end}' AND validity_end IS NOT NULL AND validity_end <= '${end}')`
+          `(validity_start IS NOT NULL AND validity_start < '${start}')`
         )
       }
     }

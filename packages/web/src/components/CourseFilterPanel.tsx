@@ -119,6 +119,29 @@ function buildLevelOptions(rawLevels: string[]): DropdownOption[] {
     .map((raw) => ({ value: raw, label: formatLevel(raw) }))
 }
 
+const FilterChip = ({
+  label,
+  onRemove,
+}: {
+  label: string
+  onRemove: () => void
+}) => (
+  <button
+    type="button"
+    onClick={onRemove}
+    className="inline-flex items-center px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full hover:bg-blue-200 cursor-pointer"
+    aria-label={`Remove filter: ${label}`}
+  >
+    {label}
+  </button>
+)
+
+const CURRICULUM_LABELS: Record<string, string> = {
+  future: 'Future',
+  current: 'Current',
+  past: 'Past',
+}
+
 const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
   const [expanded, setExpanded] = useState(true)
 
@@ -130,24 +153,72 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
     { value: 'past', label: `Past (≤ ${currentYear - 1}–${currentYear})` },
   ]
 
-  const activeFilterCount = [
-    filters.creditsMin != null,
-    filters.creditsMax != null,
-    (filters.periods?.length ?? 0) > 0,
-    (filters.departments?.length ?? 0) > 0,
-    (filters.levels?.length ?? 0) > 0,
-    filters.minRating != null,
-    filters.hasReviews === true,
-    (filters.curriculumPeriods?.length ?? 0) > 0,
-  ].filter(Boolean).length
-
   const clearAll = () => onChange({})
 
   const update = (patch: Partial<CourseFilters>) => onChange({ ...filters, ...patch })
 
+  const chips: { label: string; onRemove: () => void }[] = []
+
+  if (filters.creditsMin != null || filters.creditsMax != null) {
+    const min = filters.creditsMin
+    const max = filters.creditsMax
+    const label =
+      min != null && max != null
+        ? `Credits: ${min}–${max}`
+        : min != null
+          ? `Credits: ${min}+`
+          : `Credits: ≤ ${max}`
+    chips.push({
+      label,
+      onRemove: () => update({ creditsMin: undefined, creditsMax: undefined }),
+    })
+  }
+
+  if (filters.periods?.length) {
+    chips.push({
+      label: `Period: ${filters.periods.join(', ')}`,
+      onRemove: () => update({ periods: undefined }),
+    })
+  }
+
+  if (filters.departments?.length) {
+    chips.push({
+      label: `Dept: ${filters.departments.join(', ')}`,
+      onRemove: () => update({ departments: undefined }),
+    })
+  }
+
+  if (filters.levels?.length) {
+    chips.push({
+      label: `Level: ${filters.levels.map(formatLevel).join(', ')}`,
+      onRemove: () => update({ levels: undefined }),
+    })
+  }
+
+  if (filters.minRating != null) {
+    chips.push({
+      label: `Quality: ${filters.minRating}+`,
+      onRemove: () => update({ minRating: undefined }),
+    })
+  }
+
+  if (filters.hasReviews) {
+    chips.push({
+      label: 'Has reviews',
+      onRemove: () => update({ hasReviews: undefined }),
+    })
+  }
+
+  if (filters.curriculumPeriods?.length) {
+    chips.push({
+      label: `Curriculum: ${filters.curriculumPeriods.map((v) => CURRICULUM_LABELS[v] ?? v).join(', ')}`,
+      onRemove: () => update({ curriculumPeriods: undefined }),
+    })
+  }
+
   return (
     <div className="mb-4">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-wrap">
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
@@ -165,13 +236,11 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
             />
           </svg>
           Filters
-          {activeFilterCount > 0 && (
-            <span className="bg-blue-100 text-blue-700 text-xs font-medium px-1.5 py-0.5 rounded-full">
-              {activeFilterCount}
-            </span>
-          )}
         </button>
-        {activeFilterCount > 0 && (
+        {chips.map((chip) => (
+          <FilterChip key={chip.label} label={chip.label} onRemove={chip.onRemove} />
+        ))}
+        {chips.length > 0 && (
           <button
             type="button"
             onClick={clearAll}
