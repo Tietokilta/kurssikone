@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { CourseFilterOptions, CourseFilters } from '@kurssikone/shared'
+import DepartmentFilterModal, { ORG_HIERARCHY } from './DepartmentFilterModal'
 
 type Props = {
   filters: CourseFilters
@@ -144,6 +145,7 @@ const CURRICULUM_LABELS: Record<string, string> = {
 
 const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
   const [expanded, setExpanded] = useState(true)
+  const [deptModalOpen, setDeptModalOpen] = useState(false)
 
   const currentYear = filterOptions?.currentAcademicYear ?? new Date().getFullYear()
 
@@ -182,8 +184,31 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
   }
 
   if (filters.departments?.length) {
+    const selectedLower = new Set(filters.departments.map((d) => d.toLowerCase()))
+    const availableLower = new Set(filterOptions?.departments.map((d) => d.toLowerCase()) ?? [])
+    const labels: string[] = []
+    const accounted = new Set<string>()
+    for (const group of ORG_HIERARCHY) {
+      const allDepts = [group.school, ...group.departments]
+      const allAvailable = allDepts.filter((d) => availableLower.has(d.toLowerCase()))
+      if (
+        allAvailable.length > 0 &&
+        allAvailable.every((d) => selectedLower.has(d.toLowerCase()))
+      ) {
+        labels.push(group.school)
+        allAvailable.forEach((d) => accounted.add(d.toLowerCase()))
+      }
+    }
+    for (const d of filters.departments) {
+      if (!accounted.has(d.toLowerCase())) labels.push(d)
+    }
+    const MAX_CHIP_LEN = 60
+    let text = labels.join(', ')
+    if (text.length > MAX_CHIP_LEN) {
+      text = text.slice(0, MAX_CHIP_LEN) + '…'
+    }
     chips.push({
-      label: `Dept: ${filters.departments.join(', ')}`,
+      label: `Dept: ${text}`,
       onRemove: () => update({ departments: undefined }),
     })
   }
@@ -298,19 +323,6 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
               />
             </div>
 
-            {/* Department */}
-            <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-600">Department</span>
-              <MultiSelectDropdown
-                label="All departments"
-                options={filterOptions?.departments ?? []}
-                selected={filters.departments ?? []}
-                onChange={(departments) =>
-                  update({ departments: departments.length > 0 ? departments : undefined })
-                }
-              />
-            </div>
-
             {/* Level */}
             <div className="flex flex-col gap-1">
               <span className="text-sm text-gray-600">Level</span>
@@ -358,6 +370,38 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                 }
               />
             </div>
+
+            {/* Department */}
+            <div className="flex flex-col gap-1">
+              <span className="text-sm text-gray-600">Department</span>
+              <button
+                type="button"
+                onClick={() => setDeptModalOpen(true)}
+                className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-left min-w-[12rem] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              >
+                <span className="flex-1 truncate">
+                  {(filters.departments?.length ?? 0) === 0
+                    ? 'All departments'
+                    : `All departments (${filters.departments!.length})`}
+                </span>
+                <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    fillRule="evenodd"
+                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
+            <DepartmentFilterModal
+              open={deptModalOpen}
+              onClose={() => setDeptModalOpen(false)}
+              availableDepartments={filterOptions?.departments ?? []}
+              selected={filters.departments ?? []}
+              onChange={(departments) =>
+                update({ departments: departments.length > 0 ? departments : undefined })
+              }
+            />
 
             {/* Has reviews */}
             <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer self-end py-2">
