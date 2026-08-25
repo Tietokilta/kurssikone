@@ -1,7 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Course, CourseListSortBy, ListSortOrder } from '@kurssikone/shared'
-import { getCourses } from '../api/client'
+import {
+  Course,
+  CourseListSortBy,
+  ListSortOrder,
+  CourseFilterOptions,
+  CourseFilters,
+} from '@kurssikone/shared'
+import { getCourses, getFilterOptions } from '../api/client'
 import CourseCard from '../components/CourseCard'
+import CourseFilterPanel from '../components/CourseFilterPanel'
 import { isFirefox } from 'react-device-detect'
 
 const COURSES_PER_PAGE = 20
@@ -20,8 +27,14 @@ const HomePage = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [offset, setOffset] = useState(0)
+  const [filters, setFilters] = useState<CourseFilters>({})
+  const [filterOptions, setFilterOptions] = useState<CourseFilterOptions | null>(null)
 
   const observerTarget = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    getFilterOptions().then(setFilterOptions).catch(console.error)
+  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -42,7 +55,8 @@ const HomePage = () => {
           COURSES_PER_PAGE,
           0,
           sortBy,
-          sortOrder
+          sortOrder,
+          filters
         )
         setCourses(result.courses)
         setTotal(result.total)
@@ -54,7 +68,7 @@ const HomePage = () => {
     }
 
     fetchInitial()
-  }, [debouncedSearch, sortBy, sortOrder])
+  }, [debouncedSearch, sortBy, sortOrder, filters])
 
   const loadMore = useCallback(async () => {
     if (isLoadingMore || courses.length >= total) return
@@ -68,7 +82,8 @@ const HomePage = () => {
         COURSES_PER_PAGE,
         newOffset,
         sortBy,
-        sortOrder
+        sortOrder,
+        filters
       )
       setCourses((prev) => [...prev, ...result.courses])
       setOffset(newOffset)
@@ -77,7 +92,7 @@ const HomePage = () => {
     } finally {
       setIsLoadingMore(false)
     }
-  }, [isLoadingMore, courses.length, total, offset, debouncedSearch, sortBy, sortOrder])
+  }, [isLoadingMore, courses.length, total, offset, debouncedSearch, sortBy, sortOrder, filters])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -191,6 +206,12 @@ const HomePage = () => {
           </label>
         </div>
       </div>
+
+      <CourseFilterPanel
+        filters={filters}
+        onChange={setFilters}
+        filterOptions={filterOptions}
+      />
 
       {isLoading ? (
         <div className="text-center py-10">

@@ -108,6 +108,25 @@ export type CoursesByIdsResponse = {
   courses: Course[]
 }
 
+export type CourseFilterOptions = {
+  departments: string[]
+  levels: string[]
+  creditRange: { min: number; max: number }
+  periods: string[]
+  currentAcademicYear: number
+}
+
+export type CourseFilters = {
+  creditsMin?: number
+  creditsMax?: number
+  periods?: string[]
+  departments?: string[]
+  levels?: string[]
+  minRating?: number
+  hasReviews?: boolean
+  curriculumPeriods?: string[]
+}
+
 export type TenttiarkistoExamFile = { id: number; url: string }
 
 export type TenttiarkistoExam = {

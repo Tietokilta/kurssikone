@@ -11,6 +11,8 @@ import {
   CourseWithRealisations,
   CourseRealisation,
   TenttiarkistoCourse,
+  CourseFilterOptions,
+  CourseFilters,
 } from '@kurssikone/shared'
 import hashIt from 'hash-it'
 
@@ -135,15 +137,30 @@ export const getCourses = async (
   limit?: number,
   offset?: number,
   sortBy?: CourseListSortBy,
-  sortOrder?: ListSortOrder
+  sortOrder?: ListSortOrder,
+  filters?: CourseFilters
 ): Promise<CoursesResponse> => {
-  const result = (await get(['courses'], {
+  const query: Record<string, string | null> = {
     search: search || null,
     limit: limit?.toString() || null,
     offset: offset?.toString() || null,
     sortBy: sortBy || null,
     sortOrder: sortOrder || null,
-  })) as CoursesResponse | null
+  }
+
+  if (filters) {
+    if (filters.creditsMin != null) query.creditsMin = filters.creditsMin.toString()
+    if (filters.creditsMax != null) query.creditsMax = filters.creditsMax.toString()
+    if (filters.periods?.length) query.periods = filters.periods.join(',')
+    if (filters.departments?.length) query.departments = filters.departments.join(',')
+    if (filters.levels?.length) query.levels = filters.levels.join(',')
+    if (filters.minRating != null) query.minRating = filters.minRating.toString()
+    if (filters.hasReviews) query.hasReviews = 'true'
+    if (filters.curriculumPeriods?.length)
+      query.curriculumPeriods = filters.curriculumPeriods.join(',')
+  }
+
+  const result = (await get(['courses'], query)) as CoursesResponse | null
   if (!result) {
     return { courses: [], total: 0, limit: limit ?? 50, offset: offset ?? 0 }
   }
@@ -153,6 +170,10 @@ export const getCourses = async (
       normalizeCourseRecord(c as unknown as Record<string, unknown>)
     ),
   }
+}
+
+export const getFilterOptions = async (): Promise<CourseFilterOptions> => {
+  return (await get(['courses', 'filter-options'])) as CourseFilterOptions
 }
 
 export const getCoursesByIds = async (ids: string[]): Promise<Course[]> => {
