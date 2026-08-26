@@ -76,6 +76,19 @@ export const ORG_HIERARCHY: { school: string; departments: string[] }[] = [
   },
 ]
 
+export function shortenDepartment(name: string): string {
+  if (/^Aalto University$/i.test(name.trim())) return name
+  return name
+    .replace(/^Aalto University School of /i, 'Sch. of ')
+    .replace(/^Aalto University,? ?/i, '')
+    .replace(/^School of /i, 'Sch. of ')
+    .replace(/^Department of /i, '')
+}
+
+function shortenSchool(name: string): string {
+  return name.replace(/^School of /i, 'Sch. of ')
+}
+
 function buildTree(availableDepartments: string[]) {
   const lowerToActual = new Map(availableDepartments.map((d) => [d.toLowerCase(), d]))
   const matched = new Set<string>()
@@ -211,7 +224,7 @@ const DepartmentFilterModal = ({
                     onChange={() => toggleSchool(group.departments)}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  {group.school}
+                  {shortenSchool(group.school)}
                 </label>
                 <div className="ml-6">
                   {group.departments.map((dept) => (
@@ -225,7 +238,7 @@ const DepartmentFilterModal = ({
                         onChange={() => toggle(dept)}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-                      {dept}
+                      {shortenDepartment(dept)}
                     </label>
                   ))}
                 </div>
@@ -243,7 +256,7 @@ const DepartmentFilterModal = ({
                 onChange={() => toggle(dept)}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              {dept}
+              {shortenDepartment(dept)}
             </label>
           ))}
         </div>

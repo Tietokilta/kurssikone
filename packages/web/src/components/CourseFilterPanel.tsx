@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { CourseFilterOptions, CourseFilters } from '@kurssikone/shared'
-import DepartmentFilterModal, { ORG_HIERARCHY } from './DepartmentFilterModal'
+import DepartmentFilterModal, { ORG_HIERARCHY, shortenDepartment } from './DepartmentFilterModal'
 
 type Props = {
   filters: CourseFilters
@@ -199,12 +199,12 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
         allAvailable.length > 0 &&
         allAvailable.every((d) => selectedLower.has(d.toLowerCase()))
       ) {
-        labels.push(group.school)
+        labels.push(shortenDepartment(group.school))
         allAvailable.forEach((d) => accounted.add(d.toLowerCase()))
       }
     }
     for (const d of filters.departments) {
-      if (!accounted.has(d.toLowerCase())) labels.push(d)
+      if (!accounted.has(d.toLowerCase())) labels.push(shortenDepartment(d))
     }
     const MAX_CHIP_LEN = 60
     let text = labels.join(', ')
