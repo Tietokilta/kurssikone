@@ -66,10 +66,15 @@ function getPeriodsGroupedByYear(realisations: CourseRealisation[]): YearPeriods
     }
     const entry = grouped.get(yearLabel)!
 
-    for (const { label, positive, negative } of PERIOD_DEFINITIONS) {
-      const hasPositive = positive.some((m) => realisationCoversMonth(startMonth, endMonth, m))
-      const hasNegative = negative.includes(endMonth)
-      if (hasPositive && !hasNegative) entry.periods.add(label)
+    for (const { label, positive } of PERIOD_DEFINITIONS) {
+      const pStart = positive[0]
+      const pEnd = positive[positive.length - 1]
+      const startIn = startMonth >= pStart && startMonth <= pEnd
+      const endIn = endMonth >= pStart && endMonth <= pEnd
+      const spans = positive.every((m) => realisationCoversMonth(startMonth, endMonth, m)) && !startIn && !endIn
+      const excludeByStart = startMonth === pEnd && endMonth > pEnd
+      const excludeByEnd = endMonth === pStart && startMonth < pStart - 2
+      if ((startIn && !excludeByStart) || (endIn && !excludeByEnd) || spans) entry.periods.add(label)
     }
   }
 
