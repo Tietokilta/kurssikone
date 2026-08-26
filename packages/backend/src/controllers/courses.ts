@@ -112,11 +112,14 @@ function buildRealisationFilterSubquery(
 
   const parts: string[] = []
 
+  const retakeFilter = `cr.name_en NOT ILIKE '%Retake%'`
+
   if (conditions.length > 0) {
     parts.push(`EXISTS (
     SELECT 1 FROM course_realisations cr
     WHERE cr.code = "course".code
     AND cr.start_date IS NOT NULL
+    AND ${retakeFilter}
     AND ${conditions.join(' AND ')}
   )`)
   }
@@ -127,6 +130,7 @@ function buildRealisationFilterSubquery(
     SELECT 1 FROM course_realisations cr
     WHERE cr.code = "course".code
     AND cr.start_date IS NOT NULL
+    AND ${retakeFilter}
     AND (${excludeClauses.join(' OR ')})
   )`)
   }

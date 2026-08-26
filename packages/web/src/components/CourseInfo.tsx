@@ -52,6 +52,7 @@ function getPeriodsGroupedByYear(realisations: CourseRealisation[]): YearPeriods
 
   for (const r of realisations) {
     if (!r.startDate || !r.endDate) continue
+    if (r.nameEn?.includes('Retake')) continue
     const start = new Date(r.startDate)
     const end = new Date(r.endDate)
     const startYear = start.getFullYear()
