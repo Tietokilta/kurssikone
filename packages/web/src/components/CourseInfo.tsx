@@ -31,13 +31,13 @@ const getLatestRealisation = (realisations: CourseRealisation[]): CourseRealisat
   })
 }
 
-const PERIOD_DEFINITIONS: { label: string; months: number[]; mode: 'all' | 'any' }[] = [
-  { label: 'I', months: [9, 10], mode: 'all' },
-  { label: 'II', months: [10, 11], mode: 'all' },
-  { label: 'III', months: [1, 2], mode: 'all' },
-  { label: 'IV', months: [3, 4], mode: 'all' },
-  { label: 'V', months: [5], mode: 'all' },
-  { label: 'Summer', months: [7, 8], mode: 'any' },
+const PERIOD_DEFINITIONS: { label: string; positive: number[]; negative: number[] }[] = [
+  { label: 'I', positive: [9, 10], negative: [11] },
+  { label: 'II', positive: [11, 12], negative: [] },
+  { label: 'III', positive: [1, 2], negative: [] },
+  { label: 'IV', positive: [3, 4], negative: [5] },
+  { label: 'V', positive: [5, 6], negative: [7] },
+  { label: 'Summer', positive: [7], negative: [] },
 ]
 
 function realisationCoversMonth(startMonth: number, endMonth: number, month: number): boolean {
@@ -66,11 +66,10 @@ function getPeriodsGroupedByYear(realisations: CourseRealisation[]): YearPeriods
     }
     const entry = grouped.get(yearLabel)!
 
-    for (const { label, months, mode } of PERIOD_DEFINITIONS) {
-      const check = mode === 'all'
-        ? months.every((m) => realisationCoversMonth(startMonth, endMonth, m))
-        : months.some((m) => realisationCoversMonth(startMonth, endMonth, m))
-      if (check) entry.periods.add(label)
+    for (const { label, positive, negative } of PERIOD_DEFINITIONS) {
+      const hasPositive = positive.some((m) => realisationCoversMonth(startMonth, endMonth, m))
+      const hasNegative = negative.includes(endMonth)
+      if (hasPositive && !hasNegative) entry.periods.add(label)
     }
   }
 

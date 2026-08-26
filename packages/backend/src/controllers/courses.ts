@@ -67,16 +67,16 @@ function parseCommaSeparated(raw: unknown): string[] {
   return raw.split(',').map((s) => s.trim()).filter(Boolean)
 }
 
-const PERIOD_MONTH_RANGES: Record<string, [number, number]> = {
-  I: [9, 10],
-  II: [10, 12],
-  III: [1, 2],
-  IV: [3, 4],
-  V: [4, 5],
-  Summer: [6, 8],
+const PERIOD_MONTH_DEFS: Record<string, { positive: [number, number]; negative: number[] }> = {
+  I: { positive: [9, 10], negative: [11] },
+  II: { positive: [11, 12], negative: [] },
+  III: { positive: [1, 2], negative: [] },
+  IV: { positive: [3, 4], negative: [5] },
+  V: { positive: [5, 6], negative: [7] },
+  Summer: { positive: [7, 7], negative: [] },
 }
 
-const VALID_PERIODS = Object.keys(PERIOD_MONTH_RANGES)
+const VALID_PERIODS = Object.keys(PERIOD_MONTH_DEFS)
 
 function getCurrentAcademicYear(): number {
   const now = new Date()
@@ -85,12 +85,15 @@ function getCurrentAcademicYear(): number {
 }
 
 function buildPeriodMonthClause(p: string): string {
-  const [mStart, mEnd] = PERIOD_MONTH_RANGES[p]
-  return `(
-    EXTRACT(MONTH FROM cr.start_date::date) BETWEEN ${mStart} AND ${mEnd}
-    OR EXTRACT(MONTH FROM cr.end_date::date) BETWEEN ${mStart} AND ${mEnd}
-    OR (EXTRACT(MONTH FROM cr.start_date::date) < ${mStart} AND EXTRACT(MONTH FROM cr.end_date::date) > ${mEnd})
+  const { positive: [pStart, pEnd], negative } = PERIOD_MONTH_DEFS[p]
+  const positiveCheck = `(
+    EXTRACT(MONTH FROM cr.start_date::date) BETWEEN ${pStart} AND ${pEnd}
+    OR EXTRACT(MONTH FROM cr.end_date::date) BETWEEN ${pStart} AND ${pEnd}
+    OR (EXTRACT(MONTH FROM cr.start_date::date) < ${pStart} AND EXTRACT(MONTH FROM cr.end_date::date) > ${pEnd})
   )`
+  if (negative.length === 0) return positiveCheck
+  const negativeCheck = negative.map((m) => `EXTRACT(MONTH FROM cr.end_date::date) = ${m}`).join(' OR ')
+  return `(${positiveCheck} AND NOT (${negativeCheck}))`
 }
 
 function buildRealisationFilterSubquery(
