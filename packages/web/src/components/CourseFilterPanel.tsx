@@ -99,6 +99,27 @@ const MultiSelectDropdown = ({
 
 const PERIOD_OPTIONS = ['I', 'II', 'III', 'IV', 'V', 'Summer']
 
+function getUpcomingPeriod(): { periods: string[]; excludedPeriods: string[]; label: string } {
+  const month = new Date().getMonth() + 1
+  switch (month) {
+    case 8:
+      return { periods: ['I'], excludedPeriods: [], label: 'Period I' }
+    case 9:
+    case 10:
+      return { periods: ['II'], excludedPeriods: ['I'], label: 'Period II' }
+    case 11:
+    case 12:
+      return { periods: ['III'], excludedPeriods: [], label: 'Period III' }
+    case 2:
+    case 3:
+      return { periods: ['IV'], excludedPeriods: ['III'], label: 'Period IV' }
+    case 4:
+      return { periods: ['V'], excludedPeriods: ['IV'], label: 'Period V' }
+    default:
+      return { periods: ['Summer'], excludedPeriods: [], label: 'Summer' }
+  }
+}
+
 type PeriodState = 'off' | 'include' | 'exclude'
 
 const PeriodTriStateSelector = ({
@@ -413,7 +434,23 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
 
             {/* Period */}
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-600">Period</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-gray-600">Period</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const upcoming = getUpcomingPeriod()
+                    update({
+                      periods: upcoming.periods,
+                      excludedPeriods: upcoming.excludedPeriods.length > 0 ? upcoming.excludedPeriods : undefined,
+                    })
+                  }}
+                  className="flex items-center gap-0.5 px-1.5 py-0.5 text-xs rounded border border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer transition-colors"
+                >
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2zm6 10l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3zM5 16l.67 2.33L8 19l-2.33.67L5 22l-.67-2.33L2 19l2.33-.67L5 16z"/></svg>
+                  Select upcoming
+                </button>
+              </div>
               <PeriodTriStateSelector
                 periods={filters.periods ?? []}
                 excludedPeriods={filters.excludedPeriods ?? []}
