@@ -15,11 +15,13 @@ const MultiSelectDropdown = ({
   options,
   selected,
   onChange,
+  className,
 }: {
   label: string
   options: DropdownOption[]
   selected: string[]
   onChange: (selected: string[]) => void
+  className?: string
 }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -36,21 +38,29 @@ const MultiSelectDropdown = ({
   const getLabel = (opt: DropdownOption) => (typeof opt === 'string' ? opt : opt.label)
 
   const toggle = (value: string) => {
-    onChange(
-      selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value]
-    )
+    onChange(selected.includes(value) ? selected.filter((v) => v !== value) : [...selected, value])
   }
+
+  const selectedLabels = selected.map((v) => {
+    const opt = options.find((o) => getValue(o) === v)
+    return opt ? getLabel(opt) : v
+  })
 
   return (
     <div ref={ref} className="relative">
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-left min-w-[12rem] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+        className={`flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-left focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 ${className ?? ''}`}
       >
-        <span className="flex-1 truncate">
-          {selected.length === 0 ? label : `${label} (${selected.length})`}
-        </span>
+        {selected.length === 0 ? (
+          <span className="flex-1 truncate">{label}</span>
+        ) : (
+          <>
+            <span className="truncate min-w-0">{selectedLabels.join(', ')}</span>
+            <span className="shrink-0">({selected.length})</span>
+          </>
+        )}
         <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
           <path
             fillRule="evenodd"
@@ -90,11 +100,11 @@ const MultiSelectDropdown = ({
 const PERIOD_OPTIONS = ['I', 'II', 'III', 'IV', 'V', 'Summer']
 
 const LEVEL_SORT_ORDER: Record<string, number> = {
-  'basic': 0,
-  'intermediate': 1,
-  'advanced': 2,
-  'doctoral': 3,
-  'postgraduate': 3,
+  basic: 0,
+  intermediate: 1,
+  advanced: 2,
+  doctoral: 3,
+  postgraduate: 3,
 }
 
 function levelSortKey(raw: string): number {
@@ -120,13 +130,7 @@ function buildLevelOptions(rawLevels: string[]): DropdownOption[] {
     .map((raw) => ({ value: raw, label: formatLevel(raw) }))
 }
 
-const FilterChip = ({
-  label,
-  onRemove,
-}: {
-  label: string
-  onRemove: () => void
-}) => (
+const FilterChip = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
   <button
     type="button"
     onClick={onRemove}
@@ -279,6 +283,26 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
       {expanded && (
         <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex flex-wrap gap-4 items-end">
+            {/* Minimum rating */}
+            <label className="flex flex-col gap-1 text-sm text-gray-600">
+              <span>Min quality</span>
+              <select
+                value={filters.minRating ?? ''}
+                onChange={(e) =>
+                  update({
+                    minRating: e.target.value ? Number(e.target.value) : undefined,
+                  })
+                }
+                className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 "
+              >
+                <option value="">Any</option>
+                <option value="1">1+</option>
+                <option value="2">2+</option>
+                <option value="3">3+</option>
+                <option value="4">4+</option>
+              </select>
+            </label>
+
             {/* Credits */}
             <div className="flex flex-col gap-1">
               <span className="text-sm text-gray-600">Credits</span>
@@ -291,7 +315,10 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                   // 0-credit courses are not meaningful to filter for
                   onChange={(e) =>
                     update({
-                      creditsMin: e.target.value && Number(e.target.value) > 0 ? Number(e.target.value) : undefined,
+                      creditsMin:
+                        e.target.value && Number(e.target.value) > 0
+                          ? Number(e.target.value)
+                          : undefined,
                     })
                   }
                   className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -304,7 +331,10 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                   value={filters.creditsMax ?? ''}
                   onChange={(e) =>
                     update({
-                      creditsMax: e.target.value && Number(e.target.value) > 0 ? Number(e.target.value) : undefined,
+                      creditsMax:
+                        e.target.value && Number(e.target.value) > 0
+                          ? Number(e.target.value)
+                          : undefined,
                     })
                   }
                   className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
@@ -319,7 +349,10 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                 label="All periods"
                 options={PERIOD_OPTIONS}
                 selected={filters.periods ?? []}
-                onChange={(periods) => update({ periods: periods.length > 0 ? periods : undefined })}
+                onChange={(periods) =>
+                  update({ periods: periods.length > 0 ? periods : undefined })
+                }
+                className="w-30"
               />
             </div>
 
@@ -330,31 +363,10 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                 label="All levels"
                 options={buildLevelOptions(filterOptions?.levels ?? [])}
                 selected={filters.levels ?? []}
-                onChange={(levels) =>
-                  update({ levels: levels.length > 0 ? levels : undefined })
-                }
+                onChange={(levels) => update({ levels: levels.length > 0 ? levels : undefined })}
+                className="w-34"
               />
             </div>
-
-            {/* Minimum rating */}
-            <label className="flex flex-col gap-1 text-sm text-gray-600">
-              <span>Min quality</span>
-              <select
-                value={filters.minRating ?? ''}
-                onChange={(e) =>
-                  update({
-                    minRating: e.target.value ? Number(e.target.value) : undefined,
-                  })
-                }
-                className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-[7rem]"
-              >
-                <option value="">Any</option>
-                <option value="1">1+</option>
-                <option value="2">2+</option>
-                <option value="3">3+</option>
-                <option value="4">4+</option>
-              </select>
-            </label>
 
             {/* Curriculum period */}
             <div className="flex flex-col gap-1">
@@ -368,6 +380,7 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                     curriculumPeriods: curriculumPeriods.length > 0 ? curriculumPeriods : undefined,
                   })
                 }
+                className="w-48"
               />
             </div>
 
@@ -377,22 +390,19 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
               <button
                 type="button"
                 onClick={() => setDeptModalOpen(true)}
-                className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-left min-w-[12rem] focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-left w-32 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               >
-                <span className="flex-1 truncate">
-                  {(filters.departments?.length ?? 0) === 0
-                    ? 'All departments'
-                    : `All departments (${filters.departments!.length})`}
-                </span>
-                <svg className="w-4 h-4 text-gray-400 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fillRule="evenodd"
-                    d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                {(filters.departments?.length ?? 0) === 0 ? (
+                  <span className="flex-1 truncate">All departments</span>
+                ) : (
+                  <>
+                    <span className="truncate min-w-0">{filters.departments!.join(', ')}</span>
+                    <span className="shrink-0">({filters.departments!.length})</span>
+                  </>
+                )}
               </button>
             </div>
+
             <DepartmentFilterModal
               open={deptModalOpen}
               onClose={() => setDeptModalOpen(false)}

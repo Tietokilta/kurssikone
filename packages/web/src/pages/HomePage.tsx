@@ -185,7 +185,7 @@ const HomePage = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as CourseListSortBy)}
-              className="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-[11rem]"
+              className="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 "
             >
               <option value="quality">Quality</option>
               <option value="workload">Workload</option>
@@ -198,20 +198,16 @@ const HomePage = () => {
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as ListSortOrder)}
-              className="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-w-[9rem]"
+              className="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 "
             >
-              <option value="asc">Ascending</option>
-              <option value="desc">Descending</option>
+              <option value="asc">↓</option>
+              <option value="desc">↑</option>
             </select>
           </label>
         </div>
       </div>
 
-      <CourseFilterPanel
-        filters={filters}
-        onChange={setFilters}
-        filterOptions={filterOptions}
-      />
+      <CourseFilterPanel filters={filters} onChange={setFilters} filterOptions={filterOptions} />
 
       {isLoading ? (
         <div className="text-center py-10">
