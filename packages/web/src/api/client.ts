@@ -152,6 +152,7 @@ export const getCourses = async (
     if (filters.creditsMin != null) query.creditsMin = filters.creditsMin.toString()
     if (filters.creditsMax != null) query.creditsMax = filters.creditsMax.toString()
     if (filters.periods?.length) query.periods = filters.periods.join(',')
+    if (filters.excludedPeriods?.length) query.excludedPeriods = filters.excludedPeriods.join(',')
     if (filters.departments?.length) query.departments = filters.departments.join(',')
     if (filters.levels?.length) query.levels = filters.levels.join(',')
     if (filters.minRating != null) query.minRating = filters.minRating.toString()

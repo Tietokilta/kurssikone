@@ -120,6 +120,7 @@ export type CourseFilters = {
   creditsMin?: number
   creditsMax?: number
   periods?: string[]
+  excludedPeriods?: string[]
   departments?: string[]
   levels?: string[]
   minRating?: number

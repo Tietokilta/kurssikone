@@ -84,22 +84,25 @@ function getCurrentAcademicYear(): number {
   return month >= 8 ? now.getFullYear() : now.getFullYear() - 1
 }
 
+function buildPeriodMonthClause(p: string): string {
+  const [mStart, mEnd] = PERIOD_MONTH_RANGES[p]
+  return `(
+    EXTRACT(MONTH FROM cr.start_date::date) BETWEEN ${mStart} AND ${mEnd}
+    OR EXTRACT(MONTH FROM cr.end_date::date) BETWEEN ${mStart} AND ${mEnd}
+    OR (EXTRACT(MONTH FROM cr.start_date::date) < ${mStart} AND EXTRACT(MONTH FROM cr.end_date::date) > ${mEnd})
+  )`
+}
+
 function buildRealisationFilterSubquery(
   periods: string[],
+  excludedPeriods: string[],
   departments: string[],
   levels: string[]
 ): string | null {
   const conditions: string[] = []
 
   if (periods.length > 0) {
-    const periodClauses = periods.map((p) => {
-      const [mStart, mEnd] = PERIOD_MONTH_RANGES[p]
-      return `(
-        EXTRACT(MONTH FROM cr.start_date::date) BETWEEN ${mStart} AND ${mEnd}
-        OR EXTRACT(MONTH FROM cr.end_date::date) BETWEEN ${mStart} AND ${mEnd}
-        OR (EXTRACT(MONTH FROM cr.start_date::date) < ${mStart} AND EXTRACT(MONTH FROM cr.end_date::date) > ${mEnd})
-      )`
-    })
+    const periodClauses = periods.map(buildPeriodMonthClause)
     conditions.push(`(${periodClauses.join(' OR ')})`)
   }
 
@@ -113,14 +116,29 @@ function buildRealisationFilterSubquery(
     conditions.push(`cr.level IN (${escaped})`)
   }
 
-  if (conditions.length === 0) return null
+  const parts: string[] = []
 
-  return `EXISTS (
+  if (conditions.length > 0) {
+    parts.push(`EXISTS (
     SELECT 1 FROM course_realisations cr
     WHERE cr.code = "course".code
     AND cr.start_date IS NOT NULL
     AND ${conditions.join(' AND ')}
-  )`
+  )`)
+  }
+
+  if (excludedPeriods.length > 0) {
+    const excludeClauses = excludedPeriods.map(buildPeriodMonthClause)
+    parts.push(`NOT EXISTS (
+    SELECT 1 FROM course_realisations cr
+    WHERE cr.code = "course".code
+    AND cr.start_date IS NOT NULL
+    AND (${excludeClauses.join(' OR ')})
+  )`)
+  }
+
+  if (parts.length === 0) return null
+  return parts.join(' AND ')
 }
 
 router.get('/filter-options', async (_req, res) => {
@@ -190,6 +208,7 @@ router.get('/', async (req, res) => {
     minRating: minRatingParam,
     hasReviews: hasReviewsParam,
     curriculumPeriods: curriculumPeriodsParam,
+    excludedPeriods: excludedPeriodsParam,
   } = req.query
 
   const limitNum = Math.min(parseInt(limit as string, 10) || 50, 100)
@@ -236,10 +255,11 @@ router.get('/', async (req, res) => {
   }
 
   const periods = parseCommaSeparated(periodsParam).filter((p) => VALID_PERIODS.includes(p))
+  const excludedPeriods = parseCommaSeparated(excludedPeriodsParam).filter((p) => VALID_PERIODS.includes(p))
   const departments = parseCommaSeparated(departmentsParam)
   const levels = parseCommaSeparated(levelsParam)
 
-  const realisationSubquery = buildRealisationFilterSubquery(periods, departments, levels)
+  const realisationSubquery = buildRealisationFilterSubquery(periods, excludedPeriods, departments, levels)
   if (realisationSubquery) {
     andConditions.push(literal(realisationSubquery))
   }

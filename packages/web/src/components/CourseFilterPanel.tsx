@@ -99,6 +99,72 @@ const MultiSelectDropdown = ({
 
 const PERIOD_OPTIONS = ['I', 'II', 'III', 'IV', 'V', 'Summer']
 
+type PeriodState = 'off' | 'include' | 'exclude'
+
+const PeriodTriStateSelector = ({
+  periods,
+  excludedPeriods,
+  onChange,
+}: {
+  periods: string[]
+  excludedPeriods: string[]
+  onChange: (periods: string[], excludedPeriods: string[]) => void
+}) => {
+  const getState = (p: string): PeriodState => {
+    if (periods.includes(p)) return 'include'
+    if (excludedPeriods.includes(p)) return 'exclude'
+    return 'off'
+  }
+
+  const cycle = (p: string) => {
+    const state = getState(p)
+    if (state === 'off') {
+      onChange([...periods, p], excludedPeriods)
+    } else if (state === 'include') {
+      onChange(
+        periods.filter((v) => v !== p),
+        [...excludedPeriods, p]
+      )
+    } else {
+      onChange(
+        periods,
+        excludedPeriods.filter((v) => v !== p)
+      )
+    }
+  }
+
+  return (
+    <div className="flex gap-1">
+      {PERIOD_OPTIONS.map((p) => {
+        const state = getState(p)
+        return (
+          <button
+            key={p}
+            type="button"
+            onClick={() => cycle(p)}
+            className={`px-2 py-1.5 text-sm rounded-md border cursor-pointer transition-colors ${
+              state === 'include'
+                ? 'bg-blue-100 border-blue-400 text-blue-700'
+                : state === 'exclude'
+                  ? 'bg-red-100 border-red-400 text-red-700 line-through decoration-2'
+                  : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+            }`}
+            title={
+              state === 'off'
+                ? `Click to include period ${p}`
+                : state === 'include'
+                  ? `Click to exclude period ${p}`
+                  : `Click to clear period ${p} filter`
+            }
+          >
+            {p}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 const LEVEL_SORT_ORDER: Record<string, number> = {
   basic: 0,
   intermediate: 1,
@@ -180,10 +246,13 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
     })
   }
 
-  if (filters.periods?.length) {
+  if (filters.periods?.length || filters.excludedPeriods?.length) {
+    const parts: string[] = []
+    if (filters.periods?.length) parts.push(filters.periods.join(', '))
+    if (filters.excludedPeriods?.length) parts.push(`not ${filters.excludedPeriods.join(', ')}`)
     chips.push({
-      label: `Period: ${filters.periods.join(', ')}`,
-      onRemove: () => update({ periods: undefined }),
+      label: `Period: ${parts.join('; ')}`,
+      onRemove: () => update({ periods: undefined, excludedPeriods: undefined }),
     })
   }
 
@@ -345,14 +414,15 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
             {/* Period */}
             <div className="flex flex-col gap-1">
               <span className="text-sm text-gray-600">Period</span>
-              <MultiSelectDropdown
-                label="All periods"
-                options={PERIOD_OPTIONS}
-                selected={filters.periods ?? []}
-                onChange={(periods) =>
-                  update({ periods: periods.length > 0 ? periods : undefined })
+              <PeriodTriStateSelector
+                periods={filters.periods ?? []}
+                excludedPeriods={filters.excludedPeriods ?? []}
+                onChange={(periods, excludedPeriods) =>
+                  update({
+                    periods: periods.length > 0 ? periods : undefined,
+                    excludedPeriods: excludedPeriods.length > 0 ? excludedPeriods : undefined,
+                  })
                 }
-                className="w-30"
               />
             </div>
 
@@ -372,7 +442,7 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
             <div className="flex flex-col gap-1">
               <span className="text-sm text-gray-600">Curriculum</span>
               <MultiSelectDropdown
-                label="All periods"
+                label="All curriculums"
                 options={curriculumOptions}
                 selected={filters.curriculumPeriods ?? []}
                 onChange={(curriculumPeriods) =>
