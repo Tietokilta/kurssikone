@@ -31,6 +31,79 @@ const getLatestRealisation = (realisations: CourseRealisation[]): CourseRealisat
   })
 }
 
+const PERIOD_DEFINITIONS: { label: string; months: number[]; mode: 'all' | 'any' }[] = [
+  { label: 'I', months: [9, 10], mode: 'all' },
+  { label: 'II', months: [10, 11], mode: 'all' },
+  { label: 'III', months: [1, 2], mode: 'all' },
+  { label: 'IV', months: [3, 4], mode: 'all' },
+  { label: 'V', months: [5], mode: 'all' },
+  { label: 'Summer', months: [7, 8], mode: 'any' },
+]
+
+function realisationCoversMonth(startMonth: number, endMonth: number, month: number): boolean {
+  if (startMonth <= endMonth) return month >= startMonth && month <= endMonth
+  return month >= startMonth || month <= endMonth
+}
+
+type YearPeriods = { yearLabel: string; sortKey: number; periods: string[] }
+
+function getPeriodsGroupedByYear(realisations: CourseRealisation[]): YearPeriods[] {
+  const grouped = new Map<string, { sortKey: number; periods: Set<string> }>()
+
+  for (const r of realisations) {
+    if (!r.startDate || !r.endDate) continue
+    const start = new Date(r.startDate)
+    const end = new Date(r.endDate)
+    const startYear = start.getFullYear()
+    const endYear = end.getFullYear()
+    const startMonth = start.getMonth() + 1
+    const endMonth = end.getMonth() + 1
+
+    const yearLabel = startYear === endYear ? `${startYear}` : `${startYear}–${endYear}`
+
+    if (!grouped.has(yearLabel)) {
+      grouped.set(yearLabel, { sortKey: startYear, periods: new Set() })
+    }
+    const entry = grouped.get(yearLabel)!
+
+    for (const { label, months, mode } of PERIOD_DEFINITIONS) {
+      const check = mode === 'all'
+        ? months.every((m) => realisationCoversMonth(startMonth, endMonth, m))
+        : months.some((m) => realisationCoversMonth(startMonth, endMonth, m))
+      if (check) entry.periods.add(label)
+    }
+  }
+
+  const currentYear = new Date().getFullYear()
+
+  return Array.from(grouped.entries())
+    .map(([yearLabel, { sortKey, periods }]) => ({
+      yearLabel,
+      sortKey,
+      periods: PERIOD_DEFINITIONS.filter(({ label }) => periods.has(label)).map(({ label }) => label),
+    }))
+    .filter((g) => g.periods.length > 0)
+    .filter((g) => g.sortKey >= currentYear)
+    .sort((a, b) => a.sortKey - b.sortKey)
+}
+
+function formatPeriodRange(periods: string[]): string {
+  if (periods.length === 0) return ''
+  if (periods.length === 1) return periods[0]
+
+  const indices = periods.map((p) => PERIOD_DEFINITIONS.findIndex(({ label }) => label === p))
+  let rangeStart = 0
+  const ranges: string[] = []
+  for (let i = 1; i <= indices.length; i++) {
+    if (i < indices.length && indices[i] === indices[i - 1] + 1) continue
+    const from = periods[rangeStart]
+    const to = periods[i - 1]
+    ranges.push(from === to ? from : `${from}–${to}`)
+    rangeStart = i
+  }
+  return ranges.join(', ')
+}
+
 const CourseInfo = ({ course }: Props) => {
   const latestRealisation = getLatestRealisation(course.courseRealisations)
 
@@ -135,6 +208,20 @@ const CourseInfo = ({ course }: Props) => {
             <span className="text-gray-600">{gradingScale}</span>
           </div>
         )}
+
+        {course.courseRealisations.length > 0 && (() => {
+          const groups = getPeriodsGroupedByYear(course.courseRealisations)
+          return groups.length > 0 ? (
+            <div>
+              <span className="font-medium text-gray-700">Teaching periods: </span>
+              <div className="text-gray-600">
+                {groups.map((g) => (
+                  <div key={g.yearLabel}>{g.yearLabel} {formatPeriodRange(g.periods)}</div>
+                ))}
+              </div>
+            </div>
+          ) : null
+        })()}
       </div>
     </div>
   )

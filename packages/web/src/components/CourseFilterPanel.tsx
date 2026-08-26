@@ -354,7 +354,7 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
           <div className="flex flex-wrap gap-4 items-end">
             {/* Minimum rating */}
             <label className="flex flex-col gap-1 text-sm text-gray-600">
-              <span>Min quality</span>
+              <span>Quality</span>
               <select
                 value={filters.minRating ?? ''}
                 onChange={(e) =>
