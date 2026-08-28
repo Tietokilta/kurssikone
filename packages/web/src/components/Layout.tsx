@@ -16,24 +16,30 @@ const Layout = ({ children }: Props) => {
         {children}
       </main>
 
-      <footer className="bg-gray-100 border-t border-gray-300 text-gray-600 text-sm text-center px-6 py-6 mt-12">
-        <p>KurssiKone - Course reviews for Aalto University</p>
-        <p className="mt-2">
-          Also available as a{' '}
-          <a
-            href={
-              isFirefox
-                ? 'https://addons.mozilla.org/en-US/firefox/addon/kurssikone/'
-                : 'http://chromewebstore.google.com/detail/dfchpeehiilpkpikbmgkdfpenkdcpeim'
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 underline hover:text-blue-800"
-          >
-            browser extension
-          </a>{' '}
-          for Firefox & Chrome.
-        </p>
+      <footer className="bg-gray-100 border-t border-gray-300 text-gray-600 text-sm px-6 py-3 mt-12 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+        <span>KurssiKone - Course reviews for Aalto University</span>
+
+        <a
+          href={
+            isFirefox
+              ? 'https://addons.mozilla.org/en-US/firefox/addon/kurssikone/'
+              : 'http://chromewebstore.google.com/detail/dfchpeehiilpkpikbmgkdfpenkdcpeim'
+          }
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 underline hover:text-blue-800"
+        >
+          Browser extension
+        </a>
+
+        <a
+          href="https://forms.gle/RM8YCYAByhyHnr4w5"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 underline hover:text-blue-800"
+        >
+          Give feedback
+        </a>
       </footer>
     </div>
   )
