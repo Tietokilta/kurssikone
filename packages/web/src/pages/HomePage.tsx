@@ -13,24 +13,52 @@ import { isFirefox } from 'react-device-detect'
 
 const COURSES_PER_PAGE = 20
 const EXTENSION_ALERT_DISMISSED_KEY = 'kurssikone_extensionAlertDismissed'
+const SESSION_SEARCH_KEY = 'kurssikone_searchSettings'
+
+interface SearchSettings {
+  searchQuery: string
+  sortBy: CourseListSortBy
+  sortOrder: ListSortOrder
+  filters: CourseFilters
+}
+
+const loadSearchSettings = (): Partial<SearchSettings> => {
+  try {
+    const raw = sessionStorage.getItem(SESSION_SEARCH_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch { /* ignore */ }
+  return {}
+}
+
+const saveSearchSettings = (settings: SearchSettings) => {
+  try {
+    sessionStorage.setItem(SESSION_SEARCH_KEY, JSON.stringify(settings))
+  } catch { /* ignore */ }
+}
 
 const HomePage = () => {
+  const savedSettings = useRef(loadSearchSettings()).current
+
   const [extensionAlertDismissed, setExtensionAlertDismissed] = useState(
     () => localStorage.getItem(EXTENSION_ALERT_DISMISSED_KEY) === 'true'
   )
-  const [searchQuery, setSearchQuery] = useState('')
-  const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [sortBy, setSortBy] = useState<CourseListSortBy>('quality')
-  const [sortOrder, setSortOrder] = useState<ListSortOrder>('desc')
+  const [searchQuery, setSearchQuery] = useState(savedSettings.searchQuery ?? '')
+  const [debouncedSearch, setDebouncedSearch] = useState(savedSettings.searchQuery ?? '')
+  const [sortBy, setSortBy] = useState<CourseListSortBy>(savedSettings.sortBy ?? 'quality')
+  const [sortOrder, setSortOrder] = useState<ListSortOrder>(savedSettings.sortOrder ?? 'desc')
   const [courses, setCourses] = useState<Course[]>([])
   const [total, setTotal] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [offset, setOffset] = useState(0)
-  const [filters, setFilters] = useState<CourseFilters>({})
+  const [filters, setFilters] = useState<CourseFilters>(savedSettings.filters ?? {})
   const [filterOptions, setFilterOptions] = useState<CourseFilterOptions | null>(null)
 
   const observerTarget = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    saveSearchSettings({ searchQuery: debouncedSearch, sortBy, sortOrder, filters })
+  }, [debouncedSearch, sortBy, sortOrder, filters])
 
   useEffect(() => {
     getFilterOptions().then(setFilterOptions).catch(console.error)
@@ -166,7 +194,7 @@ const HomePage = () => {
       )}
 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
-        <div className="w-full max-w-md">
+        <div className="relative w-full max-w-md">
           <label htmlFor="course-search" className="sr-only">
             Search courses
           </label>
@@ -176,8 +204,18 @@ const HomePage = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search courses by code or name..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full px-4 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-lg text-gray-400 hover:text-gray-600 cursor-pointer"
+              aria-label="Clear search"
+            >
+              &times;
+            </button>
+          )}
         </div>
         <div className="flex flex-wrap gap-4">
           <label className="flex flex-col text-sm text-gray-600 gap-1">

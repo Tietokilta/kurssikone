@@ -363,9 +363,9 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
           <button
             type="button"
             onClick={clearAll}
-            className="text-xs text-gray-400 hover:text-gray-600"
+            className="text-xs text-gray-900 hover:text-black cursor-pointer"
           >
-            Clear all
+            Clear all filters
           </button>
         )}
       </div>
