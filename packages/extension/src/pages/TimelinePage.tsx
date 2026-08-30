@@ -842,7 +842,7 @@ const TimelinePage = ({ planId }: Props) => {
                 <span className="text-3xl leading-none">&times;</span>
               </button>
               <p>
-                <strong>NOTE:</strong> {t('extension.timelineNote')}
+                <strong>{t('extension.timelineNoteLabel')}</strong> {t('extension.timelineNote')}
               </p>
             </div>
           )}

@@ -1,6 +1,6 @@
 import DOMPurify from 'dompurify'
 import { useTranslation } from 'react-i18next'
-import { CourseWithRealisations, CourseRealisation } from '@kurssikone/shared'
+import { CourseWithRealisations, CourseRealisation, translateLevel } from '@kurssikone/shared'
 
 type Props = {
   course: CourseWithRealisations
@@ -20,23 +20,6 @@ const getLatestRealisation = (realisations: CourseRealisation[]): CourseRealisat
     if (!current.startDate) return latest
     return current.startDate > latest.startDate ? current : latest
   })
-}
-
-const LEVEL_NAMES_FI: [string, string][] = [
-  ['basic', 'Perusopinnot'],
-  ['intermediate', 'Aineopinnot'],
-  ['advanced', 'Syventävät opinnot'],
-  ['doctoral', 'Jatko-opinnot'],
-  ['postgraduate', 'Jatko-opinnot'],
-  ['other', 'Muut opinnot'],
-]
-
-function translateLevelFi(raw: string): string {
-  const lower = raw.toLowerCase()
-  for (const [keyword, fi] of LEVEL_NAMES_FI) {
-    if (lower.includes(keyword)) return fi
-  }
-  return raw.replace(/-/g, ' ')
 }
 
 const PERIOD_DEFINITIONS: { label: string; positive: number[]; negative: number[] }[] = [
@@ -229,7 +212,7 @@ const CourseInfo = ({ course }: Props) => {
         {level && (
           <div>
             <span className="font-medium text-gray-700">{t('web.levelLabel')} </span>
-            <span className="text-gray-600 capitalize">{isFi ? translateLevelFi(level) : level.replace(/-/g, ' ')}</span>
+            <span className="text-gray-600 capitalize">{translateLevel(level, isFi)}</span>
           </div>
         )}
 

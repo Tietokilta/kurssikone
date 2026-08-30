@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CourseFilterOptions, CourseFilters } from '@kurssikone/shared'
+import { CourseFilterOptions, CourseFilters, translateLevel } from '@kurssikone/shared'
 import DepartmentFilterModal, { ORG_HIERARCHY, getDepartmentDisplayName, getSchoolDisplayName } from './DepartmentFilterModal'
 
 type Props = {
@@ -194,15 +194,6 @@ const LEVEL_SORT_ORDER: Record<string, number> = {
   postgraduate: 3,
 }
 
-const LEVEL_NAMES_FI: [string, string][] = [
-  ['basic', 'Perusopinnot'],
-  ['intermediate', 'Aineopinnot'],
-  ['advanced', 'Syventävät opinnot'],
-  ['doctoral', 'Jatko-opinnot'],
-  ['postgraduate', 'Jatko-opinnot'],
-  ['other', 'Muut opinnot'],
-]
-
 function levelSortKey(raw: string): number {
   const lower = raw.toLowerCase()
   for (const [keyword, order] of Object.entries(LEVEL_SORT_ORDER)) {
@@ -211,28 +202,10 @@ function levelSortKey(raw: string): number {
   return 99
 }
 
-function formatLevel(raw: string): string {
-  return raw
-    .replace(/[-_]/g, ' ')
-    .replace(/\bstudies\b/gi, '')
-    .trim()
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .replace(/\b(And|Or|Of|In)\b/g, (w) => w.toLowerCase())
-}
-
-function formatLevelFi(raw: string): string {
-  const lower = raw.toLowerCase()
-  for (const [keyword, fi] of LEVEL_NAMES_FI) {
-    if (lower.includes(keyword)) return fi
-  }
-  return formatLevel(raw)
-}
-
 function buildLevelOptions(rawLevels: string[], isFi: boolean): DropdownOption[] {
-  const fmt = isFi ? formatLevelFi : formatLevel
   return [...rawLevels]
     .sort((a, b) => levelSortKey(a) - levelSortKey(b))
-    .map((raw) => ({ value: raw, label: fmt(raw) }))
+    .map((raw) => ({ value: raw, label: translateLevel(raw, isFi) }))
 }
 
 const FilterChip = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
@@ -291,7 +264,7 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
     const pLabel = (p: string) => (p === 'Summer' ? t('web.summer') : p)
     const parts: string[] = []
     if (filters.periods?.length) parts.push(filters.periods.map(pLabel).join(', '))
-    if (filters.excludedPeriods?.length) parts.push(`not ${filters.excludedPeriods.map(pLabel).join(', ')}`)
+    if (filters.excludedPeriods?.length) parts.push(t('web.excludedPeriodPrefix', { periods: filters.excludedPeriods.map(pLabel).join(', ') }))
     chips.push({
       label: `${t('web.period')}: ${parts.join('; ')}`,
       onRemove: () => update({ periods: undefined, excludedPeriods: undefined }),
@@ -329,9 +302,8 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
   }
 
   if (filters.levels?.length) {
-    const fmt = isFi ? formatLevelFi : formatLevel
     chips.push({
-      label: `${t('web.level')}: ${filters.levels.map(fmt).join(', ')}`,
+      label: `${t('web.level')}: ${filters.levels.map((l) => translateLevel(l, isFi)).join(', ')}`,
       onRemove: () => update({ levels: undefined }),
     })
   }

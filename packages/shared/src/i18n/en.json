@@ -129,7 +129,8 @@
     "footerTagline": "KurssiKone - Course reviews for Aalto University",
     "madeBy": "Maintained by the Computer Science Guild",
     "giveFeedback": "Give feedback",
-    "summer": "Summer"
+    "summer": "Summer",
+    "excludedPeriodPrefix": "not {{periods}}"
   },
   "extension": {
     "courseCodeNotFound": "Course code not found",
@@ -138,6 +139,7 @@
     "timeline": "Timeline",
     "expandTimeline": "Expand timeline",
     "collapseTimeline": "Collapse timeline",
+    "timelineNoteLabel": "NOTE:",
     "timelineNote": "This editor directly modifies your real Sisu timeline. Although tested, use at your own risk as unexpected errors may affect your data.",
     "savingPlan": "Saving plan…",
     "timelineUnavailable": "Timeline unavailable.",
@@ -156,7 +158,6 @@
     "completed": "Completed",
     "enterEditMode": "Enter edit mode",
     "exitEditMode": "Exit edit mode",
-    "enterEditModeToSchedule": "Enter edit mode to schedule",
     "plannedCreditsLabel": "Your planned credits ({{min}}–{{max}})",
     "keepInPeriod": "Keep in {{period}}",
     "moveToPeriod": "Move to {{period}}",

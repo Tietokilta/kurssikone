@@ -129,7 +129,8 @@
     "footerTagline": "KurssiKone - Kurssiarvostelut Aalto-yliopistossa",
     "madeBy": "Tietokillan ylläpitämä",
     "giveFeedback": "Anna palautetta",
-    "summer": "Kesä"
+    "summer": "Kesä",
+    "excludedPeriodPrefix": "ei {{periods}}"
   },
   "extension": {
     "courseCodeNotFound": "Kurssikoodia ei löytynyt",
@@ -138,6 +139,7 @@
     "timeline": "Aikajana",
     "expandTimeline": "Laajenna aikajana",
     "collapseTimeline": "Pienennä aikajana",
+    "timelineNoteLabel": "HUOM:",
     "timelineNote": "Tämä editori muokkaa suoraan oikeaa Sisu-aikajanaasi. Vaikka testattu, käytä omalla vastuullasi, sillä odottamattomat virheet voivat vaikuttaa tietoihisi.",
     "savingPlan": "Tallennetaan suunnitelmaa…",
     "timelineUnavailable": "Aikajana ei ole käytettävissä.",
@@ -156,7 +158,6 @@
     "completed": "Suoritettu",
     "enterEditMode": "Siirry muokkaustilaan",
     "exitEditMode": "Poistu muokkaustilasta",
-    "enterEditModeToSchedule": "Siirry muokkaustilaan ajoittaaksesi",
     "plannedCreditsLabel": "Suunnitellut opintopisteet ({{min}}–{{max}})",
     "keepInPeriod": "Pidä periodissa {{period}}",
     "moveToPeriod": "Siirrä periodiin {{period}}",
