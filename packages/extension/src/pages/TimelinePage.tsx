@@ -11,6 +11,7 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { initSisuAuth, updateStudyPlan } from '../requestHandlers'
 import type { TeachingPeriodQuickOption } from '../utils/parseKoriTeachingPeriods'
 import {
@@ -115,6 +116,7 @@ function UnscheduledCourseDragPreview({
 }
 
 const TimelinePage = ({ planId }: Props) => {
+  const { t } = useTranslation()
   const [fullPlan, setFullPlan] = useState<SisuStudyPlan | null>(null)
   const [courseData, setCourseData] = useState<Record<string, Course>>({})
   const [studyYears, setStudyYears] = useState<SisuStudyYear[] | null>(null)
@@ -359,12 +361,12 @@ const TimelinePage = ({ planId }: Props) => {
 
       if (!result.ok) {
         if (result.error === 'no_sisu_token') {
-          setSaveError('Could not get Sisu auth')
+          setSaveError(t('extension.couldNotGetSisuAuth'))
         } else {
           const statusPart = result.status != null ? ` (${result.status})` : ''
           const raw = result.message ?? ''
           const detail = raw.length > 200 ? `${raw.slice(0, 200)}…` : raw
-          setSaveError(detail ? `Save failed${statusPart}: ${detail}` : `Save failed${statusPart}`)
+          setSaveError(detail ? `${t('extension.saveFailed')}${statusPart}: ${detail}` : `${t('extension.saveFailed')}${statusPart}`)
         }
         return false
       }
@@ -372,7 +374,7 @@ const TimelinePage = ({ planId }: Props) => {
       setFullPlan(applied.plan)
       return true
     },
-    [fullPlan, periodIndex, planId]
+    [fullPlan, periodIndex, planId, t]
   )
 
   const handleQuickScheduleToSpan = useCallback(
@@ -397,19 +399,19 @@ const TimelinePage = ({ planId }: Props) => {
       setClickPlacementTarget(null)
       if (!result.ok) {
         if (result.error === 'no_sisu_token') {
-          setSaveError('Could not get Sisu auth')
+          setSaveError(t('extension.couldNotGetSisuAuth'))
         } else {
           const statusPart = result.status != null ? ` (${result.status})` : ''
           const raw = result.message ?? ''
           const detail = raw.length > 200 ? `${raw.slice(0, 200)}…` : raw
-          setSaveError(detail ? `Save failed${statusPart}: ${detail}` : `Save failed${statusPart}`)
+          setSaveError(detail ? `${t('extension.saveFailed')}${statusPart}: ${detail}` : `${t('extension.saveFailed')}${statusPart}`)
         }
         return
       }
       setFullPlan(applied.plan)
       resetInteraction()
     },
-    [fullPlan, periodIndex, planId, resetInteraction]
+    [fullPlan, periodIndex, planId, resetInteraction, t]
   )
 
   const handleDragStart = useCallback(
@@ -707,7 +709,7 @@ const TimelinePage = ({ planId }: Props) => {
     let cancelled = false
 
     if (!planId) {
-      setError('Could not read plan id from URL')
+      setError(t('extension.couldNotReadPlanId'))
       setFullPlan(null)
       setCourseData({})
       setStudyYears(null)
@@ -747,7 +749,7 @@ const TimelinePage = ({ planId }: Props) => {
     return () => {
       cancelled = true
     }
-  }, [planId])
+  }, [planId, t])
 
   useEffect(() => {
     void loadTimelineVariableCreditOverrides().then(setVariableCreditOverrides)
@@ -792,7 +794,7 @@ const TimelinePage = ({ planId }: Props) => {
   }, [interactionKind, resetInteraction])
 
   if (timelineRows === null && !error) {
-    return <div className="p-4 text-neutral-600">Loading…</div>
+    return <div className="p-4 text-neutral-600">{t('shared.loading')}</div>
   }
 
   return (
@@ -803,7 +805,7 @@ const TimelinePage = ({ planId }: Props) => {
           onClick={toggleCollapsed}
           className="shrink-0 rounded px-1.5 py-0.5 text-sm font-medium text-neutral-600 hover:bg-neutral-200 focus:outline-none"
           aria-expanded={!collapsed}
-          aria-label={collapsed ? 'Expand timeline' : 'Collapse timeline'}
+          aria-label={collapsed ? t('extension.expandTimeline') : t('extension.collapseTimeline')}
         >
           <svg
             className="h-4 w-4 transition-transform duration-200"
@@ -820,7 +822,7 @@ const TimelinePage = ({ planId }: Props) => {
         </button>
         <h2 className="flex items-center gap-1.5 text-base font-semibold text-neutral-800">
           <img src={chrome.runtime.getURL('icon16.png')} width={16} height={16} alt="" />
-          Timeline
+          {t('extension.timeline')}
         </h2>
       </div>
 
@@ -840,19 +842,18 @@ const TimelinePage = ({ planId }: Props) => {
                 <span className="text-3xl leading-none">&times;</span>
               </button>
               <p>
-                <strong>NOTE:</strong> This editor directly modifies your real Sisu timeline.
-                Although tested, use at your own risk as unexpected errors may affect your data.
+                <strong>NOTE:</strong> {t('extension.timelineNote')}
               </p>
             </div>
           )}
 
-          {isSaving ? <div className="text-sm text-neutral-600">Saving plan…</div> : null}
+          {isSaving ? <div className="text-sm text-neutral-600">{t('extension.savingPlan')}</div> : null}
           {studyYearsWarning ? (
             <div className="text-sm text-amber-700">{studyYearsWarning}</div>
           ) : null}
 
           {error ? (
-            <div className="text-sm text-neutral-600">Timeline unavailable.</div>
+            <div className="text-sm text-neutral-600">{t('extension.timelineUnavailable')}</div>
           ) : (
             <>
               <TimelineToolbar

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { CourseFilterOptions, CourseFilters } from '@kurssikone/shared'
-import DepartmentFilterModal, { ORG_HIERARCHY, shortenDepartment } from './DepartmentFilterModal'
+import DepartmentFilterModal, { ORG_HIERARCHY, getDepartmentDisplayName, getSchoolDisplayName } from './DepartmentFilterModal'
 
 type Props = {
   filters: CourseFilters
@@ -16,12 +17,14 @@ const MultiSelectDropdown = ({
   selected,
   onChange,
   className,
+  noOptionsText,
 }: {
   label: string
   options: DropdownOption[]
   selected: string[]
   onChange: (selected: string[]) => void
   className?: string
+  noOptionsText: string
 }) => {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -89,7 +92,7 @@ const MultiSelectDropdown = ({
             )
           })}
           {options.length === 0 && (
-            <div className="px-3 py-2 text-sm text-gray-400">No options available</div>
+            <div className="px-3 py-2 text-sm text-gray-400">{noOptionsText}</div>
           )}
         </div>
       )}
@@ -131,6 +134,7 @@ const PeriodTriStateSelector = ({
   excludedPeriods: string[]
   onChange: (periods: string[], excludedPeriods: string[]) => void
 }) => {
+  const { t } = useTranslation()
   const getState = (p: string): PeriodState => {
     if (periods.includes(p)) return 'include'
     if (excludedPeriods.includes(p)) return 'exclude'
@@ -154,6 +158,8 @@ const PeriodTriStateSelector = ({
     }
   }
 
+  const periodLabel = (p: string) => (p === 'Summer' ? t('web.summer') : p)
+
   return (
     <div className="flex gap-1">
       {PERIOD_OPTIONS.map((p) => {
@@ -170,15 +176,9 @@ const PeriodTriStateSelector = ({
                   ? 'bg-red-100 border-red-400 text-red-700 line-through decoration-2'
                   : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
             }`}
-            title={
-              state === 'off'
-                ? `Click to include period ${p}`
-                : state === 'include'
-                  ? `Click to exclude period ${p}`
-                  : `Click to clear period ${p} filter`
-            }
+            title={`${t('web.period')} ${periodLabel(p)}`}
           >
-            {p}
+            {periodLabel(p)}
           </button>
         )
       })}
@@ -193,6 +193,15 @@ const LEVEL_SORT_ORDER: Record<string, number> = {
   doctoral: 3,
   postgraduate: 3,
 }
+
+const LEVEL_NAMES_FI: [string, string][] = [
+  ['basic', 'Perusopinnot'],
+  ['intermediate', 'Aineopinnot'],
+  ['advanced', 'Syventävät opinnot'],
+  ['doctoral', 'Jatko-opinnot'],
+  ['postgraduate', 'Jatko-opinnot'],
+  ['other', 'Muut opinnot'],
+]
 
 function levelSortKey(raw: string): number {
   const lower = raw.toLowerCase()
@@ -211,10 +220,19 @@ function formatLevel(raw: string): string {
     .replace(/\b(And|Or|Of|In)\b/g, (w) => w.toLowerCase())
 }
 
-function buildLevelOptions(rawLevels: string[]): DropdownOption[] {
+function formatLevelFi(raw: string): string {
+  const lower = raw.toLowerCase()
+  for (const [keyword, fi] of LEVEL_NAMES_FI) {
+    if (lower.includes(keyword)) return fi
+  }
+  return formatLevel(raw)
+}
+
+function buildLevelOptions(rawLevels: string[], isFi: boolean): DropdownOption[] {
+  const fmt = isFi ? formatLevelFi : formatLevel
   return [...rawLevels]
     .sort((a, b) => levelSortKey(a) - levelSortKey(b))
-    .map((raw) => ({ value: raw, label: formatLevel(raw) }))
+    .map((raw) => ({ value: raw, label: fmt(raw) }))
 }
 
 const FilterChip = ({ label, onRemove }: { label: string; onRemove: () => void }) => (
@@ -228,22 +246,24 @@ const FilterChip = ({ label, onRemove }: { label: string; onRemove: () => void }
   </button>
 )
 
-const CURRICULUM_LABELS: Record<string, string> = {
-  future: 'Future',
-  current: 'Current',
-  past: 'Past',
-}
-
 const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
+  const { t, i18n } = useTranslation()
+  const isFi = i18n.language === 'fi'
   const [expanded, setExpanded] = useState(true)
   const [deptModalOpen, setDeptModalOpen] = useState(false)
 
   const currentYear = filterOptions?.currentAcademicYear ?? new Date().getFullYear()
 
+  const CURRICULUM_LABELS: Record<string, string> = {
+    future: t('web.future'),
+    current: t('web.current'),
+    past: t('web.past'),
+  }
+
   const curriculumOptions = [
-    { value: 'future', label: `Future (≥ ${currentYear + 1}–${currentYear + 2})` },
-    { value: 'current', label: `Current (${currentYear}–${currentYear + 1})` },
-    { value: 'past', label: `Past (≤ ${currentYear - 1}–${currentYear})` },
+    { value: 'future', label: `${t('web.future')} (≥ ${currentYear + 1}–${currentYear + 2})` },
+    { value: 'current', label: `${t('web.current')} (${currentYear}–${currentYear + 1})` },
+    { value: 'past', label: `${t('web.past')} (≤ ${currentYear - 1}–${currentYear})` },
   ]
 
   const clearAll = () => onChange({})
@@ -257,10 +277,10 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
     const max = filters.creditsMax
     const label =
       min != null && max != null
-        ? `Credits: ${min}–${max}`
+        ? `${t('web.credits')}: ${min}–${max}`
         : min != null
-          ? `Credits: ${min}+`
-          : `Credits: ≤ ${max}`
+          ? `${t('web.credits')}: ${min}+`
+          : `${t('web.credits')}: ≤ ${max}`
     chips.push({
       label,
       onRemove: () => update({ creditsMin: undefined, creditsMax: undefined }),
@@ -268,11 +288,12 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
   }
 
   if (filters.periods?.length || filters.excludedPeriods?.length) {
+    const pLabel = (p: string) => (p === 'Summer' ? t('web.summer') : p)
     const parts: string[] = []
-    if (filters.periods?.length) parts.push(filters.periods.join(', '))
-    if (filters.excludedPeriods?.length) parts.push(`not ${filters.excludedPeriods.join(', ')}`)
+    if (filters.periods?.length) parts.push(filters.periods.map(pLabel).join(', '))
+    if (filters.excludedPeriods?.length) parts.push(`not ${filters.excludedPeriods.map(pLabel).join(', ')}`)
     chips.push({
-      label: `Period: ${parts.join('; ')}`,
+      label: `${t('web.period')}: ${parts.join('; ')}`,
       onRemove: () => update({ periods: undefined, excludedPeriods: undefined }),
     })
   }
@@ -289,12 +310,12 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
         allAvailable.length > 0 &&
         allAvailable.every((d) => selectedLower.has(d.toLowerCase()))
       ) {
-        labels.push(shortenDepartment(group.school))
+        labels.push(getSchoolDisplayName(group.school, isFi))
         allAvailable.forEach((d) => accounted.add(d.toLowerCase()))
       }
     }
     for (const d of filters.departments) {
-      if (!accounted.has(d.toLowerCase())) labels.push(shortenDepartment(d))
+      if (!accounted.has(d.toLowerCase())) labels.push(getDepartmentDisplayName(d, isFi))
     }
     const MAX_CHIP_LEN = 60
     let text = labels.join(', ')
@@ -302,35 +323,36 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
       text = text.slice(0, MAX_CHIP_LEN) + '…'
     }
     chips.push({
-      label: `Dept: ${text}`,
+      label: `${t('web.department')}: ${text}`,
       onRemove: () => update({ departments: undefined }),
     })
   }
 
   if (filters.levels?.length) {
+    const fmt = isFi ? formatLevelFi : formatLevel
     chips.push({
-      label: `Level: ${filters.levels.map(formatLevel).join(', ')}`,
+      label: `${t('web.level')}: ${filters.levels.map(fmt).join(', ')}`,
       onRemove: () => update({ levels: undefined }),
     })
   }
 
   if (filters.minRating != null) {
     chips.push({
-      label: `Quality: ${filters.minRating}+`,
+      label: `${t('shared.quality')}: ${filters.minRating}+`,
       onRemove: () => update({ minRating: undefined }),
     })
   }
 
   if (filters.hasReviews) {
     chips.push({
-      label: 'Has reviews',
+      label: t('web.onlyWithReviews'),
       onRemove: () => update({ hasReviews: undefined }),
     })
   }
 
   if (filters.curriculumPeriods?.length) {
     chips.push({
-      label: `Curriculum: ${filters.curriculumPeriods.map((v) => CURRICULUM_LABELS[v] ?? v).join(', ')}`,
+      label: `${t('web.curriculum')}: ${filters.curriculumPeriods.map((v) => CURRICULUM_LABELS[v] ?? v).join(', ')}`,
       onRemove: () => update({ curriculumPeriods: undefined }),
     })
   }
@@ -354,7 +376,7 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
               clipRule="evenodd"
             />
           </svg>
-          Filters
+          {t('web.filters')}
         </button>
         {chips.map((chip) => (
           <FilterChip key={chip.label} label={chip.label} onRemove={chip.onRemove} />
@@ -365,7 +387,7 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
             onClick={clearAll}
             className="text-xs text-gray-900 hover:text-black cursor-pointer"
           >
-            Clear all filters
+            {t('web.clearAllFilters')}
           </button>
         )}
       </div>
@@ -373,9 +395,8 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
       {expanded && (
         <div className="mt-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
           <div className="flex flex-wrap gap-4 items-end">
-            {/* Minimum rating */}
             <label className="flex flex-col gap-1 text-sm text-gray-600">
-              <span>Quality</span>
+              <span>{t('web.qualityFilter')}</span>
               <select
                 value={filters.minRating ?? ''}
                 onChange={(e) =>
@@ -385,7 +406,7 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                 }
                 className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 "
               >
-                <option value="">Any</option>
+                <option value="">{t('web.any')}</option>
                 <option value="1">1+</option>
                 <option value="2">2+</option>
                 <option value="3">3+</option>
@@ -393,16 +414,14 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
               </select>
             </label>
 
-            {/* Credits */}
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-600">Credits</span>
+              <span className="text-sm text-gray-600">{t('web.credits')}</span>
               <div className="flex items-center gap-2">
                 <input
                   type="number"
-                  placeholder="Min"
+                  placeholder={t('web.min')}
                   min={0}
                   value={filters.creditsMin ?? ''}
-                  // 0-credit courses are not meaningful to filter for
                   onChange={(e) =>
                     update({
                       creditsMin:
@@ -416,7 +435,7 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                 <span className="text-gray-400 text-sm">&ndash;</span>
                 <input
                   type="number"
-                  placeholder="Max"
+                  placeholder={t('web.max')}
                   min={0}
                   value={filters.creditsMax ?? ''}
                   onChange={(e) =>
@@ -432,10 +451,9 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
               </div>
             </div>
 
-            {/* Period */}
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm text-gray-600">Period</span>
+                <span className="text-sm text-gray-600">{t('web.period')}</span>
                 <button
                   type="button"
                   onClick={() => {
@@ -448,7 +466,7 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                   className="flex items-center gap-0.5 px-1.5 py-0.5 text-xs rounded border border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100 cursor-pointer transition-colors"
                 >
                   <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2zm6 10l1 3 3 1-3 1-1 3-1-3-3-1 3-1 1-3zM5 16l.67 2.33L8 19l-2.33.67L5 22l-.67-2.33L2 19l2.33-.67L5 16z"/></svg>
-                  Select upcoming
+                  {t('web.selectUpcoming')}
                 </button>
               </div>
               <PeriodTriStateSelector
@@ -463,23 +481,22 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
               />
             </div>
 
-            {/* Level */}
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-600">Level</span>
+              <span className="text-sm text-gray-600">{t('web.level')}</span>
               <MultiSelectDropdown
-                label="All levels"
-                options={buildLevelOptions(filterOptions?.levels ?? [])}
+                label={t('web.allLevels')}
+                options={buildLevelOptions(filterOptions?.levels ?? [], isFi)}
                 selected={filters.levels ?? []}
                 onChange={(levels) => update({ levels: levels.length > 0 ? levels : undefined })}
                 className="w-34"
+                noOptionsText={t('web.noOptionsAvailable')}
               />
             </div>
 
-            {/* Curriculum period */}
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-600">Curriculum</span>
+              <span className="text-sm text-gray-600">{t('web.curriculum')}</span>
               <MultiSelectDropdown
-                label="All curriculums"
+                label={t('web.allCurriculums')}
                 options={curriculumOptions}
                 selected={filters.curriculumPeriods ?? []}
                 onChange={(curriculumPeriods) =>
@@ -488,19 +505,19 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                   })
                 }
                 className="w-48"
+                noOptionsText={t('web.noOptionsAvailable')}
               />
             </div>
 
-            {/* Department */}
             <div className="flex flex-col gap-1">
-              <span className="text-sm text-gray-600">Department</span>
+              <span className="text-sm text-gray-600">{t('web.department')}</span>
               <button
                 type="button"
                 onClick={() => setDeptModalOpen(true)}
                 className="flex items-center gap-1 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-left w-32 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               >
                 {(filters.departments?.length ?? 0) === 0 ? (
-                  <span className="flex-1 truncate">All departments</span>
+                  <span className="flex-1 truncate">{t('web.allDepartments')}</span>
                 ) : (
                   <>
                     <span className="truncate min-w-0">{filters.departments!.join(', ')}</span>
@@ -520,7 +537,6 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
               }
             />
 
-            {/* Has reviews */}
             <label className="flex items-center gap-2 text-sm text-gray-600 cursor-pointer self-end py-2">
               <input
                 type="checkbox"
@@ -528,7 +544,7 @@ const CourseFilterPanel = ({ filters, onChange, filterOptions }: Props) => {
                 onChange={(e) => update({ hasReviews: e.target.checked || undefined })}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              Only courses with reviews
+              {t('web.onlyWithReviews')}
             </label>
           </div>
         </div>

@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "dayjs": "^1.11.10",
+    "i18next": "^26.4.0",
+    "react-i18next": "^17.0.12",
     "uuid": "^10.0.0"
   },
   "devDependencies": {

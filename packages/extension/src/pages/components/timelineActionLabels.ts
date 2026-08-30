@@ -1,6 +1,6 @@
+import i18n from '../../i18n'
 import type { Season } from '../../utils/parsePlannedPeriods'
 
-/** Prefer column header text; fall back to locator or a generic label. */
 export function resolvePeriodColumnLabel(
   columnPeriodHeading: string,
   plannedPeriodLocator: string
@@ -9,13 +9,9 @@ export function resolvePeriodColumnLabel(
   if (h) return h
   const l = plannedPeriodLocator.trim()
   if (l) return l
-  return 'this period'
+  return i18n.t('extension.thisPeriod')
 }
 
-/**
- * Full placement context for action copy: same order as the semester row title (`Spring 2025`),
- * then an em dash and the period column (or locator fallback).
- */
 export function resolveTimelinePlacementLabel(
   year: number,
   season: Season,
@@ -32,24 +28,24 @@ export function resolveTimelinePlacementLabel(
 }
 
 export function formatKeepInPeriod(periodName: string): string {
-  return `Keep in ${periodName}`
+  return i18n.t('extension.keepInPeriod', { period: periodName })
 }
 
 export function formatMoveToPeriod(periodName: string, longForm = true): string {
   if (!longForm) {
-    return `Move to ${periodName}`
+    return i18n.t('extension.moveToPeriod', { period: periodName })
   }
-  return `Move to start from ${periodName}`
+  return i18n.t('extension.moveToStartFrom', { period: periodName })
 }
 
 export function formatExtendToPeriod(periodName: string): string {
-  return `Extend to ${periodName}`
+  return i18n.t('extension.extendToPeriod', { period: periodName })
 }
 
 export function formatRemoveFromPeriod(periodName: string): string {
-  return `Remove from ${periodName}`
+  return i18n.t('extension.removeFromPeriod', { period: periodName })
 }
 
 export function formatMoveAndExpandTo(optionLabel: string): string {
-  return `Move to teaching period ${optionLabel}`
+  return i18n.t('extension.moveToTeachingPeriod', { option: optionLabel })
 }

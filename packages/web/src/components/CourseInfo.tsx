@@ -1,25 +1,16 @@
 import DOMPurify from 'dompurify'
+import { useTranslation } from 'react-i18next'
 import { CourseWithRealisations, CourseRealisation } from '@kurssikone/shared'
 
 type Props = {
   course: CourseWithRealisations
 }
 
-const formatCredits = (min: number | null, max: number | null): string => {
+const formatCredits = (min: number | null, max: number | null, unit: string): string => {
   if (min === null && max === null) return ''
-  if (min === max || max === null) return `${min} cr`
-  if (min === null) return `${max} cr`
-  return `${min}-${max} cr`
-}
-
-const formatLanguages = (codes: string[] | null): string => {
-  if (!codes || codes.length === 0) return ''
-  const languageMap: Record<string, string> = {
-    en: 'English',
-    fi: 'Finnish',
-    sv: 'Swedish',
-  }
-  return codes.map((code) => languageMap[code] || code).join(', ')
+  if (min === max || max === null) return `${min} ${unit}`
+  if (min === null) return `${max} ${unit}`
+  return `${min}-${max} ${unit}`
 }
 
 const getLatestRealisation = (realisations: CourseRealisation[]): CourseRealisation | null => {
@@ -29,6 +20,23 @@ const getLatestRealisation = (realisations: CourseRealisation[]): CourseRealisat
     if (!current.startDate) return latest
     return current.startDate > latest.startDate ? current : latest
   })
+}
+
+const LEVEL_NAMES_FI: [string, string][] = [
+  ['basic', 'Perusopinnot'],
+  ['intermediate', 'Aineopinnot'],
+  ['advanced', 'Syventävät opinnot'],
+  ['doctoral', 'Jatko-opinnot'],
+  ['postgraduate', 'Jatko-opinnot'],
+  ['other', 'Muut opinnot'],
+]
+
+function translateLevelFi(raw: string): string {
+  const lower = raw.toLowerCase()
+  for (const [keyword, fi] of LEVEL_NAMES_FI) {
+    if (lower.includes(keyword)) return fi
+  }
+  return raw.replace(/-/g, ' ')
 }
 
 const PERIOD_DEFINITIONS: { label: string; positive: number[]; negative: number[] }[] = [
@@ -110,17 +118,35 @@ function formatPeriodRange(periods: string[]): string {
 }
 
 const CourseInfo = ({ course }: Props) => {
+  const { t, i18n } = useTranslation()
+  const isFi = i18n.language === 'fi'
   const latestRealisation = getLatestRealisation(course.courseRealisations)
 
-  const name =
-    course.nameEn || course.nameFi || latestRealisation?.nameEn || latestRealisation?.nameFi
-  const credits = formatCredits(course.creditsMin, course.creditsMax)
-  const description = latestRealisation?.contentEn || latestRealisation?.contentFi
+  const name = isFi
+    ? (course.nameFi || course.nameEn || latestRealisation?.nameFi || latestRealisation?.nameEn)
+    : (course.nameEn || course.nameFi || latestRealisation?.nameEn || latestRealisation?.nameFi)
+  const credits = formatCredits(course.creditsMin, course.creditsMax, t('shared.cr'))
+  const description = isFi
+    ? (latestRealisation?.contentFi || latestRealisation?.contentEn)
+    : (latestRealisation?.contentEn || latestRealisation?.contentFi)
   const teachers = latestRealisation?.teacherInCharge || latestRealisation?.teachers
-  const prerequisites = latestRealisation?.prerequisitesEn
-  const learningOutcomes = latestRealisation?.learningOutcomesEn
-  const languages = formatLanguages(latestRealisation?.languageCodes || null)
-  const organization = latestRealisation?.organizationNameEn
+  const prerequisites = isFi
+    ? (latestRealisation?.prerequisitesFi || latestRealisation?.prerequisitesEn)
+    : (latestRealisation?.prerequisitesEn || latestRealisation?.prerequisitesFi)
+  const learningOutcomes = isFi
+    ? (latestRealisation?.learningOutcomesFi || latestRealisation?.learningOutcomesEn)
+    : (latestRealisation?.learningOutcomesEn || latestRealisation?.learningOutcomesFi)
+  const languageMap: Record<string, string> = {
+    en: t('web.english'),
+    fi: t('web.finnish'),
+    sv: t('web.swedish'),
+  }
+  const languages = (latestRealisation?.languageCodes || [])
+    .map((code) => languageMap[code] || code)
+    .join(', ')
+  const organization = isFi
+    ? (latestRealisation?.organizationNameFi || latestRealisation?.organizationNameEn)
+    : (latestRealisation?.organizationNameEn || latestRealisation?.organizationNameFi)
   const level = latestRealisation?.level
   const gradingScale = latestRealisation?.gradingScale
   const sisuUrl = `https://sisu.aalto.fi/student/courseunit/${course.id}/brochure`
@@ -138,7 +164,7 @@ const CourseInfo = ({ course }: Props) => {
             rel="noopener noreferrer"
             className="text-blue-600 text-sm hover:underline"
           >
-            View in Sisu
+            {t('web.viewInSisu')}
           </a>
         </div>
         {credits && (
@@ -150,7 +176,7 @@ const CourseInfo = ({ course }: Props) => {
 
       {description && (
         <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-1">Description</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-1">{t('web.description')}</h3>
           <div
             className="text-gray-600 text-sm course-html-content"
             dangerouslySetInnerHTML={{ __html: sanitize(description) }}
@@ -160,7 +186,7 @@ const CourseInfo = ({ course }: Props) => {
 
       {learningOutcomes && (
         <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-1">Learning Outcomes</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-1">{t('web.learningOutcomes')}</h3>
           <div
             className="text-gray-600 text-sm course-html-content"
             dangerouslySetInnerHTML={{ __html: sanitize(learningOutcomes) }}
@@ -170,7 +196,7 @@ const CourseInfo = ({ course }: Props) => {
 
       {prerequisites && (
         <div className="mb-4">
-          <h3 className="text-sm font-medium text-gray-700 mb-1">Prerequisites</h3>
+          <h3 className="text-sm font-medium text-gray-700 mb-1">{t('web.prerequisites')}</h3>
           <div
             className="text-gray-600 text-sm course-html-content"
             dangerouslySetInnerHTML={{ __html: sanitize(prerequisites) }}
@@ -181,47 +207,48 @@ const CourseInfo = ({ course }: Props) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
         {teachers && teachers.length > 0 && (
           <div>
-            <span className="font-medium text-gray-700">Teachers: </span>
+            <span className="font-medium text-gray-700">{t('web.teachers')} </span>
             <span className="text-gray-600">{teachers.join(', ')}</span>
           </div>
         )}
 
         {languages && (
           <div>
-            <span className="font-medium text-gray-700">Language: </span>
+            <span className="font-medium text-gray-700">{t('web.language')} </span>
             <span className="text-gray-600">{languages}</span>
           </div>
         )}
 
         {organization && (
           <div>
-            <span className="font-medium text-gray-700">Department: </span>
+            <span className="font-medium text-gray-700">{t('web.departmentLabel')} </span>
             <span className="text-gray-600">{organization}</span>
           </div>
         )}
 
         {level && (
           <div>
-            <span className="font-medium text-gray-700">Level: </span>
-            <span className="text-gray-600 capitalize">{level.replace(/-/g, ' ')}</span>
+            <span className="font-medium text-gray-700">{t('web.levelLabel')} </span>
+            <span className="text-gray-600 capitalize">{isFi ? translateLevelFi(level) : level.replace(/-/g, ' ')}</span>
           </div>
         )}
 
         {gradingScale && (
           <div>
-            <span className="font-medium text-gray-700">Grading: </span>
+            <span className="font-medium text-gray-700">{t('web.grading')} </span>
             <span className="text-gray-600">{gradingScale}</span>
           </div>
         )}
 
         {course.courseRealisations.length > 0 && (() => {
           const groups = getPeriodsGroupedByYear(course.courseRealisations)
+          const translatePeriod = (s: string) => isFi ? s.replace(/Summer/g, t('web.summer')) : s
           return groups.length > 0 ? (
             <div>
-              <span className="font-medium text-gray-700">Teaching periods: </span>
+              <span className="font-medium text-gray-700">{t('web.teachingPeriods')} </span>
               <div className="text-gray-600">
                 {groups.map((g) => (
-                  <div key={g.yearLabel}>{g.yearLabel} {formatPeriodRange(g.periods)}</div>
+                  <div key={g.yearLabel}>{g.yearLabel} {translatePeriod(formatPeriodRange(g.periods))}</div>
                 ))}
               </div>
             </div>

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 type Props = {
   min: number
   max: number
@@ -15,6 +17,7 @@ const VariableCreditsEditPopup = ({
   idSuffix,
   className = '',
 }: Props) => {
+  const { t } = useTranslation()
   const id = `timeline-credits-${idSuffix}`
   const safeValue = Math.min(max, Math.max(min, Math.round(value)))
 
@@ -26,7 +29,7 @@ const VariableCreditsEditPopup = ({
       onClick={(e) => e.stopPropagation()}
     >
       <label htmlFor={id} className="mb-1 block text-[10px] font-medium text-neutral-700">
-        Your planned credits ({min}–{max})
+        {t('extension.plannedCreditsLabel', { min, max })}
       </label>
       <input
         id={id}
@@ -38,7 +41,7 @@ const VariableCreditsEditPopup = ({
         onChange={(e) => onChange(Number(e.target.value))}
         className="h-2 w-full cursor-pointer accent-timeline-accent"
       />
-      <div className="text-center text-[10px] tabular-nums text-neutral-600">{safeValue} cr</div>
+      <div className="text-center text-[10px] tabular-nums text-neutral-600">{safeValue} {t('shared.cr')}</div>
     </div>
   )
 }

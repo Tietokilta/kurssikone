@@ -1,4 +1,5 @@
 import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { TIMELINE_MOVE_CHROME_CLASSES } from './timelineDropTones'
 import { IconEdit } from './TimelineIcons'
 
@@ -54,6 +55,7 @@ const TimelineCourseCard = ({
   creditUncertain = false,
   courseUnitId,
 }: Props) => {
+  const { t } = useTranslation()
   const completed = variant === 'completed'
   const preview = variant === 'dragPreview'
   const showCourseCode =
@@ -74,7 +76,7 @@ const TimelineCourseCard = ({
       ? {
           role: 'button' as const,
           tabIndex: 0 as const,
-          'aria-label': 'Enter edit mode' as const,
+          'aria-label': t('extension.enterEditMode') as string,
           // Document listener in TimelinePage exits edit mode on any click outside drop zones;
           // stop propagation so this activation click does not immediately reset.
           onClick: (e: MouseEvent<HTMLDivElement>) => {
@@ -112,7 +114,7 @@ const TimelineCourseCard = ({
           ))}
         </ul>
       ) : null}
-      {completed ? <span className="mt-0.5 block text-xs text-neutral-600">Completed</span> : null}
+      {completed ? <span className="mt-0.5 block text-xs text-neutral-600">{t('extension.completed')}</span> : null}
     </>
   )
 

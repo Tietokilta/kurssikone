@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { TenttiarkistoCourse, TenttiarkistoExam } from '../types'
 
@@ -8,6 +9,7 @@ type Props = {
 }
 
 const ExamsContent = ({ courseCode, getExams }: Props) => {
+  const { t } = useTranslation()
   const [exams, setExams] = useState<TenttiarkistoExam[] | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
@@ -29,11 +31,11 @@ const ExamsContent = ({ courseCode, getExams }: Props) => {
   }, [courseCode, getExams])
 
   if (hasError) {
-    return <div className="text-gray-600">Failed to load exams</div>
+    return <div className="text-gray-600">{t('shared.failedToLoadExams')}</div>
   }
 
   if (isLoading) {
-    return <div className="text-gray-600">Loading...</div>
+    return <div className="text-gray-600">{t('shared.loading')}</div>
   }
 
   const examList = exams ?? []
@@ -47,7 +49,7 @@ const ExamsContent = ({ courseCode, getExams }: Props) => {
   return (
     <>
       <p className="text-sm text-gray-500 mb-4">
-        Exam data is provided by{' '}
+        {t('shared.examDataProvider')}{' '}
         <a
           href="https://tenttiarkisto.fi"
           target="_blank"
@@ -56,22 +58,21 @@ const ExamsContent = ({ courseCode, getExams }: Props) => {
         >
           tenttiarkisto.fi
         </a>
-        .
       </p>
       <div className="flex gap-6 items-center mb-2">
-        <h2 className="text-xl font-medium">{examList.length} Exams</h2>
+        <h2 className="text-xl font-medium">{t('shared.examCount', { count: examList.length })}</h2>
         <a
           href="https://www.tenttiarkisto.fi/exams/add/"
           target="_blank"
           rel="noopener noreferrer"
           className="btn-primary"
         >
-          + Add an exam
+          {t('shared.addExam')}
         </a>
       </div>
       <hr className="border-gray-800 mb-4" />
       {examList.length === 0 ? (
-        <div className="text-gray-600 mb-44">No exams found for this course</div>
+        <div className="text-gray-600 mb-44">{t('shared.noExamsFound')}</div>
       ) : (
         <div className="flex flex-col gap-6">
           {Object.entries(grouped)
@@ -95,7 +96,7 @@ const ExamsContent = ({ courseCode, getExams }: Props) => {
                             rel="noopener noreferrer"
                             className="text-blue-600 hover:underline"
                           >
-                            File {i + 1}
+                            {t('shared.file', { number: i + 1 })}
                           </a>
                         ))}
                       </div>

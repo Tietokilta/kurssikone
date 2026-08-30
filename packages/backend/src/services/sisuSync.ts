@@ -24,8 +24,8 @@ interface SisuCourseRealisation {
   credits: { min: number; max: number }
   summary: {
     content?: { fi?: string; en?: string }
-    learningOutcomes?: { en?: string }
-    prerequisites?: { en?: string }
+    learningOutcomes?: { fi?: string; en?: string }
+    prerequisites?: { fi?: string; en?: string }
     teacherInCharge?: string[]
     gradingScale?: { en?: string }
     level?: { en?: string }
@@ -33,7 +33,7 @@ interface SisuCourseRealisation {
   teachers?: string[]
   languageOfInstructionCodes?: string[]
   organizationId?: string
-  organizationName?: { en?: string }
+  organizationName?: { fi?: string; en?: string }
   enrolmentStartDate?: string
   enrolmentEndDate?: string
 }
@@ -140,12 +140,15 @@ async function syncRealisations(): Promise<number> {
       contentFi: realisation.summary?.content?.fi || null,
       contentEn: realisation.summary?.content?.en || null,
       learningOutcomesEn: realisation.summary?.learningOutcomes?.en || null,
+      learningOutcomesFi: realisation.summary?.learningOutcomes?.fi || null,
       prerequisitesEn: realisation.summary?.prerequisites?.en || null,
+      prerequisitesFi: realisation.summary?.prerequisites?.fi || null,
       teachers: realisation.teachers || null,
       teacherInCharge: realisation.summary?.teacherInCharge || null,
       languageCodes: realisation.languageOfInstructionCodes || null,
       organizationId: realisation.organizationId || null,
       organizationNameEn: realisation.organizationName?.en || null,
+      organizationNameFi: realisation.organizationName?.fi || null,
       gradingScale: realisation.summary?.gradingScale?.en || null,
       level: realisation.summary?.level?.en || null,
       enrolmentStart: parseDate(realisation.enrolmentStartDate),
