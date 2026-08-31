@@ -3,6 +3,11 @@ import type {
   CourseTeachingPeriodToken,
 } from '@kurssikone/shared/src/types'
 import { PERIODS_FOR_SEASON, type Season, type StudyPeriodIndex } from './parsePlannedPeriods'
+import i18n from '../i18n'
+
+function tSeason(season: string): string {
+  return i18n.t(`extension.season${season}`)
+}
 
 const AUTUMN_TERMS = /^(autumn|fall|syksy|höst|host)$/i
 const SPRING_TERMS = /^(spring|kevät|kevat)$/i
@@ -72,15 +77,15 @@ export function groupKey(g: CourseTeachingPeriodGroup): string {
 
 export function formatTeachingPeriodGroup(g: CourseTeachingPeriodGroup): string {
   if (g.season === 'Summer' && g.periodFrom === 'Summer' && g.periodTo === 'Summer') {
-    return `${g.timelineYear} Summer`
+    return `${g.timelineYear} ${tSeason('Summer')}`
   }
   if (g.season === 'Spring' && g.periodTo === 'Summer' && g.periodFrom !== 'Summer') {
-    return `${g.timelineYear} Spring ${g.periodFrom} - Summer`
+    return `${g.timelineYear} ${tSeason('Spring')} ${g.periodFrom} - ${tSeason('Summer')}`
   }
   if (g.periodFrom === g.periodTo) {
-    return `${g.timelineYear} ${g.season} ${g.periodFrom}`
+    return `${g.timelineYear} ${tSeason(g.season)} ${g.periodFrom}`
   }
-  return `${g.timelineYear} ${g.season} ${g.periodFrom} - ${g.periodTo}`
+  return `${g.timelineYear} ${tSeason(g.season)} ${g.periodFrom} - ${g.periodTo}`
 }
 
 /**

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { v4 as uuidv4 } from 'uuid'
 
 type Props = {
@@ -16,6 +17,7 @@ const NewAccountNotification = ({
   getUser,
   makeUser,
 }: Props) => {
+  const { t } = useTranslation()
   const [generatedUserId] = useState<string>(uuidv4())
   const [previousUserId, setPreviousUserId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
@@ -29,14 +31,14 @@ const NewAccountNotification = ({
 
   const handleSettingPreviousUserId = async () => {
     if (!previousUserId.trim()) {
-      setError('Please enter a user ID')
+      setError(t('shared.enterUserId'))
       return
     }
 
     const res = await getUser(previousUserId)
 
     if (!res || !previousUserId) {
-      setError('User ID not found')
+      setError(t('shared.userIdNotFound'))
       return
     }
 
@@ -49,38 +51,38 @@ const NewAccountNotification = ({
     <div className="my-6">
       {view === 'new' ? (
         <>
-          <h4>Looks like this is your first time making a review!</h4>
+          <h4>{t('shared.firstTimeTitle')}</h4>
           <p>
-            Your new User ID is: <i>{generatedUserId}</i>
+            {t('shared.newUserIdLabel')} <i>{generatedUserId}</i>
             <button
               className="btn-secondary ml-2 px-2 py-1"
               onClick={() => {
                 navigator.clipboard.writeText(generatedUserId)
               }}
             >
-              Copy
+              {t('shared.copy')}
             </button>
           </p>
 
-          <p>This ID serves as your username & password.</p>
+          <p>{t('shared.userIdExplanation')}</p>
 
           <p>
-            <b>Save this ID somewhere safe</b> if you want to be able to edit your reviews later.
+            <b>{t('shared.saveIdWarning')}</b> {t('shared.saveIdDetail')}
           </p>
           <div className="my-2 flex gap-2">
             <button className="btn-secondary" onClick={() => setView('existing')}>
-              I already have an ID
+              {t('shared.alreadyHaveId')}
             </button>
             <button className="btn-primary" onClick={handleSettingNewUserId}>
-              Understood, I have saved my user ID
+              {t('shared.understoodSaved')}
             </button>
           </div>
         </>
       ) : (
         <>
-          <h4>Welcome back to reviewing!</h4>
+          <h4>{t('shared.welcomeBack')}</h4>
 
-          <p>Paste your previously saved user ID below and click submit.</p>
+          <p>{t('shared.pasteIdPrompt')}</p>
           {error && (
             <p>
               <b className="text-red-600">{error}</b>
@@ -88,12 +90,12 @@ const NewAccountNotification = ({
           )}
           <input
             type="text"
-            placeholder="Paste your user ID here"
+            placeholder={t('shared.pasteIdPlaceholder')}
             className="min-w-[282px] max-w-[400px] px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
             onChange={(e) => setPreviousUserId(e.target.value)}
           />
           <button className="btn-primary ml-2" onClick={handleSettingPreviousUserId}>
-            Submit
+            {t('shared.submit')}
           </button>
           <div className="mt-2">
             <button
@@ -103,7 +105,7 @@ const NewAccountNotification = ({
                 setError(null)
               }}
             >
-              Back
+              {t('shared.back')}
             </button>
           </div>
         </>

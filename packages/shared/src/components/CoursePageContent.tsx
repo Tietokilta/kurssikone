@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import ScoreDisplay from './ScoreDisplay'
 import ReviewMakeForm from './ReviewMakeForm'
 import ReviewItem from './ReviewItem'
@@ -43,38 +44,39 @@ const CoursePageContent = ({
   deleteReview,
   onAdminDelete,
 }: CoursePageContentProps) => {
+  const { t } = useTranslation()
   const { reviews, count: otherReviewCount } = otherReviewsAndCount
 
   const reviewCount = otherReviewCount + (userReview ? 1 : 0)
 
   const scoreTypesWithValues = scoreTypes.map((scoreType) => {
     let average = 0
-    if (scoreType.label === 'Quality') {
+    if (scoreType.name === 'qualityScore') {
       average = averages.qualityAverage
-    } else if (scoreType.label === 'Workload') {
+    } else if (scoreType.name === 'workloadScore') {
       average = averages.workloadAverage
     }
 
     return {
-      name: scoreType.label,
+      name: t(scoreType.labelKey),
       field: scoreType.name,
-      labels: scoreType.labels,
+      labels: t(scoreType.labelsKey, { returnObjects: true }) as string[],
       value: average,
     }
   })
 
-  let buttonText = '+ Write a Review'
+  let buttonText = t('shared.writeReview')
 
   if (isMakingNewReview) {
-    buttonText = '- Cancel'
+    buttonText = t('shared.cancelReview')
   } else if (userReview) {
-    buttonText = '+ Edit your review'
+    buttonText = t('shared.editReview')
   }
 
   return (
     <>
       <div className="flex gap-6 items-center mb-4">
-        <h2 className="text-xl font-medium">{reviewCount} Reviews</h2>
+        <h2 className="text-xl font-medium">{t('shared.reviewCount', { count: reviewCount })}</h2>
         <button
           className={isMakingNewReview ? 'btn-secondary' : 'btn-primary'}
           onClick={() => setIsMakingNewReview(!isMakingNewReview)}
@@ -141,7 +143,7 @@ const CoursePageContent = ({
       </dl>
 
       {reviewCount === 0 && (
-        <p className="text-gray-600 mt-4 mb-12">No reviews yet. Be the first to write one!</p>
+        <p className="text-gray-600 mt-4 mb-12">{t('shared.noReviewsYet')}</p>
       )}
     </>
   )

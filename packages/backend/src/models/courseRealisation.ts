@@ -15,12 +15,15 @@ class CourseRealisation extends Model {
   declare contentFi: string | null
   declare contentEn: string | null
   declare learningOutcomesEn: string | null
+  declare learningOutcomesFi: string | null
   declare prerequisitesEn: string | null
+  declare prerequisitesFi: string | null
   declare teachers: string[] | null
   declare teacherInCharge: string[] | null
   declare languageCodes: string[] | null
   declare organizationId: string | null
   declare organizationNameEn: string | null
+  declare organizationNameFi: string | null
   declare gradingScale: string | null
   declare level: string | null
   declare enrolmentStart: string | null
@@ -43,12 +46,15 @@ CourseRealisation.init(
     contentFi: { type: DataTypes.TEXT, allowNull: true },
     contentEn: { type: DataTypes.TEXT, allowNull: true },
     learningOutcomesEn: { type: DataTypes.TEXT, allowNull: true },
+    learningOutcomesFi: { type: DataTypes.TEXT, allowNull: true },
     prerequisitesEn: { type: DataTypes.TEXT, allowNull: true },
+    prerequisitesFi: { type: DataTypes.TEXT, allowNull: true },
     teachers: { type: DataTypes.JSONB, allowNull: true },
     teacherInCharge: { type: DataTypes.JSONB, allowNull: true },
     languageCodes: { type: DataTypes.JSONB, allowNull: true },
     organizationId: { type: DataTypes.TEXT, allowNull: true },
     organizationNameEn: { type: DataTypes.TEXT, allowNull: true },
+    organizationNameFi: { type: DataTypes.TEXT, allowNull: true },
     gradingScale: { type: DataTypes.TEXT, allowNull: true },
     level: { type: DataTypes.TEXT, allowNull: true },
     enrolmentStart: { type: DataTypes.DATEONLY, allowNull: true },

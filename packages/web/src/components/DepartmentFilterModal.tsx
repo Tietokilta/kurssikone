@@ -1,4 +1,62 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+
+const DEPARTMENT_NAMES_FI: Record<string, string> = {
+  'Open University': 'Avoin yliopisto',
+  'Aalto University, Language Centre': 'Kielikeskus',
+  'Other separate courses': 'Erilliset yleisopintojen opintojaksot',
+  'School of Arts, Design and Architecture': 'Taiteiden ja suunnittelun korkeakoulu',
+  'School services, ARTS': 'School services, ARTS',
+  'Department of Media': 'Media',
+  'Department of Design': 'Muotoilu',
+  'Department of Art': 'Taide',
+  'Department of Architecture': 'Arkkitehtuuri',
+  'Department of Film': 'Elokuvataide',
+  'Department of Art and Media': 'Taide ja media',
+  'School of Business': 'Kauppakorkeakoulu',
+  'School Services, BIZ': 'School Services, BIZ',
+  'Department of Accounting & Business Law': 'Laskentatoimi ja yritysjuridiikka',
+  'Department of Marketing': 'Markkinointi',
+  'Department of Economics': 'Taloustiede',
+  'Department of Finance': 'Rahoitus',
+  'Department of Management Studies': 'Johtaminen',
+  'Department of Information and Service Management': 'Tieto- ja palvelujohtaminen',
+  'School of Chemical Engineering': 'Kemian tekniikan korkeakoulu',
+  'Department of Chemical and Metallurgical Engineering': 'Kemian tekniikka ja metallurgia',
+  'Department of Chemistry and Materials Science': 'Kemia ja materiaalitiede',
+  'Department of Bioproducts and Biosystems': 'Biotuotteet ja biotekniikka',
+  'School of Electrical Engineering': 'Sähkötekniikan korkeakoulu',
+  'Department of Electronics and Nanoengineering': 'Elektroniikka ja nanotekniikka',
+  'Department of Signal Processing and Acoustics': 'Signaalinkäsittely ja akustiikka',
+  'Department of Communications and Networking': 'Tietoliikenne- ja tietoverkkotekniikka',
+  'Department of lnformation and Communications Engineering': 'Informaatio- ja tietoliikennetekniikka',
+  'Department of Information and Communications Engineering': 'Informaatio- ja tietoliikennetekniikka',
+  'Department of Electrical Engineering and Automation': 'Sähkötekniikka ja automaatio',
+  'School of Engineering': 'Insinööritieteiden korkeakoulu',
+  'Aalto University School of Engineering': 'Insinööritieteiden korkeakoulun yhteiset',
+  'Department of Built Environment': 'Rakennettu ympäristö',
+  'Department of Civil Engineering': 'Rakennustekniikka',
+  'Department of Energy and Mechanical Engineering': 'Energia- ja konetekniikka',
+  'School of Science': 'Perustieteiden korkeakoulu',
+  'Aalto University School of Science': 'Perustieteiden korkeakoulun yhteiset',
+  'Department of Mathematics and Systems Analysis': 'Matematiikka ja systeemianalyysi',
+  'Department of Applied Physics': 'Teknillinen fysiikka',
+  'Department of Industrial Engineering and Management': 'Tuotantotalous',
+  'Department of Computer Science': 'Tietotekniikka',
+  'Department of Neuroscience and Biomedical Engineering': 'Neurotiede ja lääketieteellinen tekniikka',
+  'Common services': 'Yhteiset palvelut',
+  'Aalto University': 'Aalto-yliopisto',
+}
+
+export function getDepartmentDisplayName(name: string, isFi: boolean): string {
+  if (!isFi) return shortenDepartment(name)
+  return DEPARTMENT_NAMES_FI[name] ?? shortenDepartment(name)
+}
+
+export function getSchoolDisplayName(name: string, isFi: boolean): string {
+  if (!isFi) return shortenSchool(name)
+  return DEPARTMENT_NAMES_FI[name] ?? shortenSchool(name)
+}
 
 // Static org hierarchy from Sisu API:
 // GET https://sisu.aalto.fi/kori/api/organisations?universityOrgId=aalto-university-root-id
@@ -130,6 +188,8 @@ const DepartmentFilterModal = ({
   selected,
   onChange,
 }: Props) => {
+  const { t, i18n } = useTranslation()
+  const isFi = i18n.language === 'fi'
   const [localSelected, setLocalSelected] = useState<Set<string>>(new Set(selected))
   const backdropRef = useRef<HTMLDivElement>(null)
 
@@ -197,7 +257,7 @@ const DepartmentFilterModal = ({
     >
       <div className="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col">
         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Select departments</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('web.selectDepartments')}</h2>
           <button
             type="button"
             onClick={onClose}
@@ -224,7 +284,7 @@ const DepartmentFilterModal = ({
                     onChange={() => toggleSchool(group.departments)}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  {shortenSchool(group.school)}
+                  {getSchoolDisplayName(group.school, isFi)}
                 </label>
                 <div className="ml-6">
                   {group.departments.map((dept) => (
@@ -238,7 +298,7 @@ const DepartmentFilterModal = ({
                         onChange={() => toggle(dept)}
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
-                      {shortenDepartment(dept)}
+                      {getDepartmentDisplayName(dept, isFi)}
                     </label>
                   ))}
                 </div>
@@ -256,7 +316,7 @@ const DepartmentFilterModal = ({
                 onChange={() => toggle(dept)}
                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
-              {shortenDepartment(dept)}
+              {getDepartmentDisplayName(dept, isFi)}
             </label>
           ))}
         </div>
@@ -267,7 +327,7 @@ const DepartmentFilterModal = ({
             onClick={clearAll}
             className="text-sm text-gray-500 hover:text-gray-700"
           >
-            Clear all
+            {t('web.clearAll')}
           </button>
           <div className="flex gap-2">
             <button
@@ -275,14 +335,14 @@ const DepartmentFilterModal = ({
               onClick={onClose}
               className="px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              Cancel
+              {t('web.cancel')}
             </button>
             <button
               type="button"
               onClick={apply}
               className="px-4 py-2 text-sm text-white bg-blue-600 rounded-lg hover:bg-blue-700"
             >
-              Apply{localSelected.size > 0 ? ` (${localSelected.size})` : ''}
+              {t('web.apply')}{localSelected.size > 0 ? ` (${localSelected.size})` : ''}
             </button>
           </div>
         </div>

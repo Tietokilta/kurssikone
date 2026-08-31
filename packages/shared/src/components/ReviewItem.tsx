@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Review } from '../types'
 import dayjs from 'dayjs'
 import Divider from './Divider'
@@ -11,6 +12,7 @@ type Props = {
 }
 
 const ReviewItem = ({ review, scoreTypes, isUserReview, onAdminDelete }: Props) => {
+  const { t } = useTranslation()
   const scores = scoreTypes.map(({ name, field }) => {
     return {
       name,
@@ -30,13 +32,13 @@ const ReviewItem = ({ review, scoreTypes, isUserReview, onAdminDelete }: Props) 
           <h3>
             {isUserReview && (
               <>
-                <i className="text-sm">Your review:</i>
+                <i className="text-sm">{t('shared.yourReview')}</i>
                 <br />
               </>
             )}
             <i className="text-sm font-normal">
-              Published {publishDate}{' '}
-              {editDate && editDate !== publishDate && ` (Edited ${editDate})`}
+              {t('shared.published', { date: publishDate })}{' '}
+              {editDate && editDate !== publishDate && ` ${t('shared.edited', { date: editDate })}`}
             </i>
           </h3>
           {onAdminDelete && (
@@ -44,7 +46,7 @@ const ReviewItem = ({ review, scoreTypes, isUserReview, onAdminDelete }: Props) 
               onClick={() => onAdminDelete(review.id)}
               className="px-3 py-1 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50 ml-4 shrink-0"
             >
-              Delete
+              {t('shared.delete')}
             </button>
           )}
         </header>
@@ -64,13 +66,13 @@ const ReviewItem = ({ review, scoreTypes, isUserReview, onAdminDelete }: Props) 
             <div className="flex gap-1.5 text-sm">
               {review.professor && (
                 <>
-                  <dt className="font-bold">Responsible teacher:</dt>
+                  <dt className="font-bold">{t('shared.responsibleTeacher')}</dt>
                   <dd>{review.professor}</dd>
                 </>
               )}
               {review.year && (
                 <>
-                  <dt className="font-bold ml-2.5">Year:</dt>
+                  <dt className="font-bold ml-2.5">{t('shared.year')}</dt>
                   <dd>{review.year}</dd>
                 </>
               )}
@@ -78,19 +80,19 @@ const ReviewItem = ({ review, scoreTypes, isUserReview, onAdminDelete }: Props) 
           )}
           {review.learnings && (
             <div>
-              <dt className="font-bold text-sm">What you'll learn</dt>
+              <dt className="font-bold text-sm">{t('shared.whatYoullLearn')}</dt>
               <dd className="whitespace-pre-line">{review.learnings}</dd>
             </div>
           )}
           {review.tasks && (
             <div>
-              <dt className="font-bold text-sm">What you'll need to do</dt>
+              <dt className="font-bold text-sm">{t('shared.whatYoullDo')}</dt>
               <dd className="whitespace-pre-line">{review.tasks}</dd>
             </div>
           )}
           {review.otherInfo && (
             <div>
-              <dt className="font-bold text-sm">Other info</dt>
+              <dt className="font-bold text-sm">{t('shared.otherInfo')}</dt>
               <dd className="whitespace-pre-line">{review.otherInfo}</dd>
             </div>
           )}

@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom/client'
 // @ts-expect-error - CSS imported as string via ?inline query
 import styles from './index.css?inline'
+import i18n from './i18n'
 import CoursePage from './pages/CoursePage'
 import ExamsPage from './pages/ExamsPage'
 import SearchResultPage from './pages/SearchResultPage'
@@ -102,7 +103,9 @@ const handleSearchResult = (node: Node) => {
 }
 
 const findModalContainer = (node: HTMLElement): HTMLElement => {
-  return node.closest('.cdk-overlay-pane') as HTMLElement ?? document.body
+  return (node.closest('.cdk-overlay-pane') ??
+    node.closest('ngb-modal-window') ??
+    document.body) as HTMLElement
 }
 
 const handleCoursePage = async (isModal: boolean, triggerNode: HTMLElement) => {
@@ -161,7 +164,7 @@ const handleCoursePage = async (isModal: boolean, triggerNode: HTMLElement) => {
     reviewIcon.width = 16
     reviewIcon.height = 16
     reviewIcon.style.cssText = 'vertical-align: -2px; margin-right: 4px;'
-    reviewButton.append(reviewIcon, 'Reviews')
+    reviewButton.append(reviewIcon, i18n.t('shared.reviews'))
     reviewListElement.append(reviewButton)
 
     // Exams tab button
@@ -178,7 +181,7 @@ const handleCoursePage = async (isModal: boolean, triggerNode: HTMLElement) => {
     examsIcon.width = 16
     examsIcon.height = 16
     examsIcon.style.cssText = 'vertical-align: -2px; margin-right: 4px;'
-    examsButton.append(examsIcon, 'Exams')
+    examsButton.append(examsIcon, i18n.t('shared.exams'))
     examsListElement.append(examsButton)
 
     const tabList = await waitForElement('[role="tablist"]', container)

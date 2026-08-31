@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 import {
   Course,
   CourseListSortBy,
@@ -37,6 +38,7 @@ const saveSearchSettings = (settings: SearchSettings) => {
 }
 
 const HomePage = () => {
+  const { t, i18n } = useTranslation()
   const savedSettings = useRef(loadSearchSettings()).current
 
   const [extensionAlertDismissed, setExtensionAlertDismissed] = useState(
@@ -149,6 +151,8 @@ const HomePage = () => {
     setExtensionAlertDismissed(true)
   }
 
+  const isFi = i18n.language === 'fi'
+
   return (
     <div>
       <div className="flex items-center gap-1 mb-2">
@@ -156,7 +160,7 @@ const HomePage = () => {
         <h1 className="text-2xl font-medium">KurssiKone</h1>
       </div>
       <p className="text-gray-600 mb-6">
-        Find and share course reviews, exams & information for Aalto University courses
+        {t('web.siteDescription')}
       </p>
 
       {!extensionAlertDismissed && (
@@ -170,25 +174,28 @@ const HomePage = () => {
             <span className="text-xl leading-none">&times;</span>
           </button>
           <p>
-            KurssiKone is also available as a{' '}
-            <a
-              href={
-                isFirefox
-                  ? 'https://addons.mozilla.org/en-US/firefox/addon/kurssikone/'
-                  : 'http://chromewebstore.google.com/detail/dfchpeehiilpkpikbmgkdfpenkdcpeim'
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline hover:text-blue-800"
-            >
-              browser extension
-            </a>{' '}
-            for Firefox & Chrome.
+            <Trans
+              i18nKey="web.extensionBanner"
+              components={{
+                link: <a
+                  href={
+                    isFirefox
+                      ? 'https://addons.mozilla.org/en-US/firefox/addon/kurssikone/'
+                      : 'http://chromewebstore.google.com/detail/dfchpeehiilpkpikbmgkdfpenkdcpeim'
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800"
+                />,
+              }}
+            />
           </p>
 
           <p>
-            The extension also features a more user friendly <b>Timeline</b> view (<b>Ajoitus</b>
-            -näkymä).
+            <Trans
+              i18nKey="web.extensionTimeline"
+              components={{ bold: <b /> }}
+            />
           </p>
         </div>
       )}
@@ -196,14 +203,14 @@ const HomePage = () => {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
         <div className="relative w-full max-w-md">
           <label htmlFor="course-search" className="sr-only">
-            Search courses
+            {t('web.searchPlaceholder')}
           </label>
           <input
             id="course-search"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search courses by code or name..."
+            placeholder={t('web.searchPlaceholder')}
             className="w-full px-4 py-2 pr-8 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
           />
           {searchQuery && (
@@ -211,7 +218,7 @@ const HomePage = () => {
               type="button"
               onClick={() => setSearchQuery('')}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-lg text-gray-400 hover:text-gray-600 cursor-pointer"
-              aria-label="Clear search"
+              aria-label={t('web.clearSearch')}
             >
               &times;
             </button>
@@ -219,20 +226,20 @@ const HomePage = () => {
         </div>
         <div className="flex flex-wrap gap-4">
           <label className="flex flex-col text-sm text-gray-600 gap-1">
-            <span>Sort by</span>
+            <span>{t('web.sortBy')}</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as CourseListSortBy)}
               className="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 "
             >
-              <option value="quality">Quality</option>
-              <option value="workload">Workload</option>
-              <option value="alphabetical">Course code</option>
-              <option value="credits">Credits</option>
+              <option value="quality">{t('web.sortQuality')}</option>
+              <option value="workload">{t('web.sortWorkload')}</option>
+              <option value="alphabetical">{t('web.sortCourseCode')}</option>
+              <option value="credits">{t('web.sortCredits')}</option>
             </select>
           </label>
           <label className="flex flex-col text-sm text-gray-600 gap-1">
-            <span>Order</span>
+            <span>{t('web.order')}</span>
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as ListSortOrder)}
@@ -249,32 +256,32 @@ const HomePage = () => {
 
       {isLoading ? (
         <div className="text-center py-10">
-          <p className="text-gray-600">Loading courses...</p>
+          <p className="text-gray-600">{t('web.loadingCourses')}</p>
         </div>
       ) : courses.length === 0 ? (
         <div className="text-center py-10">
           <p className="text-gray-600">
-            {debouncedSearch ? 'No courses found matching your search.' : 'No courses available.'}
+            {debouncedSearch ? t('web.noCoursesFound') : t('web.noCoursesAvailable')}
           </p>
         </div>
       ) : (
         <>
           <p className="text-sm text-gray-500 mb-4">
             {debouncedSearch
-              ? `Found ${total} course${total !== 1 ? 's' : ''}`
-              : `${total} courses`}
+              ? t('web.foundCourses', { count: total })
+              : t('web.courseCount', { count: total })}
           </p>
 
           <div className="grid gap-3 sm:grid-cols-2">
             {courses.map((course) => (
-              <CourseCard key={course.id} course={course} />
+              <CourseCard key={course.id} course={course} isFi={isFi} />
             ))}
           </div>
 
           <div ref={observerTarget} className="py-8 text-center">
-            {isLoadingMore && <p className="text-gray-600">Loading more...</p>}
+            {isLoadingMore && <p className="text-gray-600">{t('web.loadingMore')}</p>}
             {!isLoadingMore && courses.length >= total && courses.length > 0 && (
-              <p className="text-gray-400 text-sm">All courses loaded</p>
+              <p className="text-gray-400 text-sm">{t('web.allCoursesLoaded')}</p>
             )}
           </div>
         </>

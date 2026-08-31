@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 function formatCreditAmount(n: number): string {
   return n % 1 === 0 ? String(n) : n.toFixed(1)
 }
@@ -17,14 +19,15 @@ const TimelineToolbar = ({
   showEmptySummerPeriods,
   setShowEmptySummerPeriods,
 }: Props) => {
+  const { t } = useTranslation()
   return (
     <div className="mb-4 space-y-2 text-sm text-neutral-700">
       <div className="grid max-w-sm grid-cols-[1fr_auto] gap-x-4 gap-y-1 tabular-nums">
-        <span>Completed credits</span>
+        <span>{t('extension.completedCredits')}</span>
         <span className="text-right">{formatCreditAmount(creditSummary.completed)}</span>
-        <span>Planned credits</span>
+        <span>{t('extension.plannedCredits')}</span>
         <span className="text-right">{formatCreditAmount(creditSummary.planned)}</span>
-        <span className="font-medium text-neutral-900">Total credits</span>
+        <span className="font-medium text-neutral-900">{t('extension.totalCredits')}</span>
         <span className="text-right font-medium text-neutral-900">
           {formatCreditAmount(creditSummary.total)}
         </span>
@@ -37,7 +40,7 @@ const TimelineToolbar = ({
             checked={showPastPeriods}
             onChange={(e) => setShowPastPeriods(e.target.checked)}
           />
-          Show past periods
+          {t('extension.showPastPeriods')}
         </label>
         <label className="flex cursor-pointer items-center gap-2">
           <input
@@ -46,7 +49,7 @@ const TimelineToolbar = ({
             checked={showEmptySummerPeriods}
             onChange={(e) => setShowEmptySummerPeriods(e.target.checked)}
           />
-          Show empty summer periods
+          {t('extension.showEmptySummerPeriods')}
         </label>
       </div>
     </div>

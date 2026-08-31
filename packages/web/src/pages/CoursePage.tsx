@@ -1,11 +1,11 @@
 import { useParams, Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   CoursePageContent,
   ExamsContent,
   useCoursePageData,
   CourseWithRealisations,
-  GENERIC_ERROR_MESSAGE,
 } from '@kurssikone/shared'
 import {
   getAveragesForCourse,
@@ -27,6 +27,7 @@ type Tab = 'reviews' | 'exams'
 
 const CoursePage = () => {
   const { courseCode } = useParams<{ courseCode: string }>()
+  const { t } = useTranslation()
   const { token } = useAdminAuth()
   const [activeTab, setActiveTab] = useState<Tab>('reviews')
   const [courseData, setCourseData] = useState<CourseWithRealisations | null>(null)
@@ -68,7 +69,6 @@ const CoursePage = () => {
       try {
         const courses = await getCourseByCode(courseCode)
         if (courses && courses.length > 0) {
-          // Merge all realisations from all course versions into the first course
           const allRealisations = courses.flatMap((c) => c.courseRealisations || [])
           const mergedCourse = {
             ...courses[0],
@@ -93,12 +93,12 @@ const CoursePage = () => {
   if (!courseCode) {
     return (
       <div className="text-center py-10">
-        <h2 className="text-xl font-medium mb-4">Course code not found</h2>
+        <h2 className="text-xl font-medium mb-4">{t('web.courseCodeNotFound')}</h2>
         <Link
           to="/"
           className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
-          Go to Home
+          {t('web.goToHome')}
         </Link>
       </div>
     )
@@ -107,7 +107,7 @@ const CoursePage = () => {
   if (hasError) {
     return (
       <div className="text-center py-10">
-        <p className="text-gray-600">{GENERIC_ERROR_MESSAGE}</p>
+        <p className="text-gray-600">{t('shared.genericError')}</p>
       </div>
     )
   }
@@ -115,16 +115,21 @@ const CoursePage = () => {
   if (isLoading || !otherReviewsAndCount || !averages) {
     return (
       <div className="text-center py-10">
-        <p className="text-gray-600">Loading...</p>
+        <p className="text-gray-600">{t('shared.loading')}</p>
       </div>
     )
+  }
+
+  const tabLabels: Record<Tab, string> = {
+    reviews: t('shared.reviews'),
+    exams: t('shared.exams'),
   }
 
   return (
     <div>
       <div className="mb-4">
         <Link to="/" className="text-blue-600 underline hover:text-blue-800">
-          &larr; Back to courses
+          {t('web.backToCourses')}
         </Link>
       </div>
 
@@ -132,18 +137,18 @@ const CoursePage = () => {
 
       {isCourseLoading ? (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
-          <p className="text-gray-500">Loading course information...</p>
+          <p className="text-gray-500">{t('web.loadingCourseInfo')}</p>
         </div>
       ) : hasCourseFetchError ? (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-8">
-          <p className="text-gray-600 text-sm">{GENERIC_ERROR_MESSAGE}</p>
+          <p className="text-gray-600 text-sm">{t('shared.genericError')}</p>
         </div>
       ) : courseData ? (
         <CourseInfo course={courseData} />
       ) : (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-8">
           <p className="text-yellow-800 text-sm">
-            Course information not available. This course may not be in the Sisu system.
+            {t('web.courseInfoUnavailable')}
           </p>
         </div>
       )}
@@ -153,13 +158,13 @@ const CoursePage = () => {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-4 py-2 text-sm font-medium capitalize border-b-2 -mb-px transition-colors ${
+            className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               activeTab === tab
                 ? 'border-gray-900 text-gray-900'
                 : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
-            {tab}
+            {tabLabels[tab]}
           </button>
         ))}
       </div>
@@ -182,7 +187,7 @@ const CoursePage = () => {
           makeOrEditReview={makeOrEditReview}
           deleteReview={deleteReview}
           onAdminDelete={token ? async (reviewId: number) => {
-            if (!window.confirm('Delete this review?')) return
+            if (!window.confirm(t('web.deleteReviewConfirm'))) return
             await deleteAdminReview(token, reviewId)
             await refetchData()
           } : undefined}

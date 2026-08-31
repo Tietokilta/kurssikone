@@ -1,4 +1,5 @@
 import { Fragment } from 'react'
+import { useTranslation } from 'react-i18next'
 import { plannedPeriodKeysEqual } from '../../utils/planPeriodDrag'
 import {
   computeSemesterCoursePlacements,
@@ -333,6 +334,7 @@ const TimelineMainGrid = ({
   variableCreditOverrides,
   onVariableCreditChange,
 }: Props) => {
+  const { t } = useTranslation()
   const maxPeriodCols = cards.length === 0 ? 1 : Math.max(1, ...cards.map((c) => c.periods.length))
   const singleClick =
     clickPlacementTarget?.kind === 'single' ? clickPlacementTarget : null
@@ -505,21 +507,21 @@ const TimelineMainGrid = ({
             <Fragment key={card.cardKey}>
               <div className="col-span-full flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <h2 className="text-sm font-medium text-neutral-900">
-                  {card.season} {card.year}
+                  {t(`extension.season${card.season}`)} {card.year}
                 </h2>
                 <span
                   className="text-sm tabular-nums text-neutral-500"
-                  aria-label={`Planned credits this period: ${seasonCreditsTotal}`}
+                  aria-label={t('extension.plannedCreditsThisPeriod', { count: seasonCreditsTotal })}
                 >
                   {seasonCreditsTotal % 1 === 0
                     ? seasonCreditsTotal
                     : seasonCreditsTotal.toFixed(1)}
-                  {' credits'}
+                  {' '}{t('extension.credits')}
                 </span>
               </div>
               {card.periods.map((p) => (
                 <div key={p.periodKey} className="text-sm text-neutral-500">
-                  {p.period}
+                  {p.period === 'Summer' ? t('extension.seasonSummer') : p.period}
                 </div>
               ))}
               {Array.from({ length: Math.max(0, maxPeriodCols - card.periods.length) }).map(

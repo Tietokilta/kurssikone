@@ -1,5 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react'
-import { CoursePageContent, useCoursePageData, GENERIC_ERROR_MESSAGE } from '@kurssikone/shared'
+import { useTranslation } from 'react-i18next'
+import { CoursePageContent, useCoursePageData } from '@kurssikone/shared'
 import {
   getAveragesForCourse,
   getReviewsForCourseExcludingUserReview,
@@ -35,7 +36,7 @@ class ErrorBoundary extends Component<
     if (this.state.hasError) {
       return (
         <div className="p-4 text-red-600">
-          Error: {this.state.error?.message || 'Something went wrong'}
+          {this.state.error?.message || 'Something went wrong'}
         </div>
       )
     }
@@ -53,6 +54,7 @@ const setUserIdInStorageFunc = async (id: string): Promise<void> => {
 }
 
 const CoursePageInner = ({ courseCode }: Props) => {
+  const { t } = useTranslation()
   const {
     userId,
     otherReviewsAndCount,
@@ -80,15 +82,15 @@ const CoursePageInner = ({ courseCode }: Props) => {
   })
 
   if (!courseCode) {
-    return <div className="p-4 text-gray-600">Course code not found</div>
+    return <div className="p-4 text-gray-600">{t('extension.courseCodeNotFound')}</div>
   }
 
   if (hasError) {
-    return <div className="p-4 text-gray-600">{GENERIC_ERROR_MESSAGE}</div>
+    return <div className="p-4 text-gray-600">{t('shared.genericError')}</div>
   }
 
   if (isLoading || !otherReviewsAndCount || !averages) {
-    return <div className="p-4 text-gray-600">Loading...</div>
+    return <div className="p-4 text-gray-600">{t('shared.loading')}</div>
   }
 
   return (

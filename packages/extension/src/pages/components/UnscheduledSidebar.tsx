@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { creditChoiceIsUserSet, isVariableCreditRange } from '../../utils/timelineVariableCredits'
 import type { ParsedCourseUnitSelection } from '../TimelinePage'
 import TimelineCourseCard from './TimelineCourseCard'
@@ -62,7 +63,6 @@ function UnscheduledCourseItem({
                 isMoveModeActive ? (
                   <TimelineMoveModeButton
                     isActive
-                    inactiveLabel="Enter edit mode to schedule"
                     onClick={() => onToggleMoveMode(s.selectionIndex)}
                   />
                 ) : undefined
@@ -94,6 +94,8 @@ const UnscheduledSidebar = ({
   variableCreditOverrides,
   onVariableCreditChange,
 }: Props) => {
+  const { t } = useTranslation()
+
   if (selections.length === 0) {
     return null
   }
@@ -110,7 +112,7 @@ const UnscheduledSidebar = ({
         <div className="kurssikone-unscheduled-open flex min-h-0 min-w-64 flex-1 flex-col">
           <div className="flex shrink-0 items-center justify-between gap-1 border-b border-neutral-100 px-2 py-2">
             <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-900">
-              Unscheduled
+              {t('extension.unscheduled')}
             </h2>
             <button
               type="button"
@@ -118,7 +120,7 @@ const UnscheduledSidebar = ({
               onClick={() => setOpen(false)}
               aria-expanded
               aria-controls="kurssikone-unscheduled-panel"
-              aria-label="Collapse unscheduled courses panel"
+              aria-label={t('extension.collapsePanel')}
             >
               <span aria-hidden>‹</span>
             </button>
@@ -128,7 +130,7 @@ const UnscheduledSidebar = ({
             className="flex min-h-0 flex-1 flex-col px-3 pt-2 pb-3"
           >
             <p className="mb-2 shrink-0 text-xs text-neutral-500">
-              Drag a course onto a period column.
+              {t('extension.dragCourseHint')}
             </p>
             <div className="min-h-0 flex-1 overflow-y-auto">
               <ul className="flex flex-col gap-1 text-sm">
@@ -153,11 +155,11 @@ const UnscheduledSidebar = ({
           onClick={() => setOpen(true)}
           aria-expanded={false}
           aria-controls="kurssikone-unscheduled-panel"
-          aria-label="Expand unscheduled courses panel"
+          aria-label={t('extension.expandPanel')}
         >
           <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2 px-1 py-6">
             <span className="text-[10px] font-medium tracking-wide text-neutral-500 uppercase [writing-mode:vertical-rl]">
-              Unscheduled
+              {t('extension.unscheduled')}
             </span>
             <span className="bg-timeline-accent rounded-full px-2 py-0.5 text-xs font-medium text-white">
               {selections.length}

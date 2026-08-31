@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getAveragesForCourse } from '../requestHandlers'
 import { ReviewAverages, ScoreBar } from '@kurssikone/shared'
 
@@ -7,6 +8,7 @@ type Props = {
 }
 
 const SearchResultPage = ({ courseCode }: Props) => {
+  const { t } = useTranslation()
   const [averages, setAverages] = useState<ReviewAverages | null>(null)
 
   const fetchAndSetAverages = async (courseCode: string) => {
@@ -27,8 +29,8 @@ const SearchResultPage = ({ courseCode }: Props) => {
   }
 
   const scoreTypes = [
-    { name: 'Quality', field: 'qualityScore', value: averages.qualityAverage },
-    { name: 'Workload', field: 'workloadScore', value: averages.workloadAverage },
+    { name: t('shared.quality'), field: 'qualityScore', value: averages.qualityAverage },
+    { name: t('shared.workload'), field: 'workloadScore', value: averages.workloadAverage },
   ]
 
   return (

@@ -84,11 +84,14 @@ export type CourseRealisation = {
   contentEn: string | null
   contentFi: string | null
   learningOutcomesEn: string | null
+  learningOutcomesFi: string | null
   prerequisitesEn: string | null
+  prerequisitesFi: string | null
   teachers: string[] | null
   teacherInCharge: string[] | null
   languageCodes: string[] | null
   organizationNameEn: string | null
+  organizationNameFi: string | null
   gradingScale: string | null
   level: string | null
 }

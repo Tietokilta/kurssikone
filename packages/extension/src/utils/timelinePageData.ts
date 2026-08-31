@@ -3,6 +3,7 @@ import { buildTeachingPeriodQuickOptions } from './parseKoriTeachingPeriods'
 import { getTodayDateIso, prepareTeachingPeriodsForTimeline } from './teachingPeriodTimeline'
 import { parseCourseUnitPlannedPeriods, type StudyPeriodIndex } from './parsePlannedPeriods'
 import { findPeriodByDate } from './studyYearPeriods'
+import i18n from '../i18n'
 import type {
   SisuAssessmentItemAttainment,
   SisuAttainment,
@@ -12,6 +13,13 @@ import type {
 } from './types'
 import type { ParsedPlannedPeriod } from './parsePlannedPeriods'
 import type { ParsedCourseUnitSelection } from '../pages/TimelinePage'
+
+function localizedName(fi: string | undefined | null, en: string | undefined | null, fallback: string): string {
+  const preferFi = i18n.language === 'fi'
+  const primary = preferFi ? fi?.trim() : en?.trim()
+  const secondary = preferFi ? en?.trim() : fi?.trim()
+  return primary || secondary || fallback
+}
 
 export const DEFAULT_SISU_ROOT_ID = 'aalto-university-root-id'
 
@@ -106,11 +114,7 @@ export function buildParsedCourseUnitSelections(
   return selections.map((s, selectionIndex) => {
     const course = courseData[s.courseUnitId]
 
-    const name =
-      (course?.nameEn && course.nameEn.trim()) ||
-      (course?.nameFi && course.nameFi.trim()) ||
-      course?.code ||
-      s.courseUnitId
+    const name = localizedName(course?.nameFi, course?.nameEn, course?.code || s.courseUnitId)
 
     const code = (course?.code && course.code.trim()) || ''
 
@@ -192,11 +196,7 @@ export function buildCompletedSelections(
       if (!slot) {
         continue
       }
-      const name =
-        (att.name.en && att.name.en.trim()) ||
-        (att.name.fi && att.name.fi.trim()) ||
-        att.code ||
-        att.id
+      const name = localizedName(att.name.fi, att.name.en, att.code || att.id)
       const code = (att.code && att.code.trim()) || ''
       const creditsMin = att.credits || 0
       const creditsMax = att.credits || 0
@@ -225,11 +225,7 @@ export function buildCompletedSelections(
       continue
     }
     const course = courseData[att.courseUnitId]
-    const name =
-      (course?.nameEn && course.nameEn.trim()) ||
-      (course?.nameFi && course.nameFi.trim()) ||
-      course?.code ||
-      att.courseUnitId
+    const name = localizedName(course?.nameFi, course?.nameEn, course?.code || att.courseUnitId)
     const code = (course?.code && course.code.trim()) || ''
     const plannedCredits = att.credits || 0
     const creditsMin = plannedCredits

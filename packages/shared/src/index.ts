@@ -24,3 +24,6 @@ export * from './types'
 
 // Constants
 export * from './constants'
+
+// i18n
+export { i18nResources } from './i18n'
