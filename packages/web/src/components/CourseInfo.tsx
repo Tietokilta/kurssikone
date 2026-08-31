@@ -1,16 +1,9 @@
 import DOMPurify from 'dompurify'
 import { useTranslation } from 'react-i18next'
-import { CourseWithRealisations, CourseRealisation, translateLevel } from '@kurssikone/shared'
+import { CourseWithRealisations, CourseRealisation, translateLevel, formatCredits } from '@kurssikone/shared'
 
 type Props = {
   course: CourseWithRealisations
-}
-
-const formatCredits = (min: number | null, max: number | null, unit: string): string => {
-  if (min === null && max === null) return ''
-  if (min === max || max === null) return `${min} ${unit}`
-  if (min === null) return `${max} ${unit}`
-  return `${min}-${max} ${unit}`
 }
 
 const getLatestRealisation = (realisations: CourseRealisation[]): CourseRealisation | null => {

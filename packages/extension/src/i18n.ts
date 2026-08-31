@@ -28,12 +28,15 @@ if (typeof window !== 'undefined') {
     }
   })
 
-  setInterval(() => {
+  let lastLang = i18n.language
+  const observer = new MutationObserver(() => {
     const current = detectSisuLanguage()
-    if (current !== i18n.language) {
+    if (current !== lastLang) {
+      lastLang = current
       i18n.changeLanguage(current)
     }
-  }, 1000)
+  })
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] })
 }
 
 export default i18n

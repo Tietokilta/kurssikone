@@ -1,8 +1,3 @@
-export const GENERIC_ERROR_MESSAGE_KEY = 'shared.genericError'
-
-export const GENERIC_ERROR_MESSAGE =
-  'Something went wrong. Please contact the developers if the issue persists.'
-
 export const scoreTypes = [
   {
     name: 'qualityScore',
@@ -48,6 +43,13 @@ export function formatLevelFi(raw: string): string {
 
 export function translateLevel(raw: string, isFi: boolean): string {
   return isFi ? formatLevelFi(raw) : formatLevel(raw)
+}
+
+export const formatCredits = (min: number | null, max: number | null, unit: string): string => {
+  if (min === null && max === null) return ''
+  if (min === max || max === null) return `${min} ${unit}`
+  if (min === null) return `${max} ${unit}`
+  return `${min}-${max} ${unit}`
 }
 
 export const getScoreLabel = (

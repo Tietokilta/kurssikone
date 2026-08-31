@@ -1,17 +1,10 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Course } from '@kurssikone/shared'
+import { Course, formatCredits } from '@kurssikone/shared'
 
 type Props = {
   course: Course
   isFi?: boolean
-}
-
-const formatCredits = (min: number | null, max: number | null, unit: string): string => {
-  if (min === null && max === null) return ''
-  if (min === max || max === null) return `${min} ${unit}`
-  if (min === null) return `${max} ${unit}`
-  return `${min}-${max} ${unit}`
 }
 
 const formatAvg = (value: number | null): string | null => {
