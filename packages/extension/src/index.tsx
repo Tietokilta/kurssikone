@@ -103,7 +103,9 @@ const handleSearchResult = (node: Node) => {
 }
 
 const findModalContainer = (node: HTMLElement): HTMLElement => {
-  return node.closest('.cdk-overlay-pane') as HTMLElement ?? document.body
+  return (node.closest('.cdk-overlay-pane') ??
+    node.closest('ngb-modal-window') ??
+    document.body) as HTMLElement
 }
 
 const handleCoursePage = async (isModal: boolean, triggerNode: HTMLElement) => {
