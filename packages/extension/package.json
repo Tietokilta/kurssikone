@@ -99,7 +99,8 @@
   },
   "babel": {
     "presets": [
-      "react-app"
+      "react-app",
+      "@babel/preset-typescript"
     ]
   },
   "devDependencies": {

@@ -21,17 +21,19 @@ i18n
 
 // Content scripts share localStorage but not the JS context, so we poll
 // for same-tab changes and listen for cross-tab changes.
-window.addEventListener('storage', (e) => {
-  if (e.key === 'selected_language') {
-    i18n.changeLanguage(e.newValue === 'fi' ? 'fi' : 'en')
-  }
-})
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'selected_language') {
+      i18n.changeLanguage(e.newValue === 'fi' ? 'fi' : 'en')
+    }
+  })
 
-setInterval(() => {
-  const current = detectSisuLanguage()
-  if (current !== i18n.language) {
-    i18n.changeLanguage(current)
-  }
-}, 1000)
+  setInterval(() => {
+    const current = detectSisuLanguage()
+    if (current !== i18n.language) {
+      i18n.changeLanguage(current)
+    }
+  }, 1000)
+}
 
 export default i18n
