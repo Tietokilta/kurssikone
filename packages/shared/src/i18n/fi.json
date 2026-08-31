@@ -140,7 +140,7 @@
     "expandTimeline": "Laajenna aikajana",
     "collapseTimeline": "Pienennä aikajana",
     "timelineNoteLabel": "HUOM:",
-    "timelineNote": "Tämä editori muokkaa suoraan oikeaa Sisu-aikajanaasi. Vaikka testattu, käytä omalla vastuullasi, sillä odottamattomat virheet voivat vaikuttaa tietoihisi.",
+    "timelineNote": "Tämä näkymä muokkaa oikeaa Sisu-aikajanaasi. Vaikka näkymää on testattu, on sen käyttö omalla vastuullasi.",
     "savingPlan": "Tallennetaan suunnitelmaa…",
     "timelineUnavailable": "Aikajana ei ole käytettävissä.",
     "couldNotReadPlanId": "Suunnitelman tunnusta ei voitu lukea URL:stä",
@@ -170,6 +170,7 @@
     "plannedCreditsThisPeriod": "Suunnitellut opintopisteet tällä periodilla: {{count}}",
     "seasonFall": "Syksy",
     "seasonSpring": "Kevät",
-    "seasonSummer": "Kesä"
+    "seasonSummer": "Kesä",
+    "noTeachingYear": "Ei opetusta ({{year}})"
   }
 }

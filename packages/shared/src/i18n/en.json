@@ -170,6 +170,7 @@
     "plannedCreditsThisPeriod": "Planned credits this period: {{count}}",
     "seasonFall": "Fall",
     "seasonSpring": "Spring",
-    "seasonSummer": "Summer"
+    "seasonSummer": "Summer",
+    "noTeachingYear": "No teaching ({{year}})"
   }
 }

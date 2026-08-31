@@ -1,6 +1,7 @@
 import type { Course, CourseTeachingPeriodGroup } from '@kurssikone/shared'
 import type { Season, StudyPeriodIndex } from './parsePlannedPeriods'
 import { expandSummerGroupsByGridYear, formatTeachingPeriodGroup } from './parseKoriTeachingPeriods'
+import i18n from '../i18n'
 
 export function getTodayDateIso(): string {
   return new Date().toISOString().slice(0, 10)
@@ -98,7 +99,7 @@ function compareGroups(a: CourseTeachingPeriodGroup, b: CourseTeachingPeriodGrou
 }
 
 export function formatNoTeachingYearLabel(academicYearStart: number): string {
-  return `No teaching (${academicYearStart}–${academicYearStart + 1})`
+  return i18n.t('extension.noTeachingYear', { year: `${academicYearStart}–${academicYearStart + 1}` })
 }
 
 export type PreparedTeachingPeriods = {

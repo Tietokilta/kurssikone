@@ -19,12 +19,13 @@ export function resolveTimelinePlacementLabel(
   plannedPeriodLocator: string
 ): string {
   const period = resolvePeriodColumnLabel(columnPeriodHeading, plannedPeriodLocator)
+  const translatedSeason = i18n.t(`extension.season${season}`)
 
   if (season === period) {
-    return `${season} ${year}`
+    return `${translatedSeason} ${year}`
   }
 
-  return `${season} ${year} ${period}`
+  return `${translatedSeason} ${year} ${period}`
 }
 
 export function formatKeepInPeriod(periodName: string): string {
