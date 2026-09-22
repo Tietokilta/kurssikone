@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
+import LanguageSelector from '../components/LanguageSelector'
 import {
   Course,
   CourseListSortBy,
@@ -158,6 +159,9 @@ const HomePage = () => {
       <div className="flex items-center gap-1 mb-2">
         <img src="/icon-192x192.png" alt="KurssiKone logo" className="h-12 w-12" />
         <h1 className="text-2xl font-medium">KurssiKone</h1>
+        <div className="ml-auto">
+          <LanguageSelector />
+        </div>
       </div>
       <p className="text-gray-600 mb-6">
         {t('web.siteDescription')}

@@ -22,6 +22,7 @@ import { getUserId, setUserId } from '../utils/userStorage'
 import { useAdminAuth } from '../contexts/AdminAuthContext'
 import { deleteAdminReview } from '../api/adminClient'
 import CourseInfo from '../components/CourseInfo'
+import LanguageSelector from '../components/LanguageSelector'
 
 type Tab = 'reviews' | 'exams'
 
@@ -127,10 +128,11 @@ const CoursePage = () => {
 
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <Link to="/" className="text-blue-600 underline hover:text-blue-800">
           {t('web.backToCourses')}
         </Link>
+        <LanguageSelector />
       </div>
 
       <h1 className="text-2xl font-medium mb-6">{courseCode}</h1>
