@@ -27,7 +27,7 @@ export type ReviewAverages = {
   qualityAverage: number
 }
 
-export type CourseListSortBy = 'alphabetical' | 'credits' | 'quality' | 'workload'
+export type CourseListSortBy = 'alphabetical' | 'best' | 'credits' | 'quality' | 'workload'
 
 export type ListSortOrder = 'asc' | 'desc'
 

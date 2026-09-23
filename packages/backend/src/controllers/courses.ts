@@ -6,7 +6,7 @@ import { PERIOD_MONTH_DEFS, VALID_PERIODS } from '../utils/periods'
 
 const router = express.Router()
 
-const SORT_BY_VALUES = ['alphabetical', 'credits', 'quality', 'workload'] as const
+const SORT_BY_VALUES = ['alphabetical', 'best', 'credits', 'quality', 'workload'] as const
 type SortBy = (typeof SORT_BY_VALUES)[number]
 
 const SORT_ORDER_VALUES = ['asc', 'desc'] as const
@@ -15,7 +15,7 @@ type SortOrder = (typeof SORT_ORDER_VALUES)[number]
 function parseSortBy(value: unknown): SortBy {
   return typeof value === 'string' && SORT_BY_VALUES.includes(value as SortBy)
     ? (value as SortBy)
-    : 'quality'
+    : 'best'
 }
 
 function parseSortOrder(value: unknown): SortOrder {
@@ -26,7 +26,11 @@ function parseSortOrder(value: unknown): SortOrder {
 
 function buildCourseListOrder(sortBy: SortBy, sortOrder: SortOrder): OrderItem[] {
   const dir = sortOrder === 'desc' ? 'DESC' : 'ASC'
+  // Minimum reviews before a course's own average dominates the global prior
+  const MIN_REVIEWS = 3
   switch (sortBy) {
+    case 'best':
+      return [literal(`(COALESCE(review_count, 0)::float / (COALESCE(review_count, 0) + ${MIN_REVIEWS}) * COALESCE(avg_quality_score, 0) + ${MIN_REVIEWS}::float / (COALESCE(review_count, 0) + ${MIN_REVIEWS}) * (SELECT COALESCE(AVG(avg_quality_score), 3) FROM courses WHERE review_count > 0)) ${dir} NULLS LAST, code ASC`)]
     case 'quality':
       return [literal(`avg_quality_score ${dir} NULLS LAST, code ASC`)]
     case 'workload':

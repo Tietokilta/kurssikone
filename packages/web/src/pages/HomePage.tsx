@@ -47,7 +47,7 @@ const HomePage = () => {
   )
   const [searchQuery, setSearchQuery] = useState(savedSettings.searchQuery ?? '')
   const [debouncedSearch, setDebouncedSearch] = useState(savedSettings.searchQuery ?? '')
-  const [sortBy, setSortBy] = useState<CourseListSortBy>(savedSettings.sortBy ?? 'quality')
+  const [sortBy, setSortBy] = useState<CourseListSortBy>(savedSettings.sortBy ?? 'best')
   const [sortOrder, setSortOrder] = useState<ListSortOrder>(savedSettings.sortOrder ?? 'desc')
   const [courses, setCourses] = useState<Course[]>([])
   const [total, setTotal] = useState(0)
@@ -236,6 +236,7 @@ const HomePage = () => {
               onChange={(e) => setSortBy(e.target.value as CourseListSortBy)}
               className="px-3 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 "
             >
+              <option value="best">{t('web.sortBest')}</option>
               <option value="quality">{t('web.sortQuality')}</option>
               <option value="workload">{t('web.sortWorkload')}</option>
               <option value="alphabetical">{t('web.sortCourseCode')}</option>
