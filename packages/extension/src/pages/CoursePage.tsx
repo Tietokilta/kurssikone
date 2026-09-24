@@ -9,6 +9,8 @@ import {
   makeUser,
   makeOrEditReview,
   deleteReview,
+  addReaction,
+  removeReaction,
 } from '../requestHandlers'
 
 type Props = {
@@ -53,10 +55,21 @@ const setUserIdInStorageFunc = async (id: string): Promise<void> => {
   await chrome.storage.sync.set({ userId: id })
 }
 
+const getAnonymousReactorId = async (): Promise<string> => {
+  const result = await chrome.storage.sync.get('anonymousReactorId')
+  if (result.anonymousReactorId) {
+    return result.anonymousReactorId
+  }
+  const id = crypto.randomUUID()
+  await chrome.storage.sync.set({ anonymousReactorId: id })
+  return id
+}
+
 const CoursePageInner = ({ courseCode }: Props) => {
   const { t } = useTranslation()
   const {
     userId,
+    reactorId,
     otherReviewsAndCount,
     averages,
     isLoading,
@@ -78,6 +91,7 @@ const CoursePageInner = ({ courseCode }: Props) => {
     storage: {
       getUserId: getUserIdFromStorage,
       setUserId: setUserIdInStorageFunc,
+      getAnonymousReactorId,
     },
   })
 
@@ -97,6 +111,7 @@ const CoursePageInner = ({ courseCode }: Props) => {
     <CoursePageContent
       courseCode={courseCode}
       userId={userId}
+      reactorId={reactorId}
       otherReviewsAndCount={otherReviewsAndCount}
       averages={averages}
       isMakingNewReview={isMakingNewReview}
@@ -110,6 +125,8 @@ const CoursePageInner = ({ courseCode }: Props) => {
       makeUser={makeUser}
       makeOrEditReview={makeOrEditReview}
       deleteReview={deleteReview}
+      addReaction={addReaction}
+      removeReaction={removeReaction}
     />
   )
 }

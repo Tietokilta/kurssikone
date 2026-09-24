@@ -9,6 +9,8 @@ export { default as NewAccountNotification } from './components/NewAccountNotifi
 export { default as ReviewMakeForm } from './components/ReviewMakeForm'
 export { default as CoursePageContent } from './components/CoursePageContent'
 export type { CoursePageContentProps } from './components/CoursePageContent'
+export { default as ReviewReactions } from './components/ReviewReactions'
+export type { ReactionHandlers } from './components/ReviewReactions'
 export { default as ExamsContent } from './components/ExamsContent'
 
 // Hooks

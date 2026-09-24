@@ -57,7 +57,13 @@
     "noExamsFound": "No exams found for this course",
     "failedToLoadExams": "Failed to load exams",
     "file": "File {{number}}",
-    "cr": "cr"
+    "cr": "cr",
+    "reactionHelpful": "Helpful",
+    "reactionAgree": "Agree",
+    "reactionDisagree": "Disagree",
+    "reactionFunny": "Funny",
+    "reactionOutdated": "Outdated",
+    "cannotReactToOwnReview": "You can't react to your own review"
   },
   "web": {
     "siteDescription": "Course reviews and exams for Aalto University",

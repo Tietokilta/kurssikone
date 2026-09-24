@@ -15,6 +15,21 @@ export const scoreTypes = [
   },
 ] as const
 
+export const reactionTypes = [
+  { type: 'helpful', emoji: '🫶', labelKey: 'shared.reactionHelpful' },
+  { type: 'agree', emoji: '👍', labelKey: 'shared.reactionAgree' },
+  { type: 'disagree', emoji: '👎', labelKey: 'shared.reactionDisagree' },
+  { type: 'funny', emoji: '😂', labelKey: 'shared.reactionFunny' },
+  { type: 'outdated', emoji: '🪦', labelKey: 'shared.reactionOutdated' },
+] as const
+
+export const reviewHasText = (review: {
+  learnings?: string | null
+  tasks?: string | null
+  otherInfo?: string | null
+}): boolean =>
+  [review.learnings, review.tasks, review.otherInfo].some((text) => !!text && text.trim() !== '')
+
 const LEVEL_NAMES_FI: [string, string][] = [
   ['basic', 'Perusopinnot'],
   ['intermediate', 'Aineopinnot'],

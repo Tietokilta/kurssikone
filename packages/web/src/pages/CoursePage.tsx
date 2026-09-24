@@ -15,10 +15,12 @@ import {
   makeUser,
   makeOrEditReview,
   deleteReview,
+  addReaction,
+  removeReaction,
   getCourseByCode,
   getExamsForCourse,
 } from '../api/client'
-import { getUserId, setUserId } from '../utils/userStorage'
+import { getUserId, setUserId, getAnonymousReactorId } from '../utils/userStorage'
 import { useAdminAuth } from '../contexts/AdminAuthContext'
 import { deleteAdminReview } from '../api/adminClient'
 import CourseInfo from '../components/CourseInfo'
@@ -37,6 +39,7 @@ const CoursePage = () => {
 
   const {
     userId,
+    reactorId,
     otherReviewsAndCount,
     averages,
     isLoading,
@@ -58,6 +61,7 @@ const CoursePage = () => {
     storage: {
       getUserId,
       setUserId,
+      getAnonymousReactorId,
     },
   })
 
@@ -175,6 +179,7 @@ const CoursePage = () => {
         <CoursePageContent
           courseCode={courseCode}
           userId={userId}
+          reactorId={reactorId}
           otherReviewsAndCount={otherReviewsAndCount}
           averages={averages}
           isMakingNewReview={isMakingNewReview}
@@ -188,6 +193,8 @@ const CoursePage = () => {
           makeUser={makeUser}
           makeOrEditReview={makeOrEditReview}
           deleteReview={deleteReview}
+          addReaction={addReaction}
+          removeReaction={removeReaction}
           onAdminDelete={token ? async (reviewId: number) => {
             if (!window.confirm(t('web.deleteReviewConfirm'))) return
             await deleteAdminReview(token, reviewId)
