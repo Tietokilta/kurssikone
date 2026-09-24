@@ -57,7 +57,13 @@
     "noExamsFound": "Tälle kurssille ei löytynyt tenttejä",
     "failedToLoadExams": "Tenttien lataus epäonnistui",
     "file": "Tiedosto {{number}}",
-    "cr": "op"
+    "cr": "op",
+    "reactionHelpful": "Hyödyllinen",
+    "reactionAgree": "Samaa mieltä",
+    "reactionDisagree": "Eri mieltä",
+    "reactionFunny": "Hauska",
+    "reactionOutdated": "Vanhentunut",
+    "cannotReactToOwnReview": "Et voi reagoida omaan arvioosi"
   },
   "web": {
     "siteDescription": "Kurssiarvostelut ja tentit Aalto-yliopistossa",

@@ -1,10 +1,18 @@
 import { Router } from 'express'
-import { Review } from '../models'
+import { Review, ReviewReaction } from '../models'
+import { ReactionType } from '../models/reviewReaction'
 import { sequelize } from '../utils/db'
-import { Op, OrderItem } from 'sequelize'
+import { Op } from 'sequelize'
 import hashIt from 'hash-it'
 import { refreshCourseReviewAggregates } from '../services/reviewAggregates'
 import { hashUserId } from '../utils/hashUserId'
+import {
+  compareReviews,
+  getReactionCounts,
+  getReactionsByReactor,
+  isReactionType,
+  reviewHasText,
+} from '../services/reviewReactions'
 
 const router = Router()
 
@@ -56,7 +64,8 @@ router.get('/course/:courseCode/user/:userId', async (req, res) => {
     attributes: { exclude: ['userId'] },
   })
   if (review) {
-    res.json(review)
+    const reactionCounts = await getReactionCounts([review.id])
+    res.json({ ...review.toJSON(), reactionCounts: reactionCounts.get(review.id) })
   } else {
     res.status(404).end()
   }
@@ -65,6 +74,7 @@ router.get('/course/:courseCode/user/:userId', async (req, res) => {
 router.get('/course/:courseCode/', async (req, res) => {
   const courseCode = req.params.courseCode
   const userIdToExclude = req.query.userIdToExclude
+  const reactorId = req.query.reactorId
 
   if (!courseCode) {
     res.status(400).end()
@@ -77,10 +87,6 @@ router.get('/course/:courseCode/', async (req, res) => {
     attributes: {
       exclude: ['userId'],
     },
-    order: [
-      ['timestampCreated', 'DESC'],
-      ['id', 'DESC'],
-    ] as OrderItem[],
   }
 
   if (userIdToExclude) {
@@ -93,10 +99,105 @@ router.get('/course/:courseCode/', async (req, res) => {
   const reviews = await Review.findAndCountAll(query)
   if (reviews) {
     const { rows, count } = reviews
-    res.json({ reviews: rows, count })
+    const reviewIds = rows.map((review) => review.id)
+    const reactionCounts = await getReactionCounts(reviewIds)
+    const myReactions =
+      typeof reactorId === 'string' && reactorId
+        ? await getReactionsByReactor(reviewIds, reactorId)
+        : null
+    const reviewsWithReactions = rows
+      .map((review) => ({
+        ...(review.toJSON() as { id: number; timestampCreated: number }),
+        reactionCounts: reactionCounts.get(review.id)!,
+        ...(myReactions && { myReactions: myReactions.get(review.id) }),
+      }))
+      .sort(compareReviews)
+    res.json({ reviews: reviewsWithReactions, count })
   } else {
     res.status(404).end()
   }
+})
+
+const parseReactionRequest = (reviewIdParam: string, body: Record<string, unknown>) => {
+  const { reactorId, type, hash } = body
+  const reviewId = Number(reviewIdParam)
+  if (
+    !Number.isInteger(reviewId) ||
+    typeof reactorId !== 'string' ||
+    !reactorId ||
+    !isReactionType(type) ||
+    hash !== hashIt({ reactorId, reviewId, type })
+  ) {
+    return null
+  }
+  return { reviewId, reactorHash: hashUserId(reactorId), type }
+}
+
+const reactionsResponse = async (reviewId: number, reactorHash: string) => {
+  const [reactionCounts, myReactions] = await Promise.all([
+    getReactionCounts([reviewId]),
+    ReviewReaction.findAll({ where: { reviewId, reactorId: reactorHash }, attributes: ['type'] }),
+  ])
+  return {
+    reactionCounts: reactionCounts.get(reviewId),
+    myReactions: myReactions.map((reaction) => reaction.type),
+  }
+}
+
+// Mutually exclusive pairs: agree/disagree and helpful/outdated
+const oppositeReaction: Partial<Record<ReactionType, ReactionType>> = {
+  agree: 'disagree',
+  disagree: 'agree',
+  helpful: 'outdated',
+  outdated: 'helpful',
+}
+
+router.post('/:id/reactions', async (req, res) => {
+  const request = parseReactionRequest(req.params.id, req.body)
+  if (!request) {
+    return res.status(400).end()
+  }
+  const { reviewId, reactorHash, type } = request
+
+  const review = await Review.findByPk(reviewId)
+  if (!review) {
+    return res.status(404).end()
+  }
+  if (!reviewHasText(review.toJSON())) {
+    return res.status(400).json({ error: 'Cannot react to a review without text' })
+  }
+  if (review.get('userId') === reactorHash) {
+    return res.status(403).json({ error: 'Cannot react to own review' })
+  }
+
+  await sequelize.transaction(async (transaction) => {
+    const opposite = oppositeReaction[type]
+    if (opposite) {
+      await ReviewReaction.destroy({
+        where: { reviewId, reactorId: reactorHash, type: opposite },
+        transaction,
+      })
+    }
+    await ReviewReaction.findOrCreate({
+      where: { reviewId, reactorId: reactorHash, type },
+      defaults: { timestampCreated: Date.now() },
+      transaction,
+    })
+  })
+
+  res.json(await reactionsResponse(reviewId, reactorHash))
+})
+
+router.delete('/:id/reactions', async (req, res) => {
+  const request = parseReactionRequest(req.params.id, req.body)
+  if (!request) {
+    return res.status(400).end()
+  }
+  const { reviewId, reactorHash, type } = request
+
+  await ReviewReaction.destroy({ where: { reviewId, reactorId: reactorHash, type } })
+
+  res.json(await reactionsResponse(reviewId, reactorHash))
 })
 
 const getAverageScores = async (courseCode: string) => {

@@ -1,6 +1,8 @@
 import {
   NewReview,
   Review,
+  ReactionState,
+  ReactionType,
   ReviewAverages,
   ReviewsAndCount,
   CoursesResponse,
@@ -84,10 +86,12 @@ const del = async (pathParts: string[], body: { [key: string]: unknown }) => {
 
 export const getReviewsForCourseExcludingUserReview = async (
   courseCode: string,
-  userId?: string
+  userId?: string,
+  reactorId?: string
 ) => {
   return (await get(['reviews', 'course', courseCode], {
     userIdToExclude: userId,
+    reactorId,
   })) as ReviewsAndCount | null
 }
 
@@ -131,6 +135,32 @@ export const deleteReview = async (reviewId: number, userId: string) => {
     ...body,
   })
 }
+
+const sendReaction = async (
+  method: 'POST' | 'DELETE',
+  reviewId: number,
+  reactorId: string,
+  type: ReactionType
+) => {
+  const body = { reactorId, reviewId, type }
+  const response = await fetch(`${host}/reviews/${reviewId}/reactions`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ...body, hash: hashIt(body) }),
+  })
+  if (!response.ok) {
+    throw new Error(`Reaction request failed with status ${response.status}`)
+  }
+  return (await response.json()) as ReactionState
+}
+
+export const addReaction = (reviewId: number, reactorId: string, type: ReactionType) =>
+  sendReaction('POST', reviewId, reactorId, type)
+
+export const removeReaction = (reviewId: number, reactorId: string, type: ReactionType) =>
+  sendReaction('DELETE', reviewId, reactorId, type)
 
 export const getCourses = async (
   search?: string,

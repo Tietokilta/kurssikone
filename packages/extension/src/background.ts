@@ -55,28 +55,37 @@ const get = async (
   return await response.json()
 }
 
+const parseJsonResponse = async (response: Response) => {
+  if (!response.ok) {
+    return { error: response.status }
+  }
+  return response.json().catch(() => null)
+}
+
 const post = async (pathParts: string[], body: { [key: string]: any }) => {
   let url = `${host}/${pathParts.join('/')}`
 
-  await fetch(url, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
   })
+  return parseJsonResponse(response)
 }
 
 const del = async (pathParts: string[], body: { [key: string]: any }) => {
   let url = `${host}/${pathParts.join('/')}`
 
-  await fetch(url, {
+  const response = await fetch(url, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
   })
+  return parseJsonResponse(response)
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

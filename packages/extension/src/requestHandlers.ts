@@ -1,4 +1,11 @@
-import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '@kurssikone/shared'
+import {
+  NewReview,
+  ReactionState,
+  ReactionType,
+  Review,
+  ReviewAverages,
+  ReviewsAndCount,
+} from '@kurssikone/shared'
 import type { TenttiarkistoCourse } from '@kurssikone/shared'
 import hashIt from 'hash-it'
 
@@ -107,10 +114,12 @@ export const fetchCourseUnits = async (ids: string[]): Promise<FetchCourseUnitsR
 
 export const getReviewsForCourseExcludingUserReview = async (
   courseCode: string,
-  userId?: string
+  userId?: string,
+  reactorId?: string
 ) => {
   return (await get(['reviews', 'course', courseCode], {
     userIdToExclude: userId,
+    reactorId,
   })) as ReviewsAndCount | null
 }
 
@@ -154,6 +163,30 @@ export const deleteReview = async (reviewId: number, userId: string) => {
     ...body,
   })
 }
+
+const sendReaction = async (
+  type: 'post' | 'delete',
+  reviewId: number,
+  reactorId: string,
+  reactionType: ReactionType
+) => {
+  const body = { reactorId, reviewId, type: reactionType }
+  const res = await chrome.runtime.sendMessage({
+    type,
+    pathParts: ['reviews', reviewId.toString(), 'reactions'],
+    body: { ...body, hash: hashIt(body) },
+  })
+  if (!res || res.error) {
+    throw new Error(`Reaction request failed: ${res?.error ?? 'no response'}`)
+  }
+  return res as ReactionState
+}
+
+export const addReaction = (reviewId: number, reactorId: string, type: ReactionType) =>
+  sendReaction('post', reviewId, reactorId, type)
+
+export const removeReaction = (reviewId: number, reactorId: string, type: ReactionType) =>
+  sendReaction('delete', reviewId, reactorId, type)
 
 export const getExamsForCourse = async (courseCode: string): Promise<TenttiarkistoCourse | null> =>
   (await chrome.runtime.sendMessage({ type: 'fetchExams', courseCode })) as TenttiarkistoCourse | null

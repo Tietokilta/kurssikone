@@ -5,7 +5,8 @@ export type CoursePageApiHandlers = {
   getAveragesForCourse: (courseCode: string) => Promise<ReviewAverages | null>
   getReviewsForCourseExcludingUserReview: (
     courseCode: string,
-    userId?: string
+    userId?: string,
+    reactorId?: string
   ) => Promise<ReviewsAndCount | null>
   getUserReviewForCourse: (courseCode: string, userId: string) => Promise<Review | null>
 }
@@ -13,6 +14,11 @@ export type CoursePageApiHandlers = {
 export type CoursePageStorageHandlers = {
   getUserId: () => Promise<string | null> | string | null
   setUserId: (id: string) => Promise<void> | void
+  /**
+   * Random ID identifying a visitor without a user ID, created on first call. Used for reactions,
+   * and registered as the user ID if they create a new account.
+   */
+  getAnonymousReactorId: () => Promise<string> | string
 }
 
 type UseCoursePageDataParams = {
@@ -23,6 +29,8 @@ type UseCoursePageDataParams = {
 
 export type UseCoursePageDataResult = {
   userId: string | null
+  /** Identifies the viewer for reactions: the user ID if present, otherwise an anonymous ID. */
+  reactorId: string | null
   otherReviewsAndCount: ReviewsAndCount | null
   averages: ReviewAverages | null
   isLoading: boolean
@@ -42,6 +50,7 @@ export const useCoursePageData = ({
   storage,
 }: UseCoursePageDataParams): UseCoursePageDataResult => {
   const [userId, setUserId] = useState<string | null>(null)
+  const [reactorId, setReactorId] = useState<string | null>(null)
   const [otherReviewsAndCount, setOtherReviewsAndCount] = useState<ReviewsAndCount | null>(null)
   const [averages, setAverages] = useState<ReviewAverages | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -62,8 +71,12 @@ export const useCoursePageData = ({
     setUserReview(newUserReview)
   }
 
-  const fetchAndSetOtherReviews = async (code: string, uid?: string) => {
-    const reviewsAndCount = await apiRef.current.getReviewsForCourseExcludingUserReview(code, uid)
+  const fetchAndSetOtherReviews = async (code: string, uid?: string, rid?: string) => {
+    const reviewsAndCount = await apiRef.current.getReviewsForCourseExcludingUserReview(
+      code,
+      uid,
+      rid
+    )
     setOtherReviewsAndCount(reviewsAndCount)
   }
 
@@ -84,7 +97,11 @@ export const useCoursePageData = ({
       setUserId(storedUserId)
     }
 
-    await fetchAndSetOtherReviews(courseCode, storedUserId ?? undefined)
+    const newReactorId =
+      storedUserId ?? (await Promise.resolve(storageRef.current.getAnonymousReactorId()))
+    setReactorId(newReactorId)
+
+    await fetchAndSetOtherReviews(courseCode, storedUserId ?? undefined, newReactorId)
     await fetchAndSetAverages(courseCode)
   }
 
@@ -133,6 +150,7 @@ export const useCoursePageData = ({
 
   return {
     userId,
+    reactorId,
     otherReviewsAndCount,
     averages,
     isLoading,
