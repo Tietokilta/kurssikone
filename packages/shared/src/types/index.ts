@@ -1,3 +1,12 @@
+export type ReactionType = 'helpful' | 'agree' | 'disagree' | 'funny' | 'outdated'
+
+export type ReactionCounts = Record<ReactionType, number>
+
+export type ReactionState = {
+  reactionCounts: ReactionCounts
+  myReactions: ReactionType[]
+}
+
 export type Review = {
   id: number
   professor: string
@@ -10,9 +19,12 @@ export type Review = {
   courseCode: string
   timestampCreated: number
   timestampLastEdit?: number
+  reactionCounts?: ReactionCounts
+  /** Reactions given by the current viewer; only present when a reactor ID was sent. */
+  myReactions?: ReactionType[]
 }
 
-export interface NewReview extends Omit<Review, 'id'> {
+export interface NewReview extends Omit<Review, 'id' | 'reactionCounts' | 'myReactions'> {
   id: number | null
   userId: string
 }

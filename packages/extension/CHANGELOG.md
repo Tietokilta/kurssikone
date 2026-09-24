@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - "Copied to clipboard!" confirmation when copying a new user ID
+- Adding reactions on reviews
+
+### Changed
+
+- Reviews are now sorted better
 
 ## [3.3.0] - 2026-08-31
 
