@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { Review } from '../models'
 import { sequelize } from '../utils/db'
-import { Op } from 'sequelize'
+import { Op, OrderItem } from 'sequelize'
 import hashIt from 'hash-it'
 import { refreshCourseReviewAggregates } from '../services/reviewAggregates'
 import { hashUserId } from '../utils/hashUserId'
@@ -77,6 +77,10 @@ router.get('/course/:courseCode/', async (req, res) => {
     attributes: {
       exclude: ['userId'],
     },
+    order: [
+      ['timestampCreated', 'DESC'],
+      ['id', 'DESC'],
+    ] as OrderItem[],
   }
 
   if (userIdToExclude) {
