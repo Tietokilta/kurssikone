@@ -50,7 +50,7 @@ The website and the backend are deployed to production on every push to main aut
 
 ### Browser extension releases
 
-1. Add release notes under `## [Unreleased]` in `packages/extension/CHANGELOG.md` as you work.
+1. Add release notes under `## [Unreleased]` in `packages/extension/CHANGELOG.md` as you work. Always do this, when making any changes to the extension. If the section does not exist, add it at the top.
 2. Run `npm run release:extension` from the repo root (append `-- minor` or `-- major` for non-patch bumps).
 3. `release-it` bumps the version in `package.json` and `manifest.json`, builds the extension, updates the changelog, commits, tags (`extension-vX.Y.Z`), pushes, and creates a GitHub Release with zip artifacts.
 4. The tag triggers the `extension-publish.yml` workflow, which publishes to Chrome Web Store and Firefox Add-ons automatically.
