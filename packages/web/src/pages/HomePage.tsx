@@ -51,6 +51,7 @@ const HomePage = () => {
   const [sortOrder, setSortOrder] = useState<ListSortOrder>(savedSettings.sortOrder ?? 'desc')
   const [courses, setCourses] = useState<Course[]>([])
   const [total, setTotal] = useState(0)
+  const [totalReviews, setTotalReviews] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [offset, setOffset] = useState(0)
@@ -91,6 +92,7 @@ const HomePage = () => {
         )
         setCourses(result.courses)
         setTotal(result.total)
+        setTotalReviews(result.totalReviews ?? 0)
       } catch (error) {
         console.error('Failed to fetch courses:', error)
       } finally {
@@ -275,6 +277,8 @@ const HomePage = () => {
             {debouncedSearch
               ? t('web.foundCourses', { count: total })
               : t('web.courseCount', { count: total })}
+            {' · '}
+            {t('web.reviewCount', { count: totalReviews })}
           </p>
 
           <div className="grid gap-3 sm:grid-cols-2">

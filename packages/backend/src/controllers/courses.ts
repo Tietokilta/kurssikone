@@ -301,16 +301,20 @@ router.get('/', async (req, res) => {
     where[Op.and as unknown as string] = andConditions
   }
 
-  const { count, rows: courses } = await Course.findAndCountAll({
-    where,
-    limit: limitNum,
-    offset: offsetNum,
-    order: buildCourseListOrder(sortBy, sortOrder),
-  })
+  const [{ count, rows: courses }, totalReviews] = await Promise.all([
+    Course.findAndCountAll({
+      where,
+      limit: limitNum,
+      offset: offsetNum,
+      order: buildCourseListOrder(sortBy, sortOrder),
+    }),
+    Course.sum('reviewCount', { where }),
+  ])
 
   res.json({
     courses,
     total: count,
+    totalReviews: totalReviews ?? 0,
     limit: limitNum,
     offset: offsetNum,
   })

@@ -103,6 +103,7 @@ export type CourseWithRealisations = Course & {
 export type CoursesResponse = {
   courses: Course[]
   total: number
+  totalReviews?: number
   limit: number
   offset: number
 }
