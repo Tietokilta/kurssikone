@@ -14,7 +14,10 @@ export type CoursePageApiHandlers = {
 export type CoursePageStorageHandlers = {
   getUserId: () => Promise<string | null> | string | null
   setUserId: (id: string) => Promise<void> | void
-  /** Random ID identifying a visitor without a user ID, created on first call. */
+  /**
+   * Random ID identifying a visitor without a user ID, created on first call. Used for reactions,
+   * and registered as the user ID if they create a new account.
+   */
   getAnonymousReactorId: () => Promise<string> | string
 }
 
