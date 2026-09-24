@@ -62,7 +62,7 @@
   "web": {
     "siteDescription": "Course reviews and exams for Aalto University",
     "browserExtension": "Browser extension",
-    "extensionBanner": "KurssiKone is also available as a <link>browser extension</link> for Firefox & Chrome.",
+    "extensionBanner": "KurssiKone is also available as a browser extension for <firefox>Firefox</firefox> & <chrome>Chrome</chrome>.",
     "extensionTimeline": "The extension also features a more user friendly <bold>Timeline view</bold>.",
     "searchPlaceholder": "Search courses by code or name...",
     "clearSearch": "Clear search",

@@ -62,7 +62,7 @@
   "web": {
     "siteDescription": "Kurssiarvostelut ja tentit Aalto-yliopistossa",
     "browserExtension": "Selainlaajennus",
-    "extensionBanner": "KurssiKone on saatavilla myös <link>selainlaajennuksena</link> Firefoxille ja Chromelle.",
+    "extensionBanner": "KurssiKone on saatavilla myös selainlaajennuksena <firefox>Firefoxille</firefox> ja <chrome>Chromelle</chrome>.",
     "extensionTimeline": "Laajennus sisältää myös käyttäjäystävällisemmän <bold>Ajoitus</bold>-näkymän.",
     "searchPlaceholder": "Hae kursseja koodilla tai nimellä...",
     "clearSearch": "Tyhjennä haku",

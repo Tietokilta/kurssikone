@@ -11,9 +11,11 @@ import {
 import { getCourses, getFilterOptions } from '../api/client'
 import CourseCard from '../components/CourseCard'
 import CourseFilterPanel from '../components/CourseFilterPanel'
-import { isFirefox } from 'react-device-detect'
 
 const COURSES_PER_PAGE = 20
+const FIREFOX_EXTENSION_URL = 'https://addons.mozilla.org/en-US/firefox/addon/kurssikone/'
+const CHROME_EXTENSION_URL =
+  'https://chromewebstore.google.com/detail/dfchpeehiilpkpikbmgkdfpenkdcpeim'
 const EXTENSION_ALERT_DISMISSED_KEY = 'kurssikone_extensionAlertDismissed'
 const SESSION_SEARCH_KEY = 'kurssikone_searchSettings'
 
@@ -28,14 +30,18 @@ const loadSearchSettings = (): Partial<SearchSettings> => {
   try {
     const raw = sessionStorage.getItem(SESSION_SEARCH_KEY)
     if (raw) return JSON.parse(raw)
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
   return {}
 }
 
 const saveSearchSettings = (settings: SearchSettings) => {
   try {
     sessionStorage.setItem(SESSION_SEARCH_KEY, JSON.stringify(settings))
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
 const HomePage = () => {
@@ -165,9 +171,7 @@ const HomePage = () => {
           <LanguageSelector />
         </div>
       </div>
-      <p className="text-gray-600 mb-6">
-        {t('web.siteDescription')}
-      </p>
+      <p className="text-gray-600 mb-6">{t('web.siteDescription')}</p>
 
       {!extensionAlertDismissed && (
         <div className="relative mb-4 bg-gray-300 p-4 pr-10 rounded-lg">
@@ -183,25 +187,28 @@ const HomePage = () => {
             <Trans
               i18nKey="web.extensionBanner"
               components={{
-                link: <a
-                  href={
-                    isFirefox
-                      ? 'https://addons.mozilla.org/en-US/firefox/addon/kurssikone/'
-                      : 'http://chromewebstore.google.com/detail/dfchpeehiilpkpikbmgkdfpenkdcpeim'
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline hover:text-blue-800"
-                />,
+                firefox: (
+                  <a
+                    href={FIREFOX_EXTENSION_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline hover:text-blue-800"
+                  />
+                ),
+                chrome: (
+                  <a
+                    href={CHROME_EXTENSION_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline hover:text-blue-800"
+                  />
+                ),
               }}
             />
           </p>
 
           <p>
-            <Trans
-              i18nKey="web.extensionTimeline"
-              components={{ bold: <b /> }}
-            />
+            <Trans i18nKey="web.extensionTimeline" components={{ bold: <b /> }} />
           </p>
         </div>
       )}
