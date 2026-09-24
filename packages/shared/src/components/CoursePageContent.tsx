@@ -117,16 +117,19 @@ const CoursePageContent = ({
             deleteReview={deleteReview}
           />
         ) : (
-          <>
-            <NewAccountNotification
-              updateLocalState={refetchData}
-              setIsMakingNewReview={setIsMakingNewReview}
-              setUserId={setUserIdInStorage}
-              getUser={getUser}
-              makeUser={makeUser}
-            />
-            <Divider />
-          </>
+          reactorId && (
+            <>
+              <NewAccountNotification
+                generatedUserId={reactorId}
+                updateLocalState={refetchData}
+                setIsMakingNewReview={setIsMakingNewReview}
+                setUserId={setUserIdInStorage}
+                getUser={getUser}
+                makeUser={makeUser}
+              />
+              <Divider />
+            </>
+          )
         ))}
 
       <dl className="flex flex-col gap-4">

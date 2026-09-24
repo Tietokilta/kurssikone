@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { v4 as uuidv4 } from 'uuid'
 
 type Props = {
+  /** ID pre-generated on first visit (and already used for reactions); registered as the user ID. */
+  generatedUserId: string
   updateLocalState: () => Promise<void>
   setIsMakingNewReview: (isMakingNewReview: boolean) => void
   setUserId: (userId: string) => void | Promise<void>
@@ -11,6 +12,7 @@ type Props = {
 }
 
 const NewAccountNotification = ({
+  generatedUserId,
   updateLocalState,
   setIsMakingNewReview,
   setUserId,
@@ -18,7 +20,6 @@ const NewAccountNotification = ({
   makeUser,
 }: Props) => {
   const { t } = useTranslation()
-  const [generatedUserId] = useState<string>(uuidv4())
   const [previousUserId, setPreviousUserId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [view, setView] = useState<'new' | 'existing'>('new')
