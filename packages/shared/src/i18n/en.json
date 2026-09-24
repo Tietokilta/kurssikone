@@ -38,6 +38,7 @@
     "firstTimeTitle": "Looks like this is your first time making a review!",
     "newUserIdLabel": "Your new User ID is:",
     "copy": "Copy",
+    "copiedToClipboard": "Copied to clipboard!",
     "userIdExplanation": "This ID serves as your username & password.",
     "saveIdWarning": "Save this ID somewhere safe",
     "saveIdDetail": "if you want to be able to edit your reviews later.",

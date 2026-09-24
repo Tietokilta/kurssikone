@@ -22,6 +22,7 @@ const NewAccountNotification = ({
   const [previousUserId, setPreviousUserId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
   const [view, setView] = useState<'new' | 'existing'>('new')
+  const [copied, setCopied] = useState(false)
 
   const handleSettingNewUserId = async () => {
     await makeUser(generatedUserId)
@@ -56,12 +57,15 @@ const NewAccountNotification = ({
             {t('shared.newUserIdLabel')} <i>{generatedUserId}</i>
             <button
               className="btn-secondary ml-2 px-2 py-1"
-              onClick={() => {
-                navigator.clipboard.writeText(generatedUserId)
+              onClick={async () => {
+                await navigator.clipboard.writeText(generatedUserId)
+                setCopied(true)
+                setTimeout(() => setCopied(false), 2000)
               }}
             >
               {t('shared.copy')}
             </button>
+            {copied && <span className="ml-2">{t('shared.copiedToClipboard')}</span>}
           </p>
 
           <p>{t('shared.userIdExplanation')}</p>
