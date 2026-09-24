@@ -30,7 +30,8 @@ function buildCourseListOrder(sortBy: SortBy, sortOrder: SortOrder): OrderItem[]
   const MIN_REVIEWS = 3
   switch (sortBy) {
     case 'best':
-      return [literal(`(COALESCE(review_count, 0)::float / (COALESCE(review_count, 0) + ${MIN_REVIEWS}) * COALESCE(avg_quality_score, 0) + ${MIN_REVIEWS}::float / (COALESCE(review_count, 0) + ${MIN_REVIEWS}) * (SELECT COALESCE(AVG(avg_quality_score), 3) FROM courses WHERE review_count > 0)) ${dir} NULLS LAST, code ASC`)]
+      // Reviewed courses always come before unreviewed ones, regardless of direction
+      return [literal(`(COALESCE(review_count, 0) > 0) DESC, (COALESCE(review_count, 0)::float / (COALESCE(review_count, 0) + ${MIN_REVIEWS}) * COALESCE(avg_quality_score, 0) + ${MIN_REVIEWS}::float / (COALESCE(review_count, 0) + ${MIN_REVIEWS}) * (SELECT COALESCE(AVG(avg_quality_score), 3) FROM courses WHERE review_count > 0)) ${dir} NULLS LAST, code ASC`)]
     case 'quality':
       return [literal(`avg_quality_score ${dir} NULLS LAST, code ASC`)]
     case 'workload':
