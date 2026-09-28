@@ -3,6 +3,22 @@ import { Course, CourseRealisation } from '../models'
 
 const SISU_API_BASE = 'https://course.api.aalto.fi/api/sisu/v1'
 
+const HTML_ENTITIES: Record<string, string> = {
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&#x27;': "'",
+  '&#x2F;': '/',
+}
+const ENTITY_PATTERN = new RegExp(Object.keys(HTML_ENTITIES).join('|'), 'g')
+
+function decodeHtmlEntities(text: string | null | undefined): string | null {
+  if (!text) return null
+  return text.replace(ENTITY_PATTERN, (match) => HTML_ENTITIES[match])
+}
+
 interface SisuCourseUnit {
   id: string
   code: string
@@ -77,8 +93,8 @@ async function syncCourses(): Promise<number> {
         id: unit.id,
         code: unit.code,
         groupId: unit.groupId,
-        nameFi: unit.name?.fi || null,
-        nameEn: unit.name?.en || null,
+        nameFi: decodeHtmlEntities(unit.name?.fi),
+        nameEn: decodeHtmlEntities(unit.name?.en),
         creditsMin: unit.credits?.min ?? null,
         creditsMax: unit.credits?.max ?? null,
         validityStart: parseDate(unit['validityPeriod.startDate']),
@@ -130,9 +146,9 @@ async function syncRealisations(): Promise<number> {
       id: realisation.id,
       courseId,
       code: realisation.code,
-      nameFi: realisation.name?.fi || null,
-      nameEn: realisation.name?.en || null,
-      nameSv: realisation.name?.sv || null,
+      nameFi: decodeHtmlEntities(realisation.name?.fi),
+      nameEn: decodeHtmlEntities(realisation.name?.en),
+      nameSv: decodeHtmlEntities(realisation.name?.sv),
       startDate: parseDate(realisation.startDate),
       endDate: parseDate(realisation.endDate),
       creditsMin: realisation.credits?.min ?? null,
@@ -147,8 +163,8 @@ async function syncRealisations(): Promise<number> {
       teacherInCharge: realisation.summary?.teacherInCharge || null,
       languageCodes: realisation.languageOfInstructionCodes || null,
       organizationId: realisation.organizationId || null,
-      organizationNameEn: realisation.organizationName?.en || null,
-      organizationNameFi: realisation.organizationName?.fi || null,
+      organizationNameEn: decodeHtmlEntities(realisation.organizationName?.en),
+      organizationNameFi: decodeHtmlEntities(realisation.organizationName?.fi),
       gradingScale: realisation.summary?.gradingScale?.en || null,
       level: realisation.summary?.level?.en || null,
       enrolmentStart: parseDate(realisation.enrolmentStartDate),

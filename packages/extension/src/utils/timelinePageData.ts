@@ -14,11 +14,21 @@ import type {
 import type { ParsedPlannedPeriod } from './parsePlannedPeriods'
 import type { ParsedCourseUnitSelection } from '../pages/TimelinePage'
 
+const HTML_ENTITY_MAP: Record<string, string> = {
+  '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'", '&#x27;': "'",
+}
+const ENTITY_RE = new RegExp(Object.keys(HTML_ENTITY_MAP).join('|'), 'g')
+
+function decodeHtmlEntities(text: string): string {
+  return text.replace(ENTITY_RE, (m) => HTML_ENTITY_MAP[m])
+}
+
 function localizedName(fi: string | undefined | null, en: string | undefined | null, fallback: string): string {
   const preferFi = i18n.language === 'fi'
   const primary = preferFi ? fi?.trim() : en?.trim()
   const secondary = preferFi ? en?.trim() : fi?.trim()
-  return primary || secondary || fallback
+  const name = primary || secondary || fallback
+  return decodeHtmlEntities(name)
 }
 
 export const DEFAULT_SISU_ROOT_ID = 'aalto-university-root-id'
