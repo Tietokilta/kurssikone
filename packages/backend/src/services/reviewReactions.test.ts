@@ -40,19 +40,18 @@ describe('compareReviews', () => {
     expect(sortedIds([agreed, helpful, both])).toEqual([3, 2, 1])
   })
 
-  it('then by year (missing year last), then recency, then funny', () => {
+  it('then by year (missing year last), then recency', () => {
     const noYear = review(1, { year: null, timestampCreated: 9999 })
     const older = review(2, { year: 2023, timestampCreated: 9999 })
     const newerYearOld = review(3, { year: 2025, timestampCreated: 1 })
     const newerYearRecent = review(4, { year: 2025, timestampCreated: 2 })
-    const newerYearRecentFunny = review(5, {
-      year: 2025,
-      timestampCreated: 2,
-      reactionCounts: { funny: 3 },
-    })
-    expect(sortedIds([noYear, older, newerYearOld, newerYearRecent, newerYearRecentFunny])).toEqual(
-      [5, 4, 3, 2, 1]
-    )
+    expect(sortedIds([noYear, older, newerYearOld, newerYearRecent])).toEqual([4, 3, 2, 1])
+  })
+
+  it('ignores funny reactions entirely', () => {
+    const funny = review(1, { reactionCounts: { funny: 9 } })
+    const plain = review(2)
+    expect(sortedIds([funny, plain])).toEqual([2, 1])
   })
 
   it('subtracts disagree from agree and outdated from both, capped at 0', () => {
@@ -74,8 +73,8 @@ describe('compareReviews', () => {
     expect(sortedIds([disagreed, outdated, plain])).toEqual([2, 1, 3])
   })
 
-  it('ignores disagree and funny counts above recency', () => {
-    const disagreed = review(1, { timestampCreated: 1, reactionCounts: { disagree: 9, funny: 9 } })
+  it('ignores disagree counts above recency', () => {
+    const disagreed = review(1, { timestampCreated: 1, reactionCounts: { disagree: 9 } })
     const recent = review(2, { timestampCreated: 2 })
     expect(sortedIds([disagreed, recent])).toEqual([2, 1])
   })

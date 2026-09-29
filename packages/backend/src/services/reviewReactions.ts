@@ -41,7 +41,7 @@ const agreeScore = ({ agree, disagree, outdated }: ReactionCounts) =>
 
 /**
  * Sort priority (highest first): has text, helpful score, agree score, latest year,
- * most recent, funniest.
+ * most recent. Funny reactions do not affect the order.
  */
 export const compareReviews = (a: SortableReview, b: SortableReview): number =>
   Number(reviewHasText(b)) - Number(reviewHasText(a)) ||
@@ -49,7 +49,6 @@ export const compareReviews = (a: SortableReview, b: SortableReview): number =>
   agreeScore(b.reactionCounts) - agreeScore(a.reactionCounts) ||
   (b.year ?? -Infinity) - (a.year ?? -Infinity) ||
   Number(b.timestampCreated) - Number(a.timestampCreated) ||
-  b.reactionCounts.funny - a.reactionCounts.funny ||
   b.id - a.id
 
 export const getReactionCounts = async (
