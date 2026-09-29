@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import { Review, ReviewReaction } from '../models'
-import { ReactionType } from '../models/reviewReaction'
 import { sequelize } from '../utils/db'
 import { Op } from 'sequelize'
 import hashIt from 'hash-it'
@@ -144,14 +143,6 @@ const reactionsResponse = async (reviewId: number, reactorHash: string) => {
   }
 }
 
-// Mutually exclusive pairs: agree/disagree and helpful/outdated
-const oppositeReaction: Partial<Record<ReactionType, ReactionType>> = {
-  agree: 'disagree',
-  disagree: 'agree',
-  helpful: 'outdated',
-  outdated: 'helpful',
-}
-
 router.post('/:id/reactions', async (req, res) => {
   const request = parseReactionRequest(req.params.id, req.body)
   if (!request) {
@@ -170,20 +161,11 @@ router.post('/:id/reactions', async (req, res) => {
     return res.status(403).json({ error: 'Cannot react to own review' })
   }
 
-  await sequelize.transaction(async (transaction) => {
-    const opposite = oppositeReaction[type]
-    if (opposite) {
-      await ReviewReaction.destroy({
-        where: { reviewId, reactorId: reactorHash, type: opposite },
-        transaction,
-      })
-    }
-    await ReviewReaction.findOrCreate({
-      where: { reviewId, reactorId: reactorHash, type },
-      defaults: { timestampCreated: Date.now() },
-      transaction,
-    })
-  })
+  // Only one reaction per review: a new reaction replaces the previous one
+  await ReviewReaction.upsert(
+    { reviewId, reactorId: reactorHash, type, timestampCreated: Date.now() },
+    { conflictFields: ['review_id', 'reactor_id'] }
+  )
 
   res.json(await reactionsResponse(reviewId, reactorHash))
 })

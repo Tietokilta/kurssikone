@@ -1,3 +1,5 @@
+import { reactionIcons } from '../assets/reactions'
+
 export const scoreTypes = [
   {
     name: 'qualityScore',
@@ -16,11 +18,11 @@ export const scoreTypes = [
 ] as const
 
 export const reactionTypes = [
-  { type: 'helpful', emoji: '🫶', labelKey: 'shared.reactionHelpful' },
-  { type: 'agree', emoji: '👍', labelKey: 'shared.reactionAgree' },
-  { type: 'disagree', emoji: '👎', labelKey: 'shared.reactionDisagree' },
-  { type: 'funny', emoji: '😂', labelKey: 'shared.reactionFunny' },
-  { type: 'outdated', emoji: '🪦', labelKey: 'shared.reactionOutdated' },
+  { type: 'helpful', icon: reactionIcons.helpful, labelKey: 'shared.reactionHelpful' },
+  { type: 'agree', icon: reactionIcons.agree, labelKey: 'shared.reactionAgree' },
+  { type: 'disagree', icon: reactionIcons.disagree, labelKey: 'shared.reactionDisagree' },
+  { type: 'funny', icon: reactionIcons.funny, labelKey: 'shared.reactionFunny' },
+  { type: 'outdated', icon: reactionIcons.outdated, labelKey: 'shared.reactionOutdated' },
 ] as const
 
 export const reviewHasText = (review: {

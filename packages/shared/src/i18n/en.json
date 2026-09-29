@@ -63,7 +63,8 @@
     "reactionDisagree": "Disagree",
     "reactionFunny": "Funny",
     "reactionOutdated": "Outdated",
-    "cannotReactToOwnReview": "You can't react to your own review"
+    "cannotReactToOwnReview": "You can't react to your own review",
+    "addReaction": "Add reaction"
   },
   "web": {
     "siteDescription": "Course reviews and exams for Aalto University",

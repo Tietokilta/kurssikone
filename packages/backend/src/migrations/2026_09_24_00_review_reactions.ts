@@ -14,7 +14,8 @@ module.exports = {
       type: { type: DataTypes.TEXT, allowNull: false },
       timestamp_created: { type: DataTypes.BIGINT, allowNull: false },
     })
-    await queryInterface.addIndex('review_reactions', ['review_id', 'reactor_id', 'type'], {
+    // One reaction per reactor per review
+    await queryInterface.addIndex('review_reactions', ['review_id', 'reactor_id'], {
       unique: true,
     })
   },

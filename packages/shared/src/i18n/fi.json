@@ -63,7 +63,8 @@
     "reactionDisagree": "Eri mieltä",
     "reactionFunny": "Hauska",
     "reactionOutdated": "Vanhentunut",
-    "cannotReactToOwnReview": "Et voi reagoida omaan arvioosi"
+    "cannotReactToOwnReview": "Et voi reagoida omaan arvioosi",
+    "addReaction": "Lisää reaktio"
   },
   "web": {
     "siteDescription": "Kurssiarvostelut ja tentit Aalto-yliopistossa",
