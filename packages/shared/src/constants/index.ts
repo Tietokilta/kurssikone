@@ -1,3 +1,5 @@
+import { reactionIcons } from '../assets/reactions'
+
 export const scoreTypes = [
   {
     name: 'qualityScore',
@@ -14,6 +16,21 @@ export const scoreTypes = [
     labelsKey: 'shared.workloadLabels',
   },
 ] as const
+
+export const reactionTypes = [
+  { type: 'helpful', icon: reactionIcons.helpful, labelKey: 'shared.reactionHelpful' },
+  { type: 'agree', icon: reactionIcons.agree, labelKey: 'shared.reactionAgree' },
+  { type: 'disagree', icon: reactionIcons.disagree, labelKey: 'shared.reactionDisagree' },
+  { type: 'funny', icon: reactionIcons.funny, labelKey: 'shared.reactionFunny' },
+  { type: 'outdated', icon: reactionIcons.outdated, labelKey: 'shared.reactionOutdated' },
+] as const
+
+export const reviewHasText = (review: {
+  learnings?: string | null
+  tasks?: string | null
+  otherInfo?: string | null
+}): boolean =>
+  [review.learnings, review.tasks, review.otherInfo].some((text) => !!text && text.trim() !== '')
 
 const LEVEL_NAMES_FI: [string, string][] = [
   ['basic', 'Perusopinnot'],

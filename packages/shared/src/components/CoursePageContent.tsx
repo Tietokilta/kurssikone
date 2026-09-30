@@ -4,12 +4,14 @@ import ReviewMakeForm from './ReviewMakeForm'
 import ReviewItem from './ReviewItem'
 import Divider from './Divider'
 import NewAccountNotification from './NewAccountNotification'
+import { ReactionHandlers } from './ReviewReactions'
 import { scoreTypes } from '../constants'
 import { NewReview, Review, ReviewAverages, ReviewsAndCount } from '../types'
 
-export type CoursePageContentProps = {
+export type CoursePageContentProps = ReactionHandlers & {
   courseCode: string
   userId: string | null
+  reactorId: string | null
   otherReviewsAndCount: ReviewsAndCount
   averages: ReviewAverages
   isMakingNewReview: boolean
@@ -29,6 +31,7 @@ export type CoursePageContentProps = {
 const CoursePageContent = ({
   courseCode,
   userId,
+  reactorId,
   otherReviewsAndCount,
   averages,
   isMakingNewReview,
@@ -43,8 +46,11 @@ const CoursePageContent = ({
   makeOrEditReview,
   deleteReview,
   onAdminDelete,
+  addReaction,
+  removeReaction,
 }: CoursePageContentProps) => {
   const { t } = useTranslation()
+  const reactions = { reactorId, addReaction, removeReaction }
   const { reviews, count: otherReviewCount } = otherReviewsAndCount
 
   const reviewCount = otherReviewCount + (userReview ? 1 : 0)
@@ -111,25 +117,29 @@ const CoursePageContent = ({
             deleteReview={deleteReview}
           />
         ) : (
-          <>
-            <NewAccountNotification
-              updateLocalState={refetchData}
-              setIsMakingNewReview={setIsMakingNewReview}
-              setUserId={setUserIdInStorage}
-              getUser={getUser}
-              makeUser={makeUser}
-            />
-            <Divider />
-          </>
+          reactorId && (
+            <>
+              <NewAccountNotification
+                generatedUserId={reactorId}
+                updateLocalState={refetchData}
+                setIsMakingNewReview={setIsMakingNewReview}
+                setUserId={setUserIdInStorage}
+                getUser={getUser}
+                makeUser={makeUser}
+              />
+              <Divider />
+            </>
+          )
         ))}
 
-      <dl className="flex flex-col gap-4">
+      <dl className={`flex flex-col gap-4${reviewCount > 0 ? ' pb-36' : ''}`}>
         {userReview && (
           <ReviewItem
             review={userReview}
             scoreTypes={scoreTypesWithValues}
             isUserReview
             onAdminDelete={onAdminDelete}
+            reactions={reactions}
           />
         )}
         {reviews.map((review) => (
@@ -138,6 +148,7 @@ const CoursePageContent = ({
             review={review}
             scoreTypes={scoreTypesWithValues}
             onAdminDelete={onAdminDelete}
+            reactions={reactions}
           />
         ))}
       </dl>

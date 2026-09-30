@@ -3,15 +3,19 @@ import { Review } from '../types'
 import dayjs from 'dayjs'
 import Divider from './Divider'
 import ScoreBar from './ScoreBar'
+import ReviewReactions, { ReactionHandlers } from './ReviewReactions'
+import { reviewHasText } from '../constants'
 
 type Props = {
   review: Review
   scoreTypes: { name: string; field: string }[]
   isUserReview?: boolean
   onAdminDelete?: (reviewId: number) => void
+  /** Enables reactions when provided. */
+  reactions?: ReactionHandlers & { reactorId: string | null }
 }
 
-const ReviewItem = ({ review, scoreTypes, isUserReview, onAdminDelete }: Props) => {
+const ReviewItem = ({ review, scoreTypes, isUserReview, onAdminDelete, reactions }: Props) => {
   const { t } = useTranslation()
   const scores = scoreTypes.map(({ name, field }) => {
     return {
@@ -95,6 +99,9 @@ const ReviewItem = ({ review, scoreTypes, isUserReview, onAdminDelete }: Props) 
               <dt className="font-bold text-sm">{t('shared.otherInfo')}</dt>
               <dd className="whitespace-pre-line">{review.otherInfo}</dd>
             </div>
+          )}
+          {reactions && reviewHasText(review) && (
+            <ReviewReactions review={review} isUserReview={isUserReview} {...reactions} />
           )}
         </div>
       </div>

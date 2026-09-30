@@ -7,6 +7,9 @@ const config: Config = {
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { rootMode: 'upward-optional' }],
   },
+  moduleNameMapper: {
+    '\\.webp$': '<rootDir>/src/tests/fileStub.ts',
+  },
   transformIgnorePatterns: ['/node_modules/(?!@kurssikone/)'],
 }
 

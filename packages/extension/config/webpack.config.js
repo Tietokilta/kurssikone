@@ -310,6 +310,12 @@ module.exports = function (webpackEnv) {
                 },
               },
             },
+            // Always inline webp (e.g. shared reaction icons): the content script runs on
+            // Sisu's origin, so emitted asset URLs would not resolve.
+            {
+              test: /\.webp$/,
+              type: 'asset/inline',
+            },
             // "url" loader works like "file" loader except that it embeds assets
             // smaller than specified limit in bytes as data URLs to avoid requests.
             // A missing `test` is equivalent to a match.
