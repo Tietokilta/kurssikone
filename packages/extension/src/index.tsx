@@ -5,6 +5,7 @@ import i18n from './i18n'
 import CoursePage from './pages/CoursePage'
 import ExamsPage from './pages/ExamsPage'
 import SearchResultPage from './pages/SearchResultPage'
+import RecentAttainmentReview from './pages/RecentAttainmentReview'
 import { waitForElement } from './utils/waitForElement'
 import TimelinePage from './pages/TimelinePage'
 
@@ -46,6 +47,8 @@ let observer = new MutationObserver((mutations) => {
 
       const isTimelinePage = node.nodeName === 'APP-TIMELINE'
 
+      const isRecentAttainments = node.nodeName === 'APP-RECENT-ATTAINMENTS'
+
       if ((isModal || isAppCourseUnitInfo) && once) {
         once = false
         handleCoursePage(isModal, node as HTMLElement)
@@ -53,6 +56,8 @@ let observer = new MutationObserver((mutations) => {
         handleSearchResult(node)
       } else if (isTimelinePage) {
         handleTimeline(node)
+      } else if (isRecentAttainments && !(node as HTMLElement).querySelector('.kurssikone-review-btn')) {
+        handleRecentAttainments(node as HTMLElement)
       }
     }
   })
@@ -100,6 +105,64 @@ const handleSearchResult = (node: Node) => {
   const courseCode = searchResultBody.querySelector('.courseunit-code')?.textContent || ''
   const root = ReactDOM.createRoot(reactRoot)
   root.render(<SearchResultPage courseCode={courseCode} />)
+}
+
+let reviewModalContainer: HTMLElement | null = null
+
+// Modals are rendered into a host on <body> so Sisu's layout can't clip or offset them
+const getReviewModalContainer = (): HTMLElement => {
+  if (reviewModalContainer?.isConnected) return reviewModalContainer
+  const shadowHost = document.createElement('div')
+  shadowHost.setAttribute('class', 'kurssikone-shadow-host')
+  document.body.append(shadowHost)
+  reviewModalContainer = document.createElement('div')
+  createShadowRoot(shadowHost).appendChild(reviewModalContainer)
+  return reviewModalContainer
+}
+
+const handleRecentAttainments = async (container: HTMLElement) => {
+  await waitForElement('app-attainment-info', container)
+  const attainmentItems = container.querySelectorAll('app-attainment-info')
+  attainmentItems.forEach((item) => {
+    const li = item.closest('li')
+    if (!li || li.querySelector('.kurssikone-review-btn')) return
+    const getRow = () => ({
+      description: item.querySelector('.app-attainment-info__description')?.textContent ?? '',
+      date: item.querySelector('.app-attainment-info__description__date')?.textContent?.trim() ?? '',
+    })
+    // Sisu fills in the course name after the row is added; until then the text starts with ", 5 cr"
+    const hasCourseName = () => !/^\s*(,|$)/.test(getRow().description)
+    const waitForRow = () =>
+      new Promise<ReturnType<typeof getRow>>((resolve) => {
+        if (hasCourseName()) return resolve(getRow())
+        const rowObserver = new MutationObserver(() => {
+          if (!hasCourseName()) return
+          rowObserver.disconnect()
+          resolve(getRow())
+        })
+        rowObserver.observe(item, { childList: true, subtree: true, characterData: true })
+      })
+
+    const shadowHost = document.createElement('div')
+    shadowHost.setAttribute('class', 'kurssikone-shadow-host kurssikone-review-btn')
+    // Placed right after the row's last line of text (the grade)
+    shadowHost.style.cssText = 'display: inline-block; vertical-align: baseline;'
+    const descriptionElements = item.querySelectorAll('p.app-attainment-info__description')
+    const lastDescriptionElement = descriptionElements[descriptionElements.length - 1]
+    if (!lastDescriptionElement) return
+    lastDescriptionElement.append(shadowHost)
+
+    const shadow = createShadowRoot(shadowHost)
+    const reactRoot = document.createElement('div')
+    shadow.appendChild(reactRoot)
+
+    ReactDOM.createRoot(reactRoot).render(
+      <RecentAttainmentReview
+        waitForRow={waitForRow}
+        modalContainer={getReviewModalContainer()}
+      />
+    )
+  })
 }
 
 const findModalContainer = (node: HTMLElement): HTMLElement => {
@@ -267,3 +330,15 @@ observer.observe(document.body, {
   attributes: false,
   characterData: false,
 })
+
+// Handle elements already in the DOM (e.g. front page widgets loaded before the observer)
+const existingAttainments = document.querySelector('app-recent-attainments')
+if (existingAttainments) {
+  handleRecentAttainments(existingAttainments as HTMLElement)
+} else {
+  waitForElement('app-recent-attainments').then((el) => {
+    if (!el.querySelector('.kurssikone-review-btn')) {
+      handleRecentAttainments(el)
+    }
+  })
+}

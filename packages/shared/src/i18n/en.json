@@ -180,6 +180,8 @@
     "seasonFall": "Fall",
     "seasonSpring": "Spring",
     "seasonSummer": "Summer",
-    "noTeachingYear": "No teaching ({{year}})"
+    "noTeachingYear": "No teaching ({{year}})",
+    "close": "Close",
+    "writeReview": "Write a Review"
   }
 }

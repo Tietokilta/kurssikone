@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "Copied to clipboard!" confirmation when copying a new user ID
 - Adding reactions on reviews
+- "Write a Review" button on each course in the "Latest completed credits" widget on the Sisu front page, opening a modal for writing a review of that course (shown only for courses you haven't reviewed yet)
 
 ### Changed
 
