@@ -182,6 +182,7 @@
     "seasonSummer": "Kesä",
     "noTeachingYear": "Ei opetusta ({{year}})",
     "close": "Sulje",
-    "writeReview": "Kirjoita arvostelu"
+    "writeReview": "Kirjoita arvostelu",
+    "alreadyReviewed": "Arvosteltu jo"
   }
 }

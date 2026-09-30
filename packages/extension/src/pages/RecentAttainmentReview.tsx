@@ -191,17 +191,17 @@ const RecentAttainmentReview = ({ waitForRow, modalContainer }: Props) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
-  if (!row || (!isOpen && hasReview !== false)) return null
+  if (!row || hasReview === null) return null
 
   return (
     // The button sits inside Sisu's row button, so clicks must not reach it
     <div className="ml-2" onClick={(e) => e.stopPropagation()}>
       <button
-        className="btn-primary inline-flex items-center gap-1 px-2 py-0.5 text-xs"
+        className={`${hasReview ? 'btn-secondary opacity-70' : 'btn-primary'} inline-flex items-center gap-1 px-2 py-0.5 text-xs`}
         onClick={() => setIsOpen(true)}
       >
         <img src={chrome.runtime.getURL('icon16.png')} width={14} height={14} alt="" />
-        {t('extension.writeReview')}
+        {hasReview ? t('extension.alreadyReviewed') : t('extension.writeReview')}
       </button>
       {isOpen &&
         createPortal(

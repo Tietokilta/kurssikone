@@ -182,6 +182,7 @@
     "seasonSummer": "Summer",
     "noTeachingYear": "No teaching ({{year}})",
     "close": "Close",
-    "writeReview": "Write a Review"
+    "writeReview": "Write a Review",
+    "alreadyReviewed": "Already reviewed"
   }
 }
