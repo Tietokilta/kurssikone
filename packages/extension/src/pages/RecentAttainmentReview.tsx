@@ -1,10 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
-import { NewAccountNotification, ReviewMakeForm, useCoursePageData } from '@kurssikone/shared'
+import { NewAccountNotification, ReviewMakeForm, type Review } from '@kurssikone/shared'
 import {
-  getAveragesForCourse,
-  getReviewsForCourseExcludingUserReview,
   getUserReviewForCourse,
   getUser,
   makeUser,
@@ -15,118 +13,104 @@ import { resolveCompletedCourse } from '../utils/recentAttainmentCourse'
 import { getAnonymousReactorId, getUserIdFromStorage, setUserIdInStorageFunc } from './CoursePage'
 
 type Props = {
-  /** Resolves with the widget row once Sisu has rendered its course name. */
+  /** Resolves once Sisu has rendered the row's course name. */
   waitForRow: () => Promise<AttainmentRow>
-  /** Element outside Sisu's layout that the modal is rendered into. */
   modalContainer: HTMLElement
 }
 
 type AttainmentRow = {
-  /** Row text from the widget, e.g. `Programming Parallel Computers D, 5 cr, 31.5.2026`. */
+  /** e.g. `Programming Parallel Computers D, 5 cr, 31.5.2026` */
   description: string
-  /** Completion date as shown in the widget (`d.m.yyyy`). */
+  /** `d.m.yyyy` */
   date: string
 }
 
 type ResolvedCourse = { code: string; name: string }
 
+type UserState = {
+  userId: string | null
+  /** Registered as the user ID if the user creates a new account. */
+  generatedUserId: string
+  userReview: Review | null
+}
+
 const ReviewForm = ({ courseCode, onClose }: { courseCode: string; onClose: () => void }) => {
   const { t } = useTranslation()
-  const {
-    userId,
-    reactorId,
-    isLoading,
-    hasError,
-    userReview,
-    fetchAndSetUserReview,
-    fetchAndSetAverages,
-    refetchData,
-    setUserIdInStorage,
-  } = useCoursePageData({
-    courseCode,
-    api: {
-      getAveragesForCourse,
-      getReviewsForCourseExcludingUserReview,
-      getUserReviewForCourse,
-    },
-    storage: {
-      getUserId: getUserIdFromStorage,
-      setUserId: setUserIdInStorageFunc,
-      getAnonymousReactorId,
-    },
-  })
+  const [user, setUser] = useState<UserState | null>(null)
+  const [hasError, setHasError] = useState(false)
 
-  const setIsMakingNewReview = (value: boolean) => {
-    if (!value) onClose()
+  const loadUser = async () => {
+    const userId = await getUserIdFromStorage()
+    const userReview = userId ? await getUserReviewForCourse(courseCode, userId) : null
+    const generatedUserId = userId ?? (await getAnonymousReactorId())
+    setUser({ userId, generatedUserId, userReview })
   }
+
+  useEffect(() => {
+    loadUser().catch((error) => {
+      console.error('[KurssiKone] Failed to load review form data:', error)
+      setHasError(true)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courseCode])
 
   if (hasError) {
     return <p className="text-gray-600">{t('shared.genericError')}</p>
   }
 
-  if (isLoading) {
+  if (!user) {
     return <p className="text-gray-600">{t('shared.loading')}</p>
   }
 
-  if (userId) {
+  if (user.userId) {
     return (
       <ReviewMakeForm
-        userId={userId}
+        userId={user.userId}
         courseCode={courseCode}
-        currentUserReview={userReview}
-        refetchUserReview={fetchAndSetUserReview}
-        refetchAverages={fetchAndSetAverages}
-        setIsMakingNewReview={setIsMakingNewReview}
+        currentUserReview={user.userReview}
+        // The modal closes after saving, so there is nothing to refetch
+        refetchUserReview={async () => {}}
+        refetchAverages={async () => {}}
+        setIsMakingNewReview={(value) => {
+          if (!value) onClose()
+        }}
         makeOrEditReview={makeOrEditReview}
         deleteReview={deleteReview}
       />
     )
   }
 
-  if (!reactorId) return null
-
   return (
     <NewAccountNotification
-      generatedUserId={reactorId}
-      updateLocalState={refetchData}
+      generatedUserId={user.generatedUserId}
+      updateLocalState={loadUser}
       // Switching to an existing user ID should continue to the form, not close the modal
       setIsMakingNewReview={() => {}}
-      setUserId={setUserIdInStorage}
+      setUserId={setUserIdInStorageFunc}
       getUser={getUser}
       makeUser={makeUser}
     />
   )
 }
 
-const ReviewModal = ({ description, date, onClose }: AttainmentRow & { onClose: () => void }) => {
+const ReviewModal = ({ course, onClose }: { course: ResolvedCourse; onClose: () => void }) => {
   const { t } = useTranslation()
-  const [course, setCourse] = useState<ResolvedCourse | null>(null)
-  const [status, setStatus] = useState<'loading' | 'ready' | 'notFound' | 'error'>('loading')
+  const isDirty = useRef(false)
 
-  useEffect(() => {
-    let cancelled = false
-    resolveCompletedCourse(description, date)
-      .then((resolved) => {
-        if (cancelled) return
-        setCourse(resolved)
-        setStatus(resolved ? 'ready' : 'notFound')
-      })
-      .catch((error) => {
-        console.error('[KurssiKone] Failed to resolve completed course:', error)
-        if (!cancelled) setStatus('error')
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [description, date])
+  // Closing by hand asks before discarding anything the user has typed
+  const requestClose = () => {
+    if (!isDirty.current || window.confirm(t('extension.confirmDiscardReview'))) onClose()
+  }
+  const requestCloseRef = useRef(requestClose)
+  requestCloseRef.current = requestClose
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') requestCloseRef.current()
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [onClose])
+  }, [])
 
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/50 p-4">
@@ -134,22 +118,20 @@ const ReviewModal = ({ description, date, onClose }: AttainmentRow & { onClose: 
         role="dialog"
         aria-modal="true"
         className="w-full max-w-[820px] max-h-[90vh] overflow-y-auto rounded bg-white px-6 py-4 text-left shadow-xl"
+        onInput={() => {
+          isDirty.current = true
+        }}
       >
         <div className="flex items-start justify-between gap-4">
           <h2 className="flex items-center gap-2 text-xl font-medium">
             <img src={chrome.runtime.getURL('icon16.png')} width={20} height={20} alt="" />
-            {course ? `${course.code} ${course.name}` : description.split(',')[0]}
+            {course.code} {course.name}
           </h2>
-          <button className="btn-secondary" onClick={onClose}>
+          <button className="btn-secondary" onClick={requestClose}>
             {t('extension.close')}
           </button>
         </div>
-        {status === 'loading' && <p className="text-gray-600">{t('shared.loading')}</p>}
-        {status === 'notFound' && (
-          <p className="text-gray-600">{t('extension.courseCodeNotFound')}</p>
-        )}
-        {status === 'error' && <p className="text-gray-600">{t('shared.genericError')}</p>}
-        {course && <ReviewForm courseCode={course.code} onClose={onClose} />}
+        <ReviewForm courseCode={course.code} onClose={onClose} />
       </div>
     </div>
   )
@@ -157,41 +139,39 @@ const ReviewModal = ({ description, date, onClose }: AttainmentRow & { onClose: 
 
 const RecentAttainmentReview = ({ waitForRow, modalContainer }: Props) => {
   const { t } = useTranslation()
-  const [row, setRow] = useState<AttainmentRow | null>(null)
+  // Stays null, hiding the button, if the row can't be matched to a course
+  const [course, setCourse] = useState<ResolvedCourse | null>(null)
+  const [hasReview, setHasReview] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
-  // null until it's known whether the user has already reviewed the course
-  const [hasReview, setHasReview] = useState<boolean | null>(null)
 
   useEffect(() => {
     // Rechecked when the modal closes, as a review may have just been published
     if (isOpen) return
     let cancelled = false
     const check = async () => {
-      const loadedRow = await waitForRow()
-      if (cancelled) return
-      setRow(loadedRow)
-      const [course, userId] = await Promise.all([
-        resolveCompletedCourse(loadedRow.description, loadedRow.date),
+      const row = await waitForRow()
+      const [resolved, userId] = await Promise.all([
+        resolveCompletedCourse(row.description, row.date),
         getUserIdFromStorage(),
       ])
-      if (!course || !userId) return false
-      return (await getUserReviewForCourse(course.code, userId)) !== null
+      if (!resolved) return
+      const reviewed = userId
+        ? (await getUserReviewForCourse(resolved.code, userId)) !== null
+        : false
+      if (cancelled) return
+      setHasReview(reviewed)
+      setCourse(resolved)
     }
-    check()
-      .catch((error) => {
-        console.error('[KurssiKone] Failed to check for an existing review:', error)
-        return false
-      })
-      .then((reviewed) => {
-        if (!cancelled && reviewed !== undefined) setHasReview(reviewed)
-      })
+    check().catch((error) => {
+      console.error('[KurssiKone] Failed to set up review button:', error)
+    })
     return () => {
       cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen])
 
-  if (!row || hasReview === null) return null
+  if (!course) return null
 
   return (
     // The button sits inside Sisu's row button, so clicks must not reach it
@@ -205,11 +185,7 @@ const RecentAttainmentReview = ({ waitForRow, modalContainer }: Props) => {
       </button>
       {isOpen &&
         createPortal(
-          <ReviewModal
-            description={row.description}
-            date={row.date}
-            onClose={() => setIsOpen(false)}
-          />,
+          <ReviewModal course={course} onClose={() => setIsOpen(false)} />,
           modalContainer
         )}
     </div>

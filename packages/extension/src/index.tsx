@@ -47,7 +47,14 @@ let observer = new MutationObserver((mutations) => {
 
       const isTimelinePage = node.nodeName === 'APP-TIMELINE'
 
-      const isRecentAttainments = node.nodeName === 'APP-RECENT-ATTAINMENTS'
+      // The widget may also arrive nested inside a larger added subtree
+      const recentAttainments =
+        node.nodeName === 'APP-RECENT-ATTAINMENTS'
+          ? (node as HTMLElement)
+          : node instanceof Element
+            ? node.querySelector<HTMLElement>('app-recent-attainments')
+            : null
+      if (recentAttainments) handleRecentAttainments(recentAttainments)
 
       if ((isModal || isAppCourseUnitInfo) && once) {
         once = false
@@ -56,8 +63,6 @@ let observer = new MutationObserver((mutations) => {
         handleSearchResult(node)
       } else if (isTimelinePage) {
         handleTimeline(node)
-      } else if (isRecentAttainments && !(node as HTMLElement).querySelector('.kurssikone-review-btn')) {
-        handleRecentAttainments(node as HTMLElement)
       }
     }
   })
@@ -141,6 +146,7 @@ const handleRecentAttainments = async (container: HTMLElement) => {
           resolve(getRow())
         })
         rowObserver.observe(item, { childList: true, subtree: true, characterData: true })
+        setTimeout(() => rowObserver.disconnect(), 30_000)
       })
 
     const shadowHost = document.createElement('div')
@@ -331,14 +337,6 @@ observer.observe(document.body, {
   characterData: false,
 })
 
-// Handle elements already in the DOM (e.g. front page widgets loaded before the observer)
-const existingAttainments = document.querySelector('app-recent-attainments')
-if (existingAttainments) {
-  handleRecentAttainments(existingAttainments as HTMLElement)
-} else {
-  waitForElement('app-recent-attainments').then((el) => {
-    if (!el.querySelector('.kurssikone-review-btn')) {
-      handleRecentAttainments(el)
-    }
-  })
-}
+// The widget may already be in the DOM before the observer starts
+const existingAttainments = document.querySelector<HTMLElement>('app-recent-attainments')
+if (existingAttainments) handleRecentAttainments(existingAttainments)

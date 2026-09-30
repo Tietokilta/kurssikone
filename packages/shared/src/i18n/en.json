@@ -183,6 +183,7 @@
     "noTeachingYear": "No teaching ({{year}})",
     "close": "Close",
     "writeReview": "Write a Review",
-    "alreadyReviewed": "Already reviewed"
+    "alreadyReviewed": "Already reviewed",
+    "confirmDiscardReview": "Close without saving your review?"
   }
 }

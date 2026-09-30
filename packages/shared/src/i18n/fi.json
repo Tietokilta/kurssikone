@@ -183,6 +183,7 @@
     "noTeachingYear": "Ei opetusta ({{year}})",
     "close": "Sulje",
     "writeReview": "Kirjoita arvostelu",
-    "alreadyReviewed": "Arvosteltu jo"
+    "alreadyReviewed": "Arvosteltu jo",
+    "confirmDiscardReview": "Suljetaanko tallentamatta arvostelua?"
   }
 }

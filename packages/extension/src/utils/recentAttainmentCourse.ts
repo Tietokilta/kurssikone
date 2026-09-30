@@ -9,7 +9,7 @@ export type CompletedCourse = {
 
 const normalize = (text: string) => text.replace(/\s+/g, ' ').trim()
 
-/** `2026-05-31` → `31.5.2026`, as shown in the "Latest completed credits" widget. */
+/** `2026-05-31` → `31.5.2026` */
 const toSisuUiDate = (isoDate: string): string | null => {
   const match = isoDate.match(/^(\d{4})-(\d{2})-(\d{2})/)
   if (!match) return null
@@ -59,41 +59,30 @@ const getCompletedCourses = (): Promise<CompletedCourse[]> => {
   return completedCoursesPromise
 }
 
-/** Letters and digits only, so punctuation, spacing and casing differences don't break matching. */
-const looseKey = (text: string) => text.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')
+/** Captures the name from `<name>, <credits> <unit>[, <date>]`. */
+const ROW_PATTERN = /^(.+?)\s*,\s*\d+(?:[.,]\d+)?\s*\p{L}+\s*(?:,.*)?$/u
 
 /**
- * Finds the course a widget row refers to. The row text looks like
- * `Programming Parallel Computers D, 5 cr, 31.5.2026` and has no course code, so the course is
- * matched by its name (in any language) being the start of the row, preferring the one completed
- * on the row's date. If no name matches, a course that is the only one completed on that date is used.
+ * Widget rows (`Programming Parallel Computers D, 5 cr, 31.5.2026`) have no course code, so the
+ * course is matched by its exact name, using the row's date to tell apart courses sharing a name.
  */
 export const matchCompletedCourse = (
   courses: CompletedCourse[],
   description: string,
   date: string
 ): { code: string; name: string } | null => {
-  const text = looseKey(description)
+  const rowName = normalize(description).match(ROW_PATTERN)?.[1].toLowerCase()
+  if (!rowName) return null
+
   const candidates = courses.flatMap((course) =>
     course.names
-      .filter((name) => looseKey(name) !== '' && text.startsWith(looseKey(name)))
+      .filter((name) => name.toLowerCase() === rowName)
       .map((name) => ({ code: course.code, name, dateMatches: course.dates.includes(date) }))
   )
-
-  if (candidates.length === 0) {
-    const onDate = courses.filter((course) => course.dates.includes(date))
-    if (new Set(onDate.map((c) => c.code)).size !== 1) return null
-    return { code: onDate[0].code, name: onDate[0].names[0] ?? normalize(description) }
-  }
-
-  const dated = candidates.some((c) => c.dateMatches)
+  const best = candidates.some((c) => c.dateMatches)
     ? candidates.filter((c) => c.dateMatches)
     : candidates
-  // Longest name wins so "Course A" doesn't shadow "Course A, part 2"
-  const longest = Math.max(...dated.map((c) => looseKey(c.name).length))
-  const best = dated.filter((c) => looseKey(c.name).length === longest)
-  // Same name with different codes and nothing to tell them apart: don't guess
-  if (new Set(best.map((c) => c.code)).size > 1) return null
+  if (new Set(best.map((c) => c.code)).size !== 1) return null
   return { code: best[0].code, name: best[0].name }
 }
 
@@ -101,11 +90,7 @@ export const resolveCompletedCourse = async (description: string, date: string) 
   const courses = await getCompletedCourses()
   const match = matchCompletedCourse(courses, description, date)
   if (!match) {
-    console.warn('[KurssiKone] No completed course matched widget row', {
-      description: normalize(description),
-      date,
-      completedCourses: courses.map((c) => ({ code: c.code, names: c.names, dates: c.dates })),
-    })
+    console.warn('[KurssiKone] No completed course matched widget row:', normalize(description))
   }
   return match
 }

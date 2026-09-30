@@ -29,7 +29,7 @@ describe('matchCompletedCourse', () => {
     expect(matchCompletedCourse(courses, 'Programming 1, 5 cr, 2.2.2020', '2.2.2020')).toBeNull()
   })
 
-  it('prefers the longest matching name', () => {
+  it('handles commas in course names', () => {
     expect(
       matchCompletedCourse(courses, 'Training, advanced, 10 cr, 21.5.2026', '21.5.2026')?.code
     ).toBe('ELEC-A2')
@@ -42,16 +42,26 @@ describe('matchCompletedCourse', () => {
     expect(matchCompletedCourse(courses, 'Semantic Web D, 5 cr, 15.4.2026', '15.4.2026')).toBeNull()
   })
 
-  it('ignores punctuation, spacing and casing differences in names', () => {
+  it('ignores spacing and casing differences in names', () => {
     expect(
       matchCompletedCourse(courses, 'programming  parallel computers D , 5 cr', '31.5.2026')?.code
     ).toBe('CS-E4580')
   })
 
-  it('falls back to the only course completed on the row date', () => {
-    expect(matchCompletedCourse(courses, 'Some other title, 5 cr, 31.5.2026', '31.5.2026')?.code).toBe(
-      'CS-E4580'
-    )
-    expect(matchCompletedCourse(courses, 'Some other title, 5 cr, 21.5.2026', '21.5.2026')).toBeNull()
+  it('requires the whole name to match', () => {
+    const similar: CompletedCourse[] = [
+      { code: 'X-1', names: ['Training'], dates: ['21.5.2026'] },
+      { code: 'X-2', names: ['Training 5'], dates: ['21.5.2026'] },
+    ]
+    expect(matchCompletedCourse(similar, 'Training, 5 cr, 21.5.2026', '21.5.2026')?.code).toBe('X-1')
+    expect(matchCompletedCourse(similar, 'Training 50, 5 cr, 21.5.2026', '21.5.2026')).toBeNull()
+  })
+
+  it('does not guess from the date alone', () => {
+    expect(matchCompletedCourse(courses, 'Some other title, 5 cr, 31.5.2026', '31.5.2026')).toBeNull()
+  })
+
+  it('returns null for rows not in the expected format', () => {
+    expect(matchCompletedCourse(courses, 'Programming 1', '7.5.2026')).toBeNull()
   })
 })
