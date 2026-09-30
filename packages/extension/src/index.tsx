@@ -149,14 +149,42 @@ const handleRecentAttainments = async (container: HTMLElement) => {
         setTimeout(() => rowObserver.disconnect(), 30_000)
       })
 
-    const shadowHost = document.createElement('div')
-    shadowHost.setAttribute('class', 'kurssikone-shadow-host kurssikone-review-btn')
-    // Placed right after the row's last line of text (the grade)
-    shadowHost.style.cssText = 'display: inline-block; vertical-align: baseline;'
     const descriptionElements = item.querySelectorAll('p.app-attainment-info__description')
     const lastDescriptionElement = descriptionElements[descriptionElements.length - 1]
     if (!lastDescriptionElement) return
-    lastDescriptionElement.append(shadowHost)
+
+    // The row is a Sisu <button>, and a button nested in a button doesn't reliably get clicks.
+    // So an invisible placeholder reserves the spot right after the row's last line of text
+    // (the grade), and the real button is laid over it from outside Sisu's button.
+    const placeholder = document.createElement('span')
+    placeholder.style.cssText = 'display: inline-block; vertical-align: middle;'
+    lastDescriptionElement.append(placeholder)
+
+    const rowButton = lastDescriptionElement.closest('button, a, [role="button"]')
+    const overlayParent = (rowButton?.parentElement ?? li) as HTMLElement
+    if (getComputedStyle(overlayParent).position === 'static') {
+      overlayParent.style.position = 'relative'
+    }
+    const shadowHost = document.createElement('div')
+    shadowHost.setAttribute('class', 'kurssikone-shadow-host kurssikone-review-btn')
+    // max-content: otherwise the width shrinks to the space left of the row's right edge
+    shadowHost.style.cssText =
+      'position: absolute; z-index: 1; width: max-content; white-space: nowrap;'
+    overlayParent.append(shadowHost)
+
+    const syncPosition = () => {
+      const hostRect = shadowHost.getBoundingClientRect()
+      placeholder.style.width = `${hostRect.width}px`
+      placeholder.style.height = `${hostRect.height}px`
+      const placeholderRect = placeholder.getBoundingClientRect()
+      const parentRect = overlayParent.getBoundingClientRect()
+      shadowHost.style.left = `${placeholderRect.left - parentRect.left - overlayParent.clientLeft}px`
+      shadowHost.style.top = `${placeholderRect.top - parentRect.top - overlayParent.clientTop}px`
+    }
+    const resizeObserver = new ResizeObserver(syncPosition)
+    resizeObserver.observe(shadowHost)
+    resizeObserver.observe(overlayParent)
+    resizeObserver.observe(placeholder)
 
     const shadow = createShadowRoot(shadowHost)
     const reactRoot = document.createElement('div')

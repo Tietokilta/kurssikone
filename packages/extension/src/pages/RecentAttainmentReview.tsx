@@ -178,7 +178,7 @@ const RecentAttainmentReview = ({ waitForRow, modalContainer }: Props) => {
   if (!course) return null
 
   return (
-    // The button sits inside Sisu's row button, so clicks must not reach it
+    // The button is laid over Sisu's clickable row, so clicks must not reach it
     <div className="ml-2" onClick={(e) => e.stopPropagation()}>
       <button
         className={`${hasReview ? 'btn-secondary opacity-70' : 'btn-primary'} inline-flex items-center gap-1 px-2 py-0.5 text-xs`}
