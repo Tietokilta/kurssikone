@@ -132,7 +132,7 @@ const CoursePageContent = ({
           )
         ))}
 
-      <dl className="flex flex-col gap-4">
+      <dl className={`flex flex-col gap-4${reviewCount > 0 ? ' pb-36' : ''}`}>
         {userReview && (
           <ReviewItem
             review={userReview}
