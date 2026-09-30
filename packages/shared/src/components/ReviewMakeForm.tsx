@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import FormTextField from './FormTextField'
 import ScorePicker from './ScorePicker'
@@ -29,6 +29,7 @@ const ReviewMakeForm = ({
 }: Props) => {
   const { t } = useTranslation()
   const isEditingOldReview = currentUserReview !== null
+  const [hasError, setHasError] = useState(false)
 
   const makeReview = async (e: React.SyntheticEvent) => {
     e.preventDefault()
@@ -67,7 +68,14 @@ const ReviewMakeForm = ({
     if (isEditingOldReview) {
       newReview.timestampLastEdit = timeStamp
     }
-    await makeOrEditReview(newReview)
+    try {
+      await makeOrEditReview(newReview)
+    } catch (error) {
+      // Keep the form open so the written review isn't lost
+      console.error('Failed to save review:', error)
+      setHasError(true)
+      return
+    }
     await refetchUserReview(courseCode, userId)
     await refetchAverages(courseCode)
     setIsMakingNewReview(false)
@@ -76,7 +84,13 @@ const ReviewMakeForm = ({
   const handleDelete = async () => {
     if (!currentUserReview || !courseCode) return
     if (window.confirm(t('shared.confirmDeleteReview'))) {
-      await deleteReview(currentUserReview.id, userId)
+      try {
+        await deleteReview(currentUserReview.id, userId)
+      } catch (error) {
+        console.error('Failed to delete review:', error)
+        setHasError(true)
+        return
+      }
       await refetchUserReview(courseCode, userId)
       await refetchAverages(courseCode)
       setIsMakingNewReview(false)
@@ -174,6 +188,7 @@ const ReviewMakeForm = ({
               {t('shared.deleteReview')}
             </button>
           )}
+          {hasError && <p className="mt-2 text-red-600">{t('shared.genericError')}</p>}
         </div>
       </form>
       <Divider />

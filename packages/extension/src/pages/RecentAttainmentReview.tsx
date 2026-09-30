@@ -155,8 +155,12 @@ const RecentAttainmentReview = ({ waitForRow, modalContainer }: Props) => {
         getUserIdFromStorage(),
       ])
       if (!resolved) return
+      // A failed lookup shouldn't hide the button, so it falls back to "Write a Review"
       const reviewed = userId
-        ? (await getUserReviewForCourse(resolved.code, userId)) !== null
+        ? await getUserReviewForCourse(resolved.code, userId).then(
+            (review) => review !== null,
+            () => false
+          )
         : false
       if (cancelled) return
       setHasReview(reviewed)

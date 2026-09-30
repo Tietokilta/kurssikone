@@ -17,20 +17,28 @@ import type {
   SisuStudyYearsResponse,
 } from './utils/types'
 
+/** The background script answers failed backend requests with `{ error }`. */
+const throwIfFailed = (res: { [key: string]: any } | null | undefined, method: string) => {
+  if (res?.error) {
+    throw new Error(`${method} request failed: ${res.error}`)
+  }
+}
+
 const get = async (
   pathParts: string[],
   query: { [key: string]: string | undefined | null } = {}
 ) => {
   const res = await chrome.runtime.sendMessage({ type: 'get', pathParts, query })
+  throwIfFailed(res, 'GET')
   return res as { [key: string]: any } | null
 }
 
 const post = async (pathParts: string[], body: { [key: string]: any }) => {
-  await chrome.runtime.sendMessage({ type: 'post', pathParts, body })
+  throwIfFailed(await chrome.runtime.sendMessage({ type: 'post', pathParts, body }), 'POST')
 }
 
 const del = async (pathParts: string[], body: { [key: string]: any }) => {
-  await chrome.runtime.sendMessage({ type: 'delete', pathParts, body })
+  throwIfFailed(await chrome.runtime.sendMessage({ type: 'delete', pathParts, body }), 'DELETE')
 }
 
 export type FetchStudyPlansResult =
