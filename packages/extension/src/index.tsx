@@ -5,6 +5,7 @@ import i18n from './i18n'
 import CoursePage from './pages/CoursePage'
 import ExamsPage from './pages/ExamsPage'
 import SearchResultPage from './pages/SearchResultPage'
+import RecentAttainmentReview from './pages/RecentAttainmentReview'
 import { waitForElement } from './utils/waitForElement'
 import TimelinePage from './pages/TimelinePage'
 
@@ -45,6 +46,15 @@ let observer = new MutationObserver((mutations) => {
       const isSearchResult = cy === 'student-courseunit-search-resultrow'
 
       const isTimelinePage = node.nodeName === 'APP-TIMELINE'
+
+      // The widget may also arrive nested inside a larger added subtree
+      const recentAttainments =
+        node.nodeName === 'APP-RECENT-ATTAINMENTS'
+          ? (node as HTMLElement)
+          : node instanceof Element
+            ? node.querySelector<HTMLElement>('app-recent-attainments')
+            : null
+      if (recentAttainments) handleRecentAttainments(recentAttainments)
 
       if ((isModal || isAppCourseUnitInfo) && once) {
         once = false
@@ -100,6 +110,93 @@ const handleSearchResult = (node: Node) => {
   const courseCode = searchResultBody.querySelector('.courseunit-code')?.textContent || ''
   const root = ReactDOM.createRoot(reactRoot)
   root.render(<SearchResultPage courseCode={courseCode} />)
+}
+
+let reviewModalContainer: HTMLElement | null = null
+
+// Modals are rendered into a host on <body> so Sisu's layout can't clip or offset them
+const getReviewModalContainer = (): HTMLElement => {
+  if (reviewModalContainer?.isConnected) return reviewModalContainer
+  const shadowHost = document.createElement('div')
+  shadowHost.setAttribute('class', 'kurssikone-shadow-host')
+  document.body.append(shadowHost)
+  reviewModalContainer = document.createElement('div')
+  createShadowRoot(shadowHost).appendChild(reviewModalContainer)
+  return reviewModalContainer
+}
+
+const handleRecentAttainments = async (container: HTMLElement) => {
+  await waitForElement('app-attainment-info', container)
+  const attainmentItems = container.querySelectorAll('app-attainment-info')
+  attainmentItems.forEach((item) => {
+    const li = item.closest('li')
+    if (!li || li.querySelector('.kurssikone-review-btn')) return
+    const getRow = () => ({
+      description: item.querySelector('.app-attainment-info__description')?.textContent ?? '',
+      date: item.querySelector('.app-attainment-info__description__date')?.textContent?.trim() ?? '',
+    })
+    // Sisu fills in the course name after the row is added; until then the text starts with ", 5 cr"
+    const hasCourseName = () => !/^\s*(,|$)/.test(getRow().description)
+    const waitForRow = () =>
+      new Promise<ReturnType<typeof getRow>>((resolve) => {
+        if (hasCourseName()) return resolve(getRow())
+        const rowObserver = new MutationObserver(() => {
+          if (!hasCourseName()) return
+          rowObserver.disconnect()
+          resolve(getRow())
+        })
+        rowObserver.observe(item, { childList: true, subtree: true, characterData: true })
+        setTimeout(() => rowObserver.disconnect(), 30_000)
+      })
+
+    const descriptionElements = item.querySelectorAll('p.app-attainment-info__description')
+    const lastDescriptionElement = descriptionElements[descriptionElements.length - 1]
+    if (!lastDescriptionElement) return
+
+    // The row is a Sisu <button>, and a button nested in a button doesn't reliably get clicks.
+    // So an invisible placeholder reserves the spot right after the row's last line of text
+    // (the grade), and the real button is laid over it from outside Sisu's button.
+    const placeholder = document.createElement('span')
+    placeholder.style.cssText = 'display: inline-block; vertical-align: middle;'
+    lastDescriptionElement.append(placeholder)
+
+    const rowButton = lastDescriptionElement.closest('button, a, [role="button"]')
+    const overlayParent = (rowButton?.parentElement ?? li) as HTMLElement
+    if (getComputedStyle(overlayParent).position === 'static') {
+      overlayParent.style.position = 'relative'
+    }
+    const shadowHost = document.createElement('div')
+    shadowHost.setAttribute('class', 'kurssikone-shadow-host kurssikone-review-btn')
+    // max-content: otherwise the width shrinks to the space left of the row's right edge
+    shadowHost.style.cssText =
+      'position: absolute; z-index: 1; width: max-content; white-space: nowrap;'
+    overlayParent.append(shadowHost)
+
+    const syncPosition = () => {
+      const hostRect = shadowHost.getBoundingClientRect()
+      placeholder.style.width = `${hostRect.width}px`
+      placeholder.style.height = `${hostRect.height}px`
+      const placeholderRect = placeholder.getBoundingClientRect()
+      const parentRect = overlayParent.getBoundingClientRect()
+      shadowHost.style.left = `${placeholderRect.left - parentRect.left - overlayParent.clientLeft}px`
+      shadowHost.style.top = `${placeholderRect.top - parentRect.top - overlayParent.clientTop}px`
+    }
+    const resizeObserver = new ResizeObserver(syncPosition)
+    resizeObserver.observe(shadowHost)
+    resizeObserver.observe(overlayParent)
+    resizeObserver.observe(placeholder)
+
+    const shadow = createShadowRoot(shadowHost)
+    const reactRoot = document.createElement('div')
+    shadow.appendChild(reactRoot)
+
+    ReactDOM.createRoot(reactRoot).render(
+      <RecentAttainmentReview
+        waitForRow={waitForRow}
+        modalContainer={getReviewModalContainer()}
+      />
+    )
+  })
 }
 
 const findModalContainer = (node: HTMLElement): HTMLElement => {
@@ -267,3 +364,7 @@ observer.observe(document.body, {
   attributes: false,
   characterData: false,
 })
+
+// The widget may already be in the DOM before the observer starts
+const existingAttainments = document.querySelector<HTMLElement>('app-recent-attainments')
+if (existingAttainments) handleRecentAttainments(existingAttainments)

@@ -46,16 +46,16 @@ class ErrorBoundary extends Component<
   }
 }
 
-const getUserIdFromStorage = async (): Promise<string | null> => {
+export const getUserIdFromStorage = async (): Promise<string | null> => {
   const result = await chrome.storage.sync.get('userId')
   return result.userId ?? null
 }
 
-const setUserIdInStorageFunc = async (id: string): Promise<void> => {
+export const setUserIdInStorageFunc = async (id: string): Promise<void> => {
   await chrome.storage.sync.set({ userId: id })
 }
 
-const getAnonymousReactorId = async (): Promise<string> => {
+export const getAnonymousReactorId = async (): Promise<string> => {
   const result = await chrome.storage.sync.get('anonymousReactorId')
   if (result.anonymousReactorId) {
     return result.anonymousReactorId

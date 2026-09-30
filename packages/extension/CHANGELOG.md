@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - "Copied to clipboard!" confirmation when copying a new user ID
 - Adding reactions on reviews
+- "Write a Review" buttons in the "Latest completed credits" widget on the Sisu front page
 
 ### Changed
 
 - Reviews are now sorted better
+- Failed requests now show an error instead of silently discarding a written review
+- Creating an account or switching to an existing user ID now shows an error if the request fails
 
 ## [3.3.0] - 2026-08-31
 

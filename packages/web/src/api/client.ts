@@ -63,25 +63,31 @@ const get = async (
 const post = async (pathParts: string[], body: { [key: string]: unknown }) => {
   const url = `${host}/${pathParts.join('/')}`
 
-  await fetch(url, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
   })
+  if (!response.ok) {
+    throw new Error(`POST request failed with status ${response.status}`)
+  }
 }
 
 const del = async (pathParts: string[], body: { [key: string]: unknown }) => {
   const url = `${host}/${pathParts.join('/')}`
 
-  await fetch(url, {
+  const response = await fetch(url, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(body),
   })
+  if (!response.ok) {
+    throw new Error(`DELETE request failed with status ${response.status}`)
+  }
 }
 
 export const getReviewsForCourseExcludingUserReview = async (

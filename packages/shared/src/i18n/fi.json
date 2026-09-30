@@ -180,6 +180,10 @@
     "seasonFall": "Syksy",
     "seasonSpring": "Kevät",
     "seasonSummer": "Kesä",
-    "noTeachingYear": "Ei opetusta ({{year}})"
+    "noTeachingYear": "Ei opetusta ({{year}})",
+    "close": "Sulje",
+    "writeReview": "Kirjoita arvostelu",
+    "alreadyReviewed": "Arvosteltu jo",
+    "confirmDiscardReview": "Suljetaanko tallentamatta arvostelua?"
   }
 }

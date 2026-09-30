@@ -52,6 +52,10 @@ const get = async (
     return null
   }
 
+  if (!response.ok) {
+    return { error: response.status }
+  }
+
   return await response.json()
 }
 
@@ -90,13 +94,19 @@ const del = async (pathParts: string[], body: { [key: string]: any }) => {
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'get') {
-    get(request.pathParts, request.query).then((res) => sendResponse(res))
+    get(request.pathParts, request.query)
+      .catch(() => ({ error: 'request_failed' }))
+      .then((res) => sendResponse(res))
   }
   if (request.type === 'post') {
-    post(request.pathParts, request.body).then((res) => sendResponse(res))
+    post(request.pathParts, request.body)
+      .catch(() => ({ error: 'request_failed' }))
+      .then((res) => sendResponse(res))
   }
   if (request.type === 'delete') {
-    del(request.pathParts, request.body).then((res) => sendResponse(res))
+    del(request.pathParts, request.body)
+      .catch(() => ({ error: 'request_failed' }))
+      .then((res) => sendResponse(res))
   }
   if (request.type === 'fetchStudyPlans') {
     dedupeSisuFetch('sisu:my-plans', fetchStudyPlansFromSisu).then((res) => sendResponse(res))

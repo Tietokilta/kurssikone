@@ -26,9 +26,20 @@ const NewAccountNotification = ({
   const [copied, setCopied] = useState(false)
 
   const handleSettingNewUserId = async () => {
-    await makeUser(generatedUserId)
-    await setUserId(generatedUserId)
-    await updateLocalState()
+    try {
+      try {
+        await makeUser(generatedUserId)
+      } catch (makeUserError) {
+        // An earlier attempt may have registered the ID without it being saved locally
+        const existing = await getUser(generatedUserId).catch(() => null)
+        if (!existing) throw makeUserError
+      }
+      await setUserId(generatedUserId)
+      await updateLocalState()
+    } catch (e) {
+      console.error('Failed to create user:', e)
+      setError(t('shared.genericError'))
+    }
   }
 
   const handleSettingPreviousUserId = async () => {
@@ -37,16 +48,21 @@ const NewAccountNotification = ({
       return
     }
 
-    const res = await getUser(previousUserId)
+    try {
+      const res = await getUser(previousUserId)
 
-    if (!res || !previousUserId) {
-      setError(t('shared.userIdNotFound'))
-      return
+      if (!res || !previousUserId) {
+        setError(t('shared.userIdNotFound'))
+        return
+      }
+
+      await setUserId(previousUserId)
+      await updateLocalState()
+      setIsMakingNewReview(false)
+    } catch (e) {
+      console.error('Failed to switch user:', e)
+      setError(t('shared.genericError'))
     }
-
-    await setUserId(previousUserId)
-    await updateLocalState()
-    setIsMakingNewReview(false)
   }
 
   return (
@@ -74,8 +90,19 @@ const NewAccountNotification = ({
           <p>
             <b>{t('shared.saveIdWarning')}</b> {t('shared.saveIdDetail')}
           </p>
+          {error && (
+            <p>
+              <b className="text-red-600">{error}</b>
+            </p>
+          )}
           <div className="my-2 flex gap-2">
-            <button className="btn-secondary" onClick={() => setView('existing')}>
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                setView('existing')
+                setError(null)
+              }}
+            >
               {t('shared.alreadyHaveId')}
             </button>
             <button className="btn-primary" onClick={handleSettingNewUserId}>
