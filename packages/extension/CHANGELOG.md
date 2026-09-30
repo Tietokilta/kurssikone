@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Reviews are now sorted better
 - Failed requests now show an error instead of silently discarding a written review
+- Creating an account or switching to an existing user ID now shows an error if the request fails
 
 ## [3.3.0] - 2026-08-31
 
