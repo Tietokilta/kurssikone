@@ -31,8 +31,17 @@ function realisationCoversMonth(startMonth: number, endMonth: number, month: num
 
 type YearPeriods = { yearLabel: string; sortKey: number; periods: string[] }
 
-function getPeriodsGroupedByYear(realisations: CourseRealisation[]): YearPeriods[] {
+// Sisu realisation names end with the type, e.g. "Course name, Exam" / "Kurssin nimi, Tentti"
+function isExamRealisation(r: CourseRealisation): boolean {
+  return /,\s*Exam\b/i.test(r.nameEn ?? '') || /,[^,]*tentti/i.test(r.nameFi ?? '')
+}
+
+function getPeriodsGroupedByYear(allRealisations: CourseRealisation[]): YearPeriods[] {
   const grouped = new Map<string, { sortKey: number; periods: Set<string> }>()
+
+  // Exams don't define teaching periods, unless the course only has exams (e.g. exam-only courses)
+  const nonExam = allRealisations.filter((r) => !isExamRealisation(r))
+  const realisations = nonExam.length > 0 ? nonExam : allRealisations
 
   for (const r of realisations) {
     if (!r.startDate || !r.endDate) continue

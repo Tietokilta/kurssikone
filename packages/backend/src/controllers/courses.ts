@@ -117,14 +117,20 @@ function buildRealisationFilterSubquery(
 
   const parts: string[] = []
 
-  const retakeFilter = `cr.name_en NOT ILIKE '%Retake%'`
+  // Exams don't define teaching periods, unless the course only has exam realisations
+  const isExam = (alias: string) => `COALESCE(${alias}.name_en ~* ',\\s*Exam\\M', false)`
+  const realisationFilter = `cr.name_en NOT ILIKE '%Retake%'
+    AND (NOT ${isExam('cr')} OR NOT EXISTS (
+      SELECT 1 FROM course_realisations other
+      WHERE other.code = cr.code AND NOT ${isExam('other')}
+    ))`
 
   if (conditions.length > 0) {
     parts.push(`EXISTS (
     SELECT 1 FROM course_realisations cr
     WHERE cr.code = "course".code
     AND cr.start_date IS NOT NULL
-    AND ${retakeFilter}
+    AND ${realisationFilter}
     AND ${conditions.join(' AND ')}
   )`)
   }
@@ -135,7 +141,7 @@ function buildRealisationFilterSubquery(
     SELECT 1 FROM course_realisations cr
     WHERE cr.code = "course".code
     AND cr.start_date IS NOT NULL
-    AND ${retakeFilter}
+    AND ${realisationFilter}
     AND (${excludeClauses.join(' OR ')})
   )`)
   }
