@@ -1,6 +1,17 @@
+import { useEffect, useState, type MouseEvent } from 'react'
 import DOMPurify from 'dompurify'
 import { useTranslation } from 'react-i18next'
-import { CourseWithRealisations, CourseRealisation, translateLevel, formatCredits } from '@kurssikone/shared'
+import { useNavigate } from 'react-router-dom'
+import {
+  Course,
+  CourseWithRealisations,
+  CourseRealisation,
+  translateLevel,
+  formatCredits,
+  COURSE_CODE_REGEX,
+  findCourseCodes,
+} from '@kurssikone/shared'
+import { getCoursesByCodes } from '../api/client'
 
 type Props = {
   course: CourseWithRealisations
@@ -102,8 +113,50 @@ function formatPeriodRange(periods: string[]): string {
   return ranges.join(', ')
 }
 
+const sanitize = (html: string) => DOMPurify.sanitize(html)
+
+// Turns course codes in the text of the (sanitized) HTML into links to the courses' pages.
+// `courseNames` holds the codes that exist in the database, mapped to their names.
+function linkifyCourseCodes(html: string, courseNames: Map<string, string>): string {
+  const container = document.createElement('div')
+  container.innerHTML = sanitize(html)
+  if (courseNames.size === 0) return container.innerHTML
+
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+  const textNodes: Text[] = []
+  while (walker.nextNode()) {
+    const node = walker.currentNode as Text
+    if (!node.parentElement?.closest('a')) textNodes.push(node)
+  }
+
+  for (const node of textNodes) {
+    const text = node.data
+    const fragment = document.createDocumentFragment()
+    let lastIndex = 0
+    for (const match of text.matchAll(COURSE_CODE_REGEX)) {
+      const code = courseNames.has(match[0]) ? match[0] : match[0].replace(/\.$/, '')
+      if (!courseNames.has(code)) continue
+      fragment.append(text.slice(lastIndex, match.index))
+      const link = document.createElement('a')
+      link.href = `/course/${encodeURIComponent(code)}`
+      link.dataset.courseCode = code
+      link.title = courseNames.get(code) ?? ''
+      link.className = 'text-blue-600 hover:underline'
+      link.textContent = code
+      fragment.append(link)
+      lastIndex = match.index + code.length
+    }
+    if (lastIndex === 0) continue
+    fragment.append(text.slice(lastIndex))
+    node.replaceWith(fragment)
+  }
+
+  return container.innerHTML
+}
+
 const CourseInfo = ({ course }: Props) => {
   const { t, i18n } = useTranslation()
+  const navigate = useNavigate()
   const isFi = i18n.language === 'fi'
   const latestRealisation = getLatestRealisation(course.courseRealisations)
 
@@ -136,7 +189,49 @@ const CourseInfo = ({ course }: Props) => {
   const gradingScale = latestRealisation?.gradingScale
   const sisuUrl = `https://sisu.aalto.fi/student/courseunit/${course.id}/brochure`
 
-  const sanitize = (html: string) => DOMPurify.sanitize(html)
+  // Only codes of courses that exist in the database are linked
+  const [prerequisiteCourses, setPrerequisiteCourses] = useState<Map<string, Course>>(new Map())
+  // Keyed by the codes rather than the text, so switching language doesn't refetch the same courses
+  const prerequisiteCodesKey = prerequisites
+    ? findCourseCodes(prerequisites)
+        .filter((code) => code !== course.code)
+        .sort()
+        .join(',')
+    : ''
+
+  useEffect(() => {
+    if (!prerequisiteCodesKey) {
+      setPrerequisiteCourses(new Map())
+      return
+    }
+    let cancelled = false
+    getCoursesByCodes(prerequisiteCodesKey.split(','))
+      .then((courses) => {
+        if (cancelled) return
+        // Courses are ordered newest first, so keep the first one seen for each code
+        const byCode = new Map<string, Course>()
+        for (const c of courses) {
+          if (!byCode.has(c.code)) byCode.set(c.code, c)
+        }
+        setPrerequisiteCourses(byCode)
+      })
+      .catch((error) => console.error('Failed to fetch prerequisite courses:', error))
+    return () => {
+      cancelled = true
+    }
+  }, [prerequisiteCodesKey])
+
+  const prerequisiteCourseNames = new Map(
+    [...prerequisiteCourses].map(([code, c]) => [code, (isFi ? c.nameFi || c.nameEn : c.nameEn || c.nameFi) ?? '']),
+  )
+
+  // Navigate client-side, but let modified clicks (e.g. open in new tab) through
+  const handleCourseLinkClick = (e: MouseEvent<HTMLDivElement>) => {
+    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[data-course-code]')
+    if (!link || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    e.preventDefault()
+    navigate(`/course/${encodeURIComponent(link.dataset.courseCode!)}`)
+  }
 
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
@@ -184,7 +279,8 @@ const CourseInfo = ({ course }: Props) => {
           <h3 className="text-sm font-medium text-gray-700 mb-1">{t('web.prerequisites')}</h3>
           <div
             className="text-gray-600 text-sm course-html-content"
-            dangerouslySetInnerHTML={{ __html: sanitize(prerequisites) }}
+            onClick={handleCourseLinkClick}
+            dangerouslySetInnerHTML={{ __html: linkifyCourseCodes(prerequisites, prerequisiteCourseNames) }}
           />
         </div>
       )}

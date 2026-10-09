@@ -224,6 +224,17 @@ export const getCoursesByIds = async (ids: string[]): Promise<Course[]> => {
   return result.courses.map((c) => normalizeCourseRecord(c as unknown as Record<string, unknown>))
 }
 
+export const getCoursesByCodes = async (codes: string[]): Promise<Course[]> => {
+  const unique = [...new Set(codes.filter(Boolean))]
+  if (unique.length === 0) return []
+
+  const result = (await get(['courses'], {
+    codes: unique.join(','),
+  })) as CoursesByIdsResponse | null
+  if (!result?.courses) return []
+  return result.courses.map((c) => normalizeCourseRecord(c as unknown as Record<string, unknown>))
+}
+
 export const getCourseByCode = async (code: string): Promise<CourseWithRealisations[] | null> => {
   const rows = (await get(['courses', code])) as CourseWithRealisations[] | null
   if (!rows) return null

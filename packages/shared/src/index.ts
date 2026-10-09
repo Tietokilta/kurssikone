@@ -29,3 +29,6 @@ export * from './constants'
 
 // i18n
 export { i18nResources } from './i18n'
+
+// Utils
+export { COURSE_CODE_REGEX, findCourseCodes } from './utils/courseCodes'

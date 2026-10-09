@@ -59,12 +59,12 @@ function parseIdsQuery(raw: unknown): string[] {
   return [...new Set(trimmed)].slice(0, MAX_IDS_PER_REQUEST)
 }
 
-function parseIdsFromRequestUrl(req: express.Request): string[] | null {
+function parseIdsFromRequestUrl(req: express.Request, param = 'ids'): string[] | null {
   const q = req.originalUrl.indexOf('?')
   if (q === -1) return null
   const sp = new URLSearchParams(req.originalUrl.slice(q + 1))
-  if (!sp.has('ids')) return null
-  const chunks = sp.getAll('ids').flatMap((s) => s.split(','))
+  if (!sp.has(param)) return null
+  const chunks = sp.getAll(param).flatMap((s) => s.split(','))
   return parseIdsQuery(chunks)
 }
 
@@ -199,6 +199,20 @@ router.get('/', async (req, res) => {
 
     const courses = await Course.findAll({
       where: { id: { [Op.in]: idsFromUrl } },
+    })
+    return res.json({ courses })
+  }
+
+  const codesFromUrl = parseIdsFromRequestUrl(req, 'codes')
+
+  if (codesFromUrl !== null) {
+    if (codesFromUrl.length === 0) {
+      return res.json({ courses: [] })
+    }
+
+    const courses = await Course.findAll({
+      where: { code: { [Op.in]: codesFromUrl } },
+      order: [literal('validity_start DESC NULLS LAST')],
     })
     return res.json({ courses })
   }
