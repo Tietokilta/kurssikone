@@ -250,6 +250,7 @@ const HomePage = () => {
               <option value="workload">{t('web.sortWorkload')}</option>
               <option value="alphabetical">{t('web.sortCourseCode')}</option>
               <option value="credits">{t('web.sortCredits')}</option>
+              <option value="reviews">{t('web.sortReviews')}</option>
             </select>
           </label>
           <label className="flex flex-col text-sm text-gray-600 gap-1">

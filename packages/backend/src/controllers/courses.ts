@@ -6,7 +6,7 @@ import { PERIOD_MONTH_DEFS, VALID_PERIODS } from '../utils/periods'
 
 const router = express.Router()
 
-const SORT_BY_VALUES = ['alphabetical', 'best', 'credits', 'quality', 'workload'] as const
+const SORT_BY_VALUES = ['alphabetical', 'best', 'credits', 'quality', 'workload', 'reviews'] as const
 type SortBy = (typeof SORT_BY_VALUES)[number]
 
 const SORT_ORDER_VALUES = ['asc', 'desc'] as const
@@ -36,6 +36,8 @@ function buildCourseListOrder(sortBy: SortBy, sortOrder: SortOrder): OrderItem[]
       return [literal(`avg_quality_score ${dir} NULLS LAST, code ASC`)]
     case 'workload':
       return [literal(`avg_workload_score ${dir} NULLS LAST, code ASC`)]
+    case 'reviews':
+      return [literal(`review_count ${dir}, code ASC`)]
     case 'credits':
       return [literal(`COALESCE(credits_max, credits_min) ${dir} NULLS LAST, code ASC`)]
     default:

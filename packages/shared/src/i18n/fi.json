@@ -79,6 +79,7 @@
     "sortWorkload": "Työmäärä",
     "sortCourseCode": "Kurssikoodi",
     "sortCredits": "Opintopisteet",
+    "sortReviews": "Arvostelut",
     "order": "Järjestys",
     "loadingCourses": "Ladataan kursseja...",
     "noCoursesFound": "Hakuasi vastaavia kursseja ei löytynyt.",
