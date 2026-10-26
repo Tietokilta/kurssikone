@@ -61,7 +61,7 @@ Express.js API server with PostgreSQL database using Sequelize ORM.
 ```bash
 cd packages/backend
 cp .env.example .env  # Edit with your settings
-docker-compose up
+docker compose up
 ```
 
 **Development without Docker:**
